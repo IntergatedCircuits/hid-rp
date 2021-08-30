@@ -187,7 +187,13 @@ namespace hid
                 static_assert(SIZE > 0);
             }
 
-        private:
+            // non-copyable
+            item(const item&) = delete;
+            item& operator=(const item&) = delete;
+            // non-movable
+            item(const item&&) = delete;
+            item& operator=(const item&&) = delete;
+
             byte_type prefix_;
         };
     }
