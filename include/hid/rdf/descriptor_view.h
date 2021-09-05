@@ -19,7 +19,7 @@ namespace hid
 {
     namespace rdf
     {
-        class descriptor_view
+        class reinterpret_iterator
         {
         public:
             using value_type      = item;
@@ -28,112 +28,180 @@ namespace hid
             using pointer         = const value_type*;
             using reference       = const value_type&;
 
-            constexpr descriptor_view()
-                : _begin(nullptr), _end(nullptr)
-            {
-            }
-            constexpr descriptor_view(const byte_type *data, std::size_t size)
-                : _begin((pointer)data), _end((pointer)(data + size))
-            {
-            }
-            template<const std::size_t SIZE>
-            constexpr descriptor_view(const std::array<byte_type, SIZE>& arr)
-                : _begin((pointer)arr.data()), _end((pointer)(arr.data() + arr.size()))
-            {
-            }
-            template <typename TIterator>
-            constexpr descriptor_view(const TIterator begin, const TIterator end)
-                : _begin(std::addressof(*begin)),
-                _end(std::addressof(*begin) + std::distance(begin, end))
-            {
-            }
+            using iterator_category = std::forward_iterator_tag;
 
-            class iterator
+            reinterpret_iterator(const byte_type* data)
+                : ptr_(reinterpret_cast<pointer>(data))
             {
-            public:
-                using iterator_category = std::forward_iterator_tag;
-
-                constexpr iterator(pointer ptr)
-                    : _ptr(ptr)
-                {
-                }
-                constexpr iterator(const iterator& other)
-                    : _ptr(other._ptr)
-                {
-                }
-                constexpr iterator& operator =(const iterator& other)
-                {
-                    _ptr = other._ptr;
-                    return *this;
-                }
-                constexpr iterator operator++()
-                {
-                    iterator i = *this;
-                    _ptr += i->size();
-                    return i;
-                }
-                constexpr iterator operator++(int)
-                {
-                    iterator retval = *this;
-                    ++(*this);
-                    return retval;
-                }
-                constexpr reference operator*()
-                {
-                    return *_ptr;
-                }
-                constexpr pointer operator->()
-                {
-                    return _ptr;
-                }
-                constexpr bool operator==(const iterator& rhs) const
-                {
-                    return _ptr == rhs._ptr;
-                }
-                constexpr bool operator!=(const iterator& rhs) const
-                {
-                    return _ptr != rhs._ptr;
-                }
-
-            private:
-                pointer _ptr;
-            };
-
-            using const_iterator = const iterator;
-
-            pointer data()
-            {
-                return _begin;
             }
-            const_pointer data() const
+            constexpr reinterpret_iterator(pointer ptr)
+                : ptr_(ptr)
             {
-                return _begin;
             }
-            std::size_t size() const
+            constexpr reinterpret_iterator operator++()
             {
-                return std::distance(_begin, _end);
+                reinterpret_iterator i = *this;
+                ptr_ += i->size();
+                return i;
             }
-            iterator begin()
+            constexpr reinterpret_iterator operator++(int)
             {
-                return _begin;
+                reinterpret_iterator retval = *this;
+                ++(*this);
+                return retval;
             }
-            const_iterator begin() const
+            constexpr reference operator*()
             {
-                return _begin;
+                return *ptr_;
             }
-            iterator end()
+            constexpr pointer operator->()
             {
-                return _end;
+                return ptr_;
             }
-            const_iterator end() const
+            constexpr bool operator==(const reinterpret_iterator& rhs) const
             {
-                return _end;
+                return ptr_ == rhs.ptr_;
+            }
+            constexpr bool operator!=(const reinterpret_iterator& rhs) const
+            {
+                return ptr_ != rhs.ptr_;
             }
 
         private:
-            pointer _begin;
-            pointer _end;
+            pointer ptr_;
         };
+
+        class copy_iterator
+        {
+        public:
+            using value_type      = item;
+            using const_pointer   = const value_type*;
+            using const_reference = const value_type&;
+            using pointer         = const value_type*;
+            using reference       = const value_type&;
+
+            using iterator_category = std::forward_iterator_tag;
+
+            constexpr copy_iterator(const byte_type* data)
+                : ptr_(data)
+            {
+            }
+            copy_iterator(pointer ptr)
+                : ptr_(reinterpret_cast<decltype(ptr_)>(ptr))
+            {
+            }
+            constexpr copy_iterator operator++()
+            {
+                copy_iterator i = *this;
+                ptr_ += i->size();
+                return i;
+            }
+            constexpr copy_iterator operator++(int)
+            {
+                copy_iterator retval = *this;
+                ++(*this);
+                return retval;
+            }
+            constexpr reference operator*()
+            {
+                return copy();
+            }
+            constexpr pointer operator->()
+            {
+                return &copy();
+            }
+            constexpr bool operator==(const copy_iterator& rhs) const
+            {
+                return ptr_ == rhs.ptr_;
+            }
+            constexpr bool operator!=(const copy_iterator& rhs) const
+            {
+                return ptr_ != rhs.ptr_;
+            }
+
+        private:
+            constexpr reference copy()
+            {
+                copy_ = decltype(copy_)(ptr_);
+                return copy_;
+            }
+            const byte_type *ptr_;
+            short_item_buffer copy_;
+        };
+
+        template<typename TIterator>
+        class descriptor_view_base
+        {
+        public:
+            using value_type      = item;
+            using const_pointer   = const value_type*;
+            using const_reference = const value_type&;
+            using pointer         = const value_type*;
+            using reference       = const value_type&;
+            using iterator        = TIterator;
+            using const_iterator  = const iterator;
+
+            constexpr descriptor_view_base()
+                : begin_(nullptr), end_(nullptr)
+            {
+            }
+            constexpr descriptor_view_base(const byte_type *data, std::size_t size)
+                : begin_(data), end_(data + size)
+            {
+            }
+            template<typename TArray>
+            constexpr descriptor_view_base(const TArray& arr)
+                : begin_(arr.data())
+                , end_(arr.data() + arr.size())
+            {
+            }
+            template <typename TIter>
+            constexpr descriptor_view_base(const TIter begin, const TIter end)
+                : begin_(std::addressof(*begin)),
+                end_(std::addressof(*begin) + std::distance(begin, end))
+            {
+            }
+
+            constexpr const byte_type* data() const
+            {
+                return begin_;
+            }
+            constexpr std::size_t size() const
+            {
+                return std::distance(begin_, end_);
+            }
+            constexpr iterator begin()
+            {
+                return begin_;
+            }
+            constexpr const_iterator begin() const
+            {
+                return begin_;
+            }
+            constexpr iterator end()
+            {
+                return end_;
+            }
+            constexpr const_iterator end() const
+            {
+                return end_;
+            }
+
+        private:
+            const byte_type* begin_;
+            const byte_type* end_;
+        };
+
+        /// <summary>
+        /// Use for runtime descriptor parsing.
+        /// </summary>
+        using descriptor_view = descriptor_view_base<reinterpret_iterator>;
+
+        /// <summary>
+        /// Use for compile-time descriptor parsing.
+        /// It needs to copy each item to buffer, not the optimal solution for runtime.
+        /// </summary>
+        using ce_descriptor_view = descriptor_view_base<copy_iterator>;
     }
 }
 

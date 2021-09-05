@@ -180,6 +180,32 @@ namespace hid
 
             byte_type prefix_;
         };
+
+        class alignas(1) short_item_buffer : public item
+        {
+        public:
+            constexpr short_item_buffer()
+                : item(), buffer_()
+            {
+            }
+            constexpr short_item_buffer(const byte_type* data)
+                : item(data[0]), buffer_()
+            {
+                HID_RDF_ASSERT(is_short(), ex_item_long);
+
+                for (std::size_t i = 0; i < data_size(); i++)
+                {
+                    buffer_[i] = data[1 + i];
+                }
+            }
+
+            short_item_buffer(const short_item_buffer&) = default;
+            short_item_buffer& operator=(const short_item_buffer&) = default;
+
+        private:
+            byte_type buffer_[4];
+        };
+
     }
 }
 
