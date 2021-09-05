@@ -49,37 +49,37 @@ namespace hid
             }
 
             template <std::size_t... sz>
-            constexpr auto logical(std::array<byte_type, sz>... items)
+            constexpr auto logical(array<sz>... items)
             {
                 return main::collection_begin_item(type::LOGICAL), (items, ...), main::collection_end_item();
             }
 
             template <std::size_t... sz>
-            constexpr auto report(std::array<byte_type, sz>... items)
+            constexpr auto report(array<sz>... items)
             {
                 return main::collection_begin_item(type::REPORT), (items, ...), main::collection_end_item();
             }
 
             template <std::size_t... sz>
-            constexpr auto named_array(std::array<byte_type, sz>... items)
+            constexpr auto named_array(array<sz>... items)
             {
                 return main::collection_begin_item(type::NAMED_ARRAY), (items, ...), main::collection_end_item();
             }
 
             template <std::size_t... sz>
-            constexpr auto physical(std::array<byte_type, sz>... items)
+            constexpr auto physical(array<sz>... items)
             {
                 return main::collection_begin_item(type::PHYSICAL), (items, ...), main::collection_end_item();
             }
 
             template <std::size_t... sz>
-            constexpr auto usage_modifier(std::array<byte_type, sz>... items)
+            constexpr auto usage_modifier(array<sz>... items)
             {
                 return main::collection_begin_item(type::USAGE_MODIFIER), (items, ...), main::collection_end_item();
             }
 
             template <std::size_t... sz>
-            constexpr auto usage_switch(std::array<byte_type, sz>... items)
+            constexpr auto usage_switch(array<sz>... items)
             {
                 return main::collection_begin_item(type::USAGE_SWITCH), (items, ...), main::collection_end_item();
             }
