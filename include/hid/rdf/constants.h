@@ -12,6 +12,7 @@
 #define __HID_RDF_CONSTANTS_H_
 
 #include <cstdint>
+#include <type_traits>
 
 namespace hid
 {
@@ -136,6 +137,27 @@ namespace hid
 
             constexpr usage_ext_id_type USAGE_PAGE_ID_MASK = 0xffff0000;
             constexpr usage_ext_id_type USAGE_ID_MASK      = 0x0000ffff;
+        }
+
+        template<typename TTag>
+        constexpr static item_type match_type()
+        {
+            if (std::integral_constant<bool, std::is_same<TTag, main::tag>::value>::value)
+            {
+                return item_type::MAIN;
+            }
+            else if (std::integral_constant<bool, std::is_same<TTag, global::tag>::value>::value)
+            {
+                return item_type::GLOBAL;
+            }
+            else if (std::integral_constant<bool, std::is_same<TTag, local::tag>::value>::value)
+            {
+                return item_type::LOCAL;
+            }
+            else
+            {
+                return item_type::RESERVED;
+            }
         }
     }
 }

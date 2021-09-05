@@ -11,11 +11,6 @@
 #ifndef __HID_RDF_SHORT_ITEM_H_
 #define __HID_RDF_SHORT_ITEM_H_
 
-#include <cstdint>
-#include <cstddef>
-#include <iterator>
-#include <cassert>
-
 #include "item.h"
 
 namespace hid
@@ -55,12 +50,10 @@ namespace hid
             template<typename TTag>
             constexpr short_item(TTag tag)
                 : base_t({ static_cast<byte_type>((static_cast<byte_type>(tag) << 4) |
-                    (static_cast<byte_type>(item::match_type<TTag>()) << 2) |
+                    (static_cast<byte_type>(match_type<TTag>()) << 2) |
                     ((DATA_SIZE == 4) ? 3 : (DATA_SIZE & 3))) })
             {
-                static_assert(std::is_same<TTag, main::tag>::value ||
-                    std::is_same<TTag, global::tag>::value ||
-                    std::is_same<TTag, local::tag>::value);
+                static_assert(match_type<TTag>() != item_type::RESERVED);
             }
 
             template<typename TTag, typename TData>

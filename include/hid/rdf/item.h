@@ -11,68 +11,30 @@
 #ifndef __HID_RDF_ITEM_H_
 #define __HID_RDF_ITEM_H_
 
-#include <cstdint>
-#include <cstddef>
-#include <cassert>
-
 #include "constants.h"
+#include "exception.h"
 
 namespace hid
 {
     namespace rdf
     {
-        template<const byte_type DATA_SIZE>
-        class short_item;
-
         class alignas(1) item
         {
-            template<const byte_type DATA_SIZE>
-            friend class short_item;
-
         public:
             using types = item_type;
 
             // long item format is specified, but their use isn't
             constexpr bool is_short() const
             {
-                //return prefix_ == 0xfe;
-                return true;
+                return prefix_ != LONG_ITEM_PREFIX;
             }
 
             constexpr types type() const
             {
-                if (is_short())
-                {
-                    return static_cast<types>((prefix_ >> 2) & 0x3);
-                }
-                else
-                {
-                    return types::RESERVED;
-                }
+                return static_cast<types>((prefix_ >> 2) & 0x3);
             }
 
         private:
-            template<typename TTag>
-            constexpr static types match_type()
-            {
-                if (std::integral_constant<bool, std::is_same<TTag, main::tag>::value>::value)
-                {
-                    return types::MAIN;
-                }
-                else if (std::integral_constant<bool, std::is_same<TTag, global::tag>::value>::value)
-                {
-                    return types::GLOBAL;
-                }
-                else if (std::integral_constant<bool, std::is_same<TTag, local::tag>::value>::value)
-                {
-                    return types::LOCAL;
-                }
-                else
-                {
-                    return types::RESERVED;
-                }
-            }
-
             template<typename TTag>
             constexpr bool is_correct_type() const
             {
@@ -80,11 +42,8 @@ namespace hid
             }
 
         public:
-            template<typename TTag, typename std::enable_if<
-                std::is_same<TTag, main::tag>::value ||
-                std::is_same<TTag, global::tag>::value ||
-                std::is_same<TTag, local::tag>::value >::type* = nullptr>
-                constexpr TTag tag() const
+            template<typename TTag>
+            constexpr TTag tag() const
             {
                 assert(is_correct_type<TTag>());
                 if (is_short())
@@ -179,20 +138,47 @@ namespace hid
                 return (sval & (1 << (8 * sizeof(sval) - 1))) != 0;
             }
 
-        private:
-            template<const std::size_t SIZE>
-            constexpr item(const std::array<byte_type, SIZE>& data)
-                : prefix_(data[0])
+            constexpr bool operator==(const item& rhs)
             {
-                static_assert(SIZE > 0);
+                if (this->size() != rhs.size())
+                {
+                    return false;
+                }
+                else
+                {
+                    const byte_type* l = &this->prefix_;
+                    const byte_type* r = &rhs.prefix_;
+                    auto len = this->size();
+                    while (len--)
+                    {
+                        if (*l++ != *r++)
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+            constexpr bool operator!=(const item& rhs)
+            {
+                return !(*this == rhs);
             }
 
-            // non-copyable
-            item(const item&) = delete;
-            item& operator=(const item&) = delete;
-            // non-movable
-            item(const item&&) = delete;
-            item& operator=(const item&&) = delete;
+        protected:
+            constexpr item(byte_type prefix)
+                : prefix_(prefix)
+            {
+            }
+            constexpr item()
+                : prefix_(LONG_ITEM_PREFIX)
+            {
+            }
+
+            item(const item&) = default;
+            item& operator=(const item&) = default;
+
+        private:
+            constexpr static byte_type LONG_ITEM_PREFIX = 0xfe;
 
             byte_type prefix_;
         };
