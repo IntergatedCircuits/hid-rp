@@ -11,6 +11,7 @@
 #ifndef __HID_RDF_GLOBAL_ITEMS_H_
 #define __HID_RDF_GLOBAL_ITEMS_H_
 
+#include "exception.h"
 #include "short_item.h"
 #include "unit.h"
 
@@ -77,7 +78,7 @@ namespace hid
             constexpr report_id(byte_type value)
                 : short_item(global::tag::REPORT_ID, value)
             {
-                assert(value > 0);
+                HID_RDF_ASSERT((value > 0), ex_report_id_zero);
             }
             static constexpr byte_type min()
             {

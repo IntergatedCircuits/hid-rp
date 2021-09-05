@@ -45,7 +45,7 @@ namespace hid
             template<typename TTag>
             constexpr TTag tag() const
             {
-                assert(is_correct_type<TTag>());
+                HID_RDF_ASSERT(is_correct_type<TTag>(), ex_item_invalid_tag_type);
                 if (is_short())
                 {
                     return static_cast<TTag>(prefix_ >> 4);
@@ -100,7 +100,7 @@ namespace hid
 
             constexpr std::uint32_t value_unsigned() const
             {
-                assert(is_short());
+                HID_RDF_ASSERT(is_short(), ex_item_long);
 
                 const byte_type* ptr = &prefix_ + 1;
                 std::uint32_t value = 0;
@@ -114,8 +114,6 @@ namespace hid
 
             constexpr std::int32_t value_signed() const
             {
-                assert(is_short());
-
                 std::uint32_t uval = value_unsigned();
                 std::int32_t value = static_cast<std::int32_t>(uval);
                 const auto size = data_size();
