@@ -18,23 +18,14 @@ namespace hid
 {
     namespace rdf
     {
+        /// \brief This class provides a view of an existing HID report descriptor item.
+        ///        Items are variable in length, therefore are challenging to
+        ///        consistently represent as a single type.
         class alignas(1) item
         {
-        public:
-            using types = item_type;
-
-            // long item format is specified, but their use isn't
-            constexpr bool is_short() const
-            {
-                return prefix_ != LONG_ITEM_PREFIX;
-            }
-
-            constexpr types type() const
-            {
-                return static_cast<types>((prefix_ >> 2) & 0x3);
-            }
-
         private:
+            constexpr static byte_type LONG_ITEM_PREFIX = 0xfe;
+
             template<typename TTag>
             constexpr bool is_correct_type() const
             {
@@ -42,6 +33,33 @@ namespace hid
             }
 
         public:
+            using types = item_type;
+
+            constexpr types type() const
+            {
+                return static_cast<types>((prefix_ >> 2) & 0x3);
+            }
+
+            /// \note Long item format is specified, but their use isn't.
+            ///       It's highly recommended to reject HID report descriptors
+            ///       as soon as a long item is encountered (is_type_valid() will evaluate to false).
+            constexpr bool is_short() const
+            {
+#if (HID_RDF_LONG_ITEM_SUPPORT != 0)
+                return prefix_ != LONG_ITEM_PREFIX;
+#else
+                return true;
+#endif
+            }
+
+            constexpr bool is_type_valid() const
+            {
+                return type() != types::RESERVED;
+            }
+
+            /// \brief Get the item's tag, which can only be done once the item's type is known.
+            /// \tparam TTag: HID item tag type
+            /// \return The item's tag value
             template<typename TTag>
             constexpr TTag tag() const
             {
@@ -157,6 +175,7 @@ namespace hid
                     return true;
                 }
             }
+
             constexpr bool operator!=(const item& rhs)
             {
                 return !(*this == rhs);
@@ -176,11 +195,12 @@ namespace hid
             item& operator=(const item&) = default;
 
         private:
-            constexpr static byte_type LONG_ITEM_PREFIX = 0xfe;
-
             byte_type prefix_;
         };
 
+        /// \brief This class is used to store a copy of an existing HID report descriptor short item.
+        ///        Since reinterpret_cast<item*>(uint8_t*) isn't constexpr, copying is the next best
+        ///        solution to be able to iterate through a descriptor in compile-time.
         class alignas(1) short_item_buffer : public item
         {
         public:
@@ -188,6 +208,7 @@ namespace hid
                 : item(), buffer_()
             {
             }
+
             constexpr short_item_buffer(const byte_type* data)
                 : item(data[0]), buffer_()
             {

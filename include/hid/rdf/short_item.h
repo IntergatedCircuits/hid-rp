@@ -17,7 +17,7 @@ namespace hid
 {
     namespace rdf
     {
-        // byte array that concatenates with comma operator
+        /// \brief A byte array that concatenates with another using the comma operator.
         template<const std::size_t SIZE>
         class array : public std::array<byte_type, SIZE>
         {
@@ -38,7 +38,7 @@ namespace hid
             }
         };
 
-        // stores one HID report descriptor item
+        /// \brief This class stores exactly one HID report descriptor item.
         template<const byte_type DATA_SIZE>
         class short_item : public array<1 + DATA_SIZE>
         {
@@ -64,7 +64,7 @@ namespace hid
 
                 for (byte_type i = 0; i < DATA_SIZE; i++)
                 {
-                    (*this)[1 + i] = data;
+                    (*this)[1 + i] = static_cast<byte_type>(data);
                     data >>= 8;
                 }
             }

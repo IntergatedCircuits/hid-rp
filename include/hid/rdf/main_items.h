@@ -87,7 +87,8 @@ namespace hid
 
         namespace main // internal use
         {
-            // the combinations are simplified to a subset that makes sense
+            /// \brief The data field flags are split and condensed to this subset that makes most sense,
+            ///        and additional \ref field_flags that can be set independently when needed.
             enum field_type : std::uint16_t
             {
                 ARRAY                = data_field_flag::ARRAY,
@@ -99,7 +100,7 @@ namespace hid
                 PADDING              = data_field_flag::CONSTANT | data_field_flag::ARRAY,
             };
 
-            // additional flags that can be set beyond the base type
+            /// \brief Additional flags that can be set for fields beyond the base type.
             enum field_flags : std::uint16_t
             {
                 NONE            = 0,
@@ -159,6 +160,10 @@ namespace hid
                     return data_field_item<1>(TAG, static_cast<std::uint16_t>(extra_flags) | field_type::RELATIVE_CONSTANT);
                 }
 
+                /// \brief  Creates not only the data field item, but adds \ref report_count and \ref report_size
+                ///         items as well, in order to define a specific bit padding with a single entry.
+                /// \param  bitsize: the number of bits of padding to add as a new data field
+                /// \return Minimal set of items to define a padding.
                 constexpr static auto padding(byte_type bitsize)
                 {
                     return report_count<1>(1), report_size<1>(bitsize), data_field_item<1>(TAG, field_type::PADDING);
@@ -166,11 +171,11 @@ namespace hid
             };
         }
 
-        using input        = main::data_field<main::tag::INPUT>;
+        using input   = main::data_field<main::tag::INPUT>;
 
-        using output    = main::data_field<main::tag::OUTPUT>;
+        using output  = main::data_field<main::tag::OUTPUT>;
 
-        using feature    = main::data_field<main::tag::FEATURE>;
+        using feature = main::data_field<main::tag::FEATURE>;
     }
 }
 

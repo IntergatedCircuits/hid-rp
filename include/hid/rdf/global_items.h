@@ -72,6 +72,9 @@ namespace hid
             return physical_min<0>(0), physical_max<0>(0);
         }
 
+        /// \note  An HID report descriptor either doesn't define report IDs at all,
+        ///        or uses report IDs starting from index 1.
+        ///        When report IDs are used, they are always the first byte of any HID report.
         class report_id : public short_item<1>
         {
         public:
@@ -80,11 +83,11 @@ namespace hid
             {
                 HID_RDF_ASSERT((value > 0), ex_report_id_zero);
             }
-            static constexpr byte_type min()
+            constexpr static byte_type min()
             {
                 return 1;
             }
-            static constexpr byte_type max()
+            constexpr static byte_type max()
             {
                 return std::numeric_limits<byte_type>::max();
             }

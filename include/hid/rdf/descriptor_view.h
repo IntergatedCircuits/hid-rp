@@ -19,6 +19,7 @@ namespace hid
 {
     namespace rdf
     {
+        /// \brief HID report descriptor iterator, which casts the underlying raw data to an item.
         class reinterpret_iterator
         {
         public:
@@ -71,6 +72,8 @@ namespace hid
             pointer ptr_;
         };
 
+        /// \brief HID report descriptor iterator, which copies the actual short (!) item
+        ///        into an internal buffer.
         class copy_iterator
         {
         public:
@@ -192,15 +195,11 @@ namespace hid
             const byte_type* end_;
         };
 
-        /// <summary>
-        /// Use for runtime descriptor parsing.
-        /// </summary>
+        /// \brief HID report descriptor view, use for runtime descriptor parsing.
         using descriptor_view = descriptor_view_base<reinterpret_iterator>;
 
-        /// <summary>
-        /// Use for compile-time descriptor parsing.
-        /// It needs to copy each item to buffer, not the optimal solution for runtime.
-        /// </summary>
+        /// \brief HID report descriptor view, use for compile-time descriptor parsing.
+        ///        It needs to copy each item to buffer, not the optimal solution for runtime.
         using ce_descriptor_view = descriptor_view_base<copy_iterator>;
     }
 }

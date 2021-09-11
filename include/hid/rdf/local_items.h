@@ -36,7 +36,8 @@ namespace hid
             return short_item<ID_SIZE>(local::tag::USAGE, static_cast<local::usage_id_type>(value));
         }
 
-        /// extended usage contains the usage page as well, otherwise the global usage page is considered
+        /// \note  Extended usage contains the usage page as well, otherwise the global usage page is considered.
+        ///        Extended usage is identified not by tag, but by the data size of the item.
         template<typename T>
         constexpr auto usage_extended(T value)
         {
@@ -44,7 +45,8 @@ namespace hid
             return short_item<EXT_ID_SIZE>(local::tag::USAGE, static_cast<local::usage_ext_id_type>(value));
         }
 
-        // usages are local items, there must be a min-max pair each time
+        /// \note  Usages are local items, there must be a min-max pair each time
+        ///        (hence no definition for usage_min or usage_max).
         template<const byte_type DATA_MIN_SIZE = 2, const byte_type DATA_MAX_SIZE = 2, typename T>
         constexpr auto usage_limits(T min, T max)
         {

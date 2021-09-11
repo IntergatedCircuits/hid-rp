@@ -117,7 +117,12 @@ namespace hid
                 }
             };
 
-            template<const code CODE_, const std::int8_t BASE_EXP = 0>
+            /// \brief  Template for exact units. Each unit is defined by its code and its base exponent
+            ///         (as some of the default SI units have non-zero base exponent).
+            ///         Creating a derived object will therefore contain a unit and a unit exponent item.
+            /// \tparam CODE_: The unit's code
+            /// \tparam BASE_EXP_: The unit's base exponent
+            template<const code CODE_, const std::int8_t BASE_EXP_ = 0>
             class base : public array<1 + ((static_cast<std::uint32_t>(CODE_) > 0xffff) ? 4 : ((static_cast<std::uint32_t>(CODE_) > 0xff) ? 2 : 1)) + sizeof(exponent_item) >
             {
                 static constexpr std::size_t UNIT_CODE_SIZE = ((static_cast<std::uint32_t>(CODE_) > 0xffff) ? 4 :
@@ -128,8 +133,10 @@ namespace hid
 
             public:
                 static constexpr code CODE = CODE_;
-                static constexpr int BASE_EXPONENT = BASE_EXP;
+                static constexpr int BASE_EXPONENT = BASE_EXP_;
 
+                /// \brief Create items defining an exact unit.
+                /// \param relative_exponent: relative ten's exponent to be used for the variable field
                 constexpr base(std::int8_t relative_exponent = 0)
                     : base_t((unit_item<UNIT_CODE_SIZE>(static_cast<std::uint32_t>(CODE)),
                         exponent_item(BASE_EXPONENT + relative_exponent)))

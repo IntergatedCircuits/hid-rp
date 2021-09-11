@@ -139,6 +139,9 @@ namespace hid
             constexpr usage_ext_id_type USAGE_ID_MASK      = 0x0000ffff;
         }
 
+        /// \brief  Matches the tag type information to type code.
+        /// \tparam TTag: HID item tag type
+        /// \return HID item tag type translated to type code
         template<typename TTag>
         constexpr static item_type match_type()
         {
