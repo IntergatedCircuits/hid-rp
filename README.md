@@ -85,9 +85,9 @@ constexpr auto mouse_report_desc = (
             logical_limits(-127, 127),
             report_count(2),
             report_size(8),
-            input::relative_variable(),
-        ),
-    ),
+            input::relative_variable()
+        )
+    )
 );
 ```
 
