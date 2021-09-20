@@ -58,11 +58,29 @@ namespace hid
                 short_item<MAX_ID_SIZE>(local::tag::USAGE_MAXIMUM, static_cast<local::usage_id_type>(max));
         }
 
+        template<const byte_type DATA_MAX_SIZE = 2, typename T>
+        constexpr auto usage_limits(local::nullusage_t min, T max)
+        {
+            constexpr std::size_t MIN_ID_SIZE = 1;
+            constexpr std::size_t MAX_ID_SIZE = std::min(static_cast<byte_type>(T::_MAX_ID_SIZE), DATA_MAX_SIZE);
+            static_assert((MAX_ID_SIZE > 0) && (MAX_ID_SIZE <= sizeof(local::usage_id_type)));
+            return short_item<MIN_ID_SIZE>(local::tag::USAGE_MINIMUM, static_cast<local::usage_id_type>(min)),
+                short_item<MAX_ID_SIZE>(local::tag::USAGE_MAXIMUM, static_cast<local::usage_id_type>(max));
+        }
+
         template<typename T>
         constexpr auto usage_extended_limits(T min, T max)
         {
             constexpr std::size_t EXT_ID_SIZE = sizeof(local::usage_ext_id_type);
             return short_item<EXT_ID_SIZE>(local::tag::USAGE_MINIMUM, static_cast<local::usage_ext_id_type>(min)),
+                short_item<EXT_ID_SIZE>(local::tag::USAGE_MAXIMUM, static_cast<local::usage_ext_id_type>(max));
+        }
+
+        template<typename T>
+        constexpr auto usage_extended_limits(local::nullusage_t min, T max)
+        {
+            constexpr std::size_t EXT_ID_SIZE = sizeof(local::usage_ext_id_type);
+            return short_item<EXT_ID_SIZE>(local::tag::USAGE_MINIMUM, static_cast<local::usage_ext_id_type>(max) & local::USAGE_PAGE_ID_MASK),
                 short_item<EXT_ID_SIZE>(local::tag::USAGE_MAXIMUM, static_cast<local::usage_ext_id_type>(max));
         }
     }
