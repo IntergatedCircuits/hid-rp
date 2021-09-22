@@ -14,6 +14,7 @@
 #include "exception.h"
 #include "short_item.h"
 #include "unit.h"
+#include "../usage.h"
 
 namespace hid
 {
@@ -105,14 +106,19 @@ namespace hid
             return short_item<DATA_SIZE>(global::tag::REPORT_SIZE, value);
         }
 
-        // see the usage type examples in "local_items.h"
         template<typename T>
         constexpr auto usage_page(T usage)
         {
-            constexpr std::size_t PAGE_ID_SIZE = static_cast<byte_type>(T::_PAGE_ID_SIZE);
-            static_assert((PAGE_ID_SIZE > 0) && (PAGE_ID_SIZE <= sizeof(local::usage_id_type)));
+            constexpr std::size_t PAGE_ID_SIZE = global::usage_page_size<T>();
             return short_item<PAGE_ID_SIZE>(global::tag::USAGE_PAGE,
-                static_cast<local::usage_ext_id_type>(usage) >> (8 * sizeof(local::usage_id_type)));
+                static_cast<usage_id_type>(usage) >> USAGE_PAGE_OFFSET);
+        }
+        template<typename T>
+        constexpr auto usage_page()
+        {
+            constexpr std::size_t PAGE_ID_SIZE = global::usage_page_size<T>();
+            return short_item<PAGE_ID_SIZE>(global::tag::USAGE_PAGE,
+                static_cast<usage_id_type>(T::PAGE_ID) >> USAGE_PAGE_OFFSET);
         }
     }
 }

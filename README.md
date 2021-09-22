@@ -64,24 +64,26 @@ The current implementation allows us to rewrite the above descriptor to this:
 
 ```C++
 #include "hid/rdf/all_items.h"
-/* #include  [...] definition of usage pages */
+#include "hid/page/generic_desktop.h"
+#include "hid/page/button.h"
 
 using namespace hid::rdf;
+using namespace hid::page;
 
 constexpr auto mouse_report_desc = (
-    usage_page(page::generic_desktop::PAGE_ID),
-    usage(page::generic_desktop::MOUSE),
+    usage_page<generic_desktop>(),
+    usage(generic_desktop::MOUSE),
     collection::application(
-        usage(page::generic_desktop::POINTER),
+        usage(generic_desktop::POINTER),
         collection::physical(
-            usage_extended_limits(page::button(1), page::button(3)),
+            usage_extended_limits(button(1), button(3)),
             logical_limits(0, 1), // _limits combine _min and _max
             report_count(3),
             report_size(1),
             input::absolute_variable(),
             input::padding(5), // combines report_count(1), report_size(param), and input()
-            usage(page::generic_desktop::X),
-            usage(page::generic_desktop::Y),
+            usage(generic_desktop::X),
+            usage(generic_desktop::Y),
             logical_limits(-127, 127),
             report_count(2),
             report_size(8),
@@ -106,12 +108,16 @@ In practice it's done in iterations, the higher levels only determining the appl
 for it (that's also when a peripheral with multiple top-level applications gets split).
 The current implementation only implements a `descriptor_view`, with an iterator that advances item-by-item.
 
+## Usage pages
+
+In the above example the `hid/page/` files aren't supplied by this library. They are in fact generated code,
+using the [hid-usage-tables] project.
+
 ## Future plans
 
 This library has a lot of potential for expansion, but as always, development resources are limited.
-Contributions in the forms of pull requests and issues are welcome.
+Contributions in any forms are welcome.
 
-* [hid-usage-tables] needs a (Python) code generator
 * add `constexpr` descriptor validator
 * add `constexpr` descriptor properties parser (max IN, OUT and FEATURE report size is the most relevant information)
 

@@ -131,29 +131,7 @@ namespace hid
                 STRING_MAXIMUM         = 0x9,
                 DELIMITER              = 0xa,
             };
-
-            using usage_id_type = std::uint16_t;
-            using usage_ext_id_type = std::uint32_t;
-
-            constexpr usage_ext_id_type USAGE_PAGE_ID_MASK = 0xffff0000;
-            constexpr usage_ext_id_type USAGE_ID_MASK      = 0x0000ffff;
-
-            class nullusage_t
-            {
-            public:
-                constexpr static byte_type _MAX_ID_SIZE = 1;
-                constexpr nullusage_t()
-                {
-                }
-                constexpr operator usage_id_type() const
-                {
-                    return 0;
-                }
-            };
         }
-
-        /// \brief Variable that expresses null usage state (for usage_limits min)
-        constexpr local::nullusage_t nullusage;
 
         /// \brief  Matches the tag type information to type code.
         /// \tparam TTag: HID item tag type
