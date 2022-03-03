@@ -101,9 +101,10 @@ namespace hid
             template<const byte_type DATA_SIZE>
             class unit_item : public short_item<DATA_SIZE>
             {
+                using base_t = short_item<DATA_SIZE>;
             public:
                 constexpr unit_item(std::uint32_t flags)
-                    : short_item(global::tag::UNIT, flags)
+                    : base_t(global::tag::UNIT, flags)
                 {
                 }
             };
@@ -129,7 +130,7 @@ namespace hid
                     ((static_cast<std::uint32_t>(CODE_) > 0xff) ? 2 : 1));
                 static constexpr std::size_t SIZE = 1 + UNIT_CODE_SIZE + sizeof(exponent_item);
 
-                typedef typename array<SIZE> base_t;
+                using base_t = array<SIZE>;
 
             public:
                 static constexpr code CODE = CODE_;

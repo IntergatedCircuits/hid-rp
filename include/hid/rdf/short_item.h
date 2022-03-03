@@ -44,7 +44,7 @@ namespace hid
         {
             static_assert((DATA_SIZE <= 4) && (DATA_SIZE != 3));
 
-            typedef typename array<1 + DATA_SIZE> base_t;
+            using base_t = array<1 + DATA_SIZE>;
 
         public:
             template<typename TTag>
@@ -79,7 +79,7 @@ namespace hid
                 {
                     for (std::size_t i = 0; i < this->size(); i++)
                     {
-                        if ((*this)[i] != rhs[i])
+                        if ((*this)[i] != rhs.data()[i])
                         {
                             return false;
                         }

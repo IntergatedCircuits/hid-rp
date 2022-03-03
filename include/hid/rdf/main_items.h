@@ -12,6 +12,7 @@
 #define __HID_RDF_MAIN_ITEMS_H_
 
 #include "short_item.h"
+#include "global_items.h"
 
 namespace hid
 {
@@ -114,9 +115,10 @@ namespace hid
             template<const byte_type DATA_SIZE>
             class data_field_item : public short_item<DATA_SIZE>
             {
+                using base_t = short_item<DATA_SIZE>;
             public:
                 constexpr data_field_item(main::tag tag, std::uint16_t flags)
-                    : short_item(tag, flags)
+                    : base_t(tag, flags)
                 {
                 }
             };
