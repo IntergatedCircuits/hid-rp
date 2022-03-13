@@ -94,6 +94,19 @@ namespace hid
             }
         };
 
+        /// \brief Creates a report ID item only if the template parameter is valid.
+        template<const byte_type REPORT_ID>
+        constexpr array<(REPORT_ID > 0) ? sizeof(report_id) : 0> conditional_report_id()
+        {
+            array<(REPORT_ID > 0) ? sizeof(report_id) : 0> data {};
+            constexpr report_id rid { REPORT_ID };
+            for (unsigned i = 0; i < data.size(); ++i)
+            {
+                data[i] = rid[i];
+            }
+            return data;
+        }
+
         template<const byte_type DATA_SIZE = 1, typename T>
         constexpr auto report_count(T value)
         {
