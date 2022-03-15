@@ -13,6 +13,7 @@
 
 #include "short_item.h"
 #include "global_items.h"
+#include "hid/report.h"
 
 namespace hid
 {
@@ -123,10 +124,26 @@ namespace hid
                 }
             };
 
-            template<const main::tag TAG_>
+            template<const hid::report_type TYPE>
             class data_field
             {
-                constexpr static const main::tag TAG = TAG_;
+                template<const hid::report_type TYPE_>
+                constexpr static main::tag report_type_to_tag()
+                {
+                    if (std::integral_constant<bool, TYPE_ == report_type::INPUT>::value)
+                    {
+                        return main::tag::INPUT;
+                    }
+                    else if (std::integral_constant<bool, TYPE_ == report_type::OUTPUT>::value)
+                    {
+                        return main::tag::OUTPUT;
+                    }
+                    else // if (std::integral_constant<bool, TYPE_ == report_type::FEATURE>::value)
+                    {
+                        return main::tag::FEATURE;
+                    }
+                }
+                constexpr static const main::tag TAG = report_type_to_tag<TYPE>();
 
             public:
                 using flags = field_flags;
@@ -173,11 +190,11 @@ namespace hid
             };
         }
 
-        using input   = main::data_field<main::tag::INPUT>;
+        using input   = main::data_field<hid::report_type::INPUT>;
 
-        using output  = main::data_field<main::tag::OUTPUT>;
+        using output  = main::data_field<hid::report_type::OUTPUT>;
 
-        using feature = main::data_field<main::tag::FEATURE>;
+        using feature = main::data_field<hid::report_type::FEATURE>;
     }
 }
 

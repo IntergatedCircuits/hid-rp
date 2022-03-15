@@ -137,7 +137,7 @@ namespace hid
         /// \tparam TTag: HID item tag type
         /// \return HID item tag type translated to type code
         template<typename TTag>
-        constexpr static item_type match_type()
+        constexpr item_type match_type()
         {
             if (std::integral_constant<bool, std::is_same<TTag, main::tag>::value>::value)
             {
