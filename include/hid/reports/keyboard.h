@@ -52,7 +52,7 @@ namespace hid
 	        }
 
 	        template<const uint8_t REPORT_ID>
-	        struct keys_input_report : public report<keys_input_report<REPORT_ID>, report_type::INPUT, REPORT_ID>
+	        struct keys_input_report : public report<report_type::INPUT, REPORT_ID>
 	        {
 	            uint8_t modifiers = 0;
 	            uint8_t reserved = 0;
@@ -132,7 +132,7 @@ namespace hid
             }
 
 	        template<const uint8_t REPORT_ID>
-	        struct output_report : public report<output_report<REPORT_ID>, report_type::OUTPUT, REPORT_ID>
+	        struct output_report : public report<report_type::OUTPUT, REPORT_ID>
 	        {
 	            uint8_t leds = 0;
 

@@ -23,7 +23,7 @@ namespace hid
 	    namespace mouse
 		{
             template<const uint8_t REPORT_ID>
-            struct report : public hid::report<report<REPORT_ID>, report_type::OUTPUT, REPORT_ID>
+            struct report : public hid::report<report_type::INPUT, REPORT_ID>
             {
                 uint8_t buttons = 0;
                 int8_t x = 0;
