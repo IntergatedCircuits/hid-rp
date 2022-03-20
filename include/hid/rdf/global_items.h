@@ -99,10 +99,9 @@ namespace hid
         constexpr array<(REPORT_ID > 0) ? sizeof(report_id) : 0> conditional_report_id()
         {
             array<(REPORT_ID > 0) ? sizeof(report_id) : 0> data {};
-            constexpr report_id rid { REPORT_ID };
             for (unsigned i = 0; i < data.size(); ++i)
             {
-                data[i] = rid[i];
+                data[i] = report_id(REPORT_ID)[i];
             }
             return data;
         }
