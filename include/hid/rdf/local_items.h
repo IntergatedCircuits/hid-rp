@@ -22,7 +22,7 @@ namespace hid
         constexpr auto usage(T value)
         {
             constexpr std::size_t ID_SIZE = std::min(local::usage_size<T>(), DATA_SIZE);
-            static_assert((ID_SIZE > 0) && (ID_SIZE <= sizeof(usage_index_type)));
+            static_assert((ID_SIZE > 0) and (ID_SIZE <= sizeof(usage_index_type)));
             return short_item<ID_SIZE>(local::tag::USAGE, static_cast<usage_index_type>(value));
         }
 
@@ -42,8 +42,8 @@ namespace hid
         {
             constexpr std::size_t MIN_ID_SIZE = std::min(local::usage_size<T>(), DATA_MIN_SIZE);
             constexpr std::size_t MAX_ID_SIZE = std::min(local::usage_size<T>(), DATA_MAX_SIZE);
-            static_assert((MIN_ID_SIZE > 0) && (MIN_ID_SIZE <= sizeof(usage_index_type)));
-            static_assert((MAX_ID_SIZE > 0) && (MAX_ID_SIZE <= sizeof(usage_index_type)));
+            static_assert((MIN_ID_SIZE > 0) and (MIN_ID_SIZE <= sizeof(usage_index_type)));
+            static_assert((MAX_ID_SIZE > 0) and (MAX_ID_SIZE <= sizeof(usage_index_type)));
             return short_item<MIN_ID_SIZE>(local::tag::USAGE_MINIMUM, static_cast<usage_index_type>(min)),
                 short_item<MAX_ID_SIZE>(local::tag::USAGE_MAXIMUM, static_cast<usage_index_type>(max));
         }
@@ -53,7 +53,7 @@ namespace hid
         {
             constexpr std::size_t MIN_ID_SIZE = 1;
             constexpr std::size_t MAX_ID_SIZE = std::min(local::usage_size<T>(), DATA_MAX_SIZE);
-            static_assert((MAX_ID_SIZE > 0) && (MAX_ID_SIZE <= sizeof(usage_index_type)));
+            static_assert((MAX_ID_SIZE > 0) and (MAX_ID_SIZE <= sizeof(usage_index_type)));
             return short_item<MIN_ID_SIZE>(local::tag::USAGE_MINIMUM, static_cast<usage_index_type>(min)),
                 short_item<MAX_ID_SIZE>(local::tag::USAGE_MAXIMUM, static_cast<usage_index_type>(max));
         }

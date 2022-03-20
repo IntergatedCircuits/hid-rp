@@ -135,7 +135,7 @@ namespace hid
                 std::uint32_t uval = value_unsigned();
                 std::int32_t value = static_cast<std::int32_t>(uval);
                 const auto size = data_size();
-                if ((size > 0) && (size < 4))
+                if ((size > 0) and (size < 4))
                 {
                     // sign extend
                     auto shift = (8 * size) - 1;

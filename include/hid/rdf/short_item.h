@@ -26,11 +26,11 @@ namespace hid
             constexpr array<SIZE + SIZE_2> operator , (array<SIZE_2> a2)
             {
                 array<SIZE + SIZE_2> concat = { 0 };
-                for (std::size_t i = 0; i < SIZE; i++)
+                for (std::size_t i = 0; i < SIZE; ++i)
                 {
                     concat[i] = (*this)[i];
                 }
-                for (std::size_t i = 0; i < SIZE_2; i++)
+                for (std::size_t i = 0; i < SIZE_2; ++i)
                 {
                     concat[SIZE + i] = a2[i];
                 }
@@ -42,7 +42,7 @@ namespace hid
         template<const byte_type DATA_SIZE>
         class short_item : public array<1 + DATA_SIZE>
         {
-            static_assert((DATA_SIZE <= 4) && (DATA_SIZE != 3));
+            static_assert((DATA_SIZE <= 4) and (DATA_SIZE != 3));
 
             using base_t = array<1 + DATA_SIZE>;
 
@@ -62,7 +62,7 @@ namespace hid
             {
                 static_assert(std::is_integral<TData>::value);
 
-                for (byte_type i = 0; i < DATA_SIZE; i++)
+                for (byte_type i = 0; i < DATA_SIZE; ++i)
                 {
                     (*this)[1 + i] = static_cast<byte_type>(data);
                     data >>= 8;
@@ -77,7 +77,7 @@ namespace hid
                 }
                 else
                 {
-                    for (std::size_t i = 0; i < this->size(); i++)
+                    for (std::size_t i = 0; i < this->size(); ++i)
                     {
                         if ((*this)[i] != rhs.data()[i])
                         {
