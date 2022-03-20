@@ -48,7 +48,7 @@ namespace hid
                 }
             };
 
-            template<const uint8_t REPORT_ID>
+            template<const uint8_t REPORT_ID = 0>
 			static constexpr auto app_report_descriptor()
 			{
 				using namespace hid;
