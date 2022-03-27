@@ -1,7 +1,7 @@
 /// \file
 ///
 /// \author Benedek Kupper
-/// \date   2021
+/// \date   2022
 ///
 /// \copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
