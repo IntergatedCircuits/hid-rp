@@ -13,189 +13,187 @@
 
 #include "short_item.h"
 #include "global_items.h"
-#include "hid/report.h"
+#include "../report.h"
 
-namespace hid
+namespace hid::rdf
 {
-    namespace rdf
+    namespace main // internal use
     {
-        namespace main // internal use
+        class collection_begin_item : public short_item<1>
         {
-            class collection_begin_item : public short_item<1>
+        public:
+            constexpr collection_begin_item(collection_type t)
+                : short_item(main::tag::COLLECTION, static_cast<byte_type>(t))
             {
-            public:
-                constexpr collection_begin_item(collection_type t)
-                    : short_item(main::tag::COLLECTION, static_cast<byte_type>(t))
-                {
-                }
-            };
+            }
+        };
 
-            class collection_end_item : public short_item<0>
-            {
-            public:
-                constexpr collection_end_item()
-                    : short_item(main::tag::END_COLLECTION)
-                {
-                }
-            };
-        }
-
-        namespace collection
+        class collection_end_item : public short_item<0>
         {
-            using type = main::collection_type;
-
-            template <std::size_t... sz>
-            constexpr auto application(array<sz>... items)
+        public:
+            constexpr collection_end_item()
+                : short_item(main::tag::END_COLLECTION)
             {
-                return main::collection_begin_item(type::APPLICATION), (items, ...), main::collection_end_item();
             }
-
-            template <std::size_t... sz>
-            constexpr auto logical(array<sz>... items)
-            {
-                return main::collection_begin_item(type::LOGICAL), (items, ...), main::collection_end_item();
-            }
-
-            template <std::size_t... sz>
-            constexpr auto report(array<sz>... items)
-            {
-                return main::collection_begin_item(type::REPORT), (items, ...), main::collection_end_item();
-            }
-
-            template <std::size_t... sz>
-            constexpr auto named_array(array<sz>... items)
-            {
-                return main::collection_begin_item(type::NAMED_ARRAY), (items, ...), main::collection_end_item();
-            }
-
-            template <std::size_t... sz>
-            constexpr auto physical(array<sz>... items)
-            {
-                return main::collection_begin_item(type::PHYSICAL), (items, ...), main::collection_end_item();
-            }
-
-            template <std::size_t... sz>
-            constexpr auto usage_modifier(array<sz>... items)
-            {
-                return main::collection_begin_item(type::USAGE_MODIFIER), (items, ...), main::collection_end_item();
-            }
-
-            template <std::size_t... sz>
-            constexpr auto usage_switch(array<sz>... items)
-            {
-                return main::collection_begin_item(type::USAGE_SWITCH), (items, ...), main::collection_end_item();
-            }
-        }
-
-        namespace main // internal use
-        {
-            /// \brief The data field flags are split and condensed to this subset that makes most sense,
-            ///        and additional \ref field_flags that can be set independently when needed.
-            enum field_type : std::uint16_t
-            {
-                ARRAY                = data_field_flag::ARRAY,
-                BUFFERED_VARIABLE    = data_field_flag::VARIABLE | data_field_flag::BUFFERED_BYTES,
-                ABSOLUTE_VARIABLE    = data_field_flag::VARIABLE | data_field_flag::ABSOLUTE,
-                RELATIVE_VARIABLE    = data_field_flag::VARIABLE | data_field_flag::RELATIVE,
-                ABSOLUTE_CONSTANT    = data_field_flag::CONSTANT | data_field_flag::VARIABLE | data_field_flag::ABSOLUTE,
-                RELATIVE_CONSTANT    = data_field_flag::CONSTANT | data_field_flag::VARIABLE | data_field_flag::RELATIVE,
-                PADDING              = data_field_flag::CONSTANT | data_field_flag::ARRAY,
-            };
-
-            /// \brief Additional flags that can be set for fields beyond the base type.
-            enum field_flags : std::uint16_t
-            {
-                NONE            = 0,
-                WRAP            = data_field_flag::WRAP,
-                NONLINEAR       = data_field_flag::NONLINEAR,
-                NO_PREFERRED    = data_field_flag::NO_PREFERRED,
-                NULL_STATE      = data_field_flag::NULL_STATE,
-                VOLATILE        = data_field_flag::VOLATILE,
-            };
-
-            template<const byte_type DATA_SIZE>
-            class data_field_item : public short_item<DATA_SIZE>
-            {
-                using base_t = short_item<DATA_SIZE>;
-            public:
-                constexpr data_field_item(main::tag tag, std::uint16_t flags)
-                    : base_t(tag, flags)
-                {
-                }
-            };
-
-            template<const hid::report_type TYPE>
-            class data_field
-            {
-                template<const hid::report_type TYPE_>
-                constexpr static main::tag report_type_to_tag()
-                {
-                    if (std::integral_constant<bool, TYPE_ == report_type::INPUT>::value)
-                    {
-                        return main::tag::INPUT;
-                    }
-                    else if (std::integral_constant<bool, TYPE_ == report_type::OUTPUT>::value)
-                    {
-                        return main::tag::OUTPUT;
-                    }
-                    else // if (std::integral_constant<bool, TYPE_ == report_type::FEATURE>::value)
-                    {
-                        return main::tag::FEATURE;
-                    }
-                }
-                constexpr static const main::tag TAG = report_type_to_tag<TYPE>();
-
-            public:
-                using flags = field_flags;
-                using type = field_type;
-
-                constexpr static auto array()
-                {
-                    return data_field_item<0>(TAG, field_type::ARRAY);
-                }
-
-                constexpr static auto buffered_variable()
-                {
-                    return data_field_item<2>(TAG, field_type::BUFFERED_VARIABLE);
-                }
-
-                constexpr static auto absolute_variable(flags extra_flags = flags::NONE)
-                {
-                    return data_field_item<1>(TAG, static_cast<std::uint16_t>(extra_flags) | field_type::ABSOLUTE_VARIABLE);
-                }
-
-                constexpr static auto relative_variable(flags extra_flags = flags::NONE)
-                {
-                    return data_field_item<1>(TAG, static_cast<std::uint16_t>(extra_flags) | field_type::RELATIVE_VARIABLE);
-                }
-
-                constexpr static auto absolute_constant(flags extra_flags = flags::NONE)
-                {
-                    return data_field_item<1>(TAG, static_cast<std::uint16_t>(extra_flags) | field_type::ABSOLUTE_CONSTANT);
-                }
-
-                constexpr static auto relative_constant(flags extra_flags = flags::NONE)
-                {
-                    return data_field_item<1>(TAG, static_cast<std::uint16_t>(extra_flags) | field_type::RELATIVE_CONSTANT);
-                }
-
-                /// \brief  Creates not only the data field item, but adds \ref report_count and \ref report_size
-                ///         items as well, in order to define a specific bit padding with a single entry.
-                /// \param  bitsize: the number of bits of padding to add as a new data field
-                /// \return Minimal set of items to define a padding.
-                constexpr static auto padding(byte_type bitsize)
-                {
-                    return report_count<1>(1), report_size<1>(bitsize), data_field_item<1>(TAG, field_type::PADDING);
-                }
-            };
-        }
-
-        using input   = main::data_field<hid::report_type::INPUT>;
-
-        using output  = main::data_field<hid::report_type::OUTPUT>;
-
-        using feature = main::data_field<hid::report_type::FEATURE>;
+        };
     }
-}
+
+    namespace collection
+    {
+        using type = main::collection_type;
+
+        template <std::size_t... sz>
+        constexpr auto application(array<sz>... items)
+        {
+            return main::collection_begin_item(type::APPLICATION), (items, ...), main::collection_end_item();
+        }
+
+        template <std::size_t... sz>
+        constexpr auto logical(array<sz>... items)
+        {
+            return main::collection_begin_item(type::LOGICAL), (items, ...), main::collection_end_item();
+        }
+
+        template <std::size_t... sz>
+        constexpr auto report(array<sz>... items)
+        {
+            return main::collection_begin_item(type::REPORT), (items, ...), main::collection_end_item();
+        }
+
+        template <std::size_t... sz>
+        constexpr auto named_array(array<sz>... items)
+        {
+            return main::collection_begin_item(type::NAMED_ARRAY), (items, ...), main::collection_end_item();
+        }
+
+        template <std::size_t... sz>
+        constexpr auto physical(array<sz>... items)
+        {
+            return main::collection_begin_item(type::PHYSICAL), (items, ...), main::collection_end_item();
+        }
+
+        template <std::size_t... sz>
+        constexpr auto usage_modifier(array<sz>... items)
+        {
+            return main::collection_begin_item(type::USAGE_MODIFIER), (items, ...), main::collection_end_item();
+        }
+
+        template <std::size_t... sz>
+        constexpr auto usage_switch(array<sz>... items)
+        {
+            return main::collection_begin_item(type::USAGE_SWITCH), (items, ...), main::collection_end_item();
+        }
+    }
+
+    namespace main // internal use
+    {
+        /// \brief The data field flags are split and condensed to this subset that makes most sense,
+        ///        and additional \ref field_flags that can be set independently when needed.
+        enum field_type : std::uint16_t
+        {
+            ARRAY                = data_field_flag::ARRAY,
+            BUFFERED_VARIABLE    = data_field_flag::VARIABLE | data_field_flag::BUFFERED_BYTES,
+            ABSOLUTE_VARIABLE    = data_field_flag::VARIABLE | data_field_flag::ABSOLUTE,
+            RELATIVE_VARIABLE    = data_field_flag::VARIABLE | data_field_flag::RELATIVE,
+            ABSOLUTE_CONSTANT    = data_field_flag::CONSTANT | data_field_flag::VARIABLE | data_field_flag::ABSOLUTE,
+            RELATIVE_CONSTANT    = data_field_flag::CONSTANT | data_field_flag::VARIABLE | data_field_flag::RELATIVE,
+            PADDING              = data_field_flag::CONSTANT | data_field_flag::ARRAY,
+        };
+
+        /// \brief Additional flags that can be set for fields beyond the base type.
+        enum field_flags : std::uint16_t
+        {
+            NONE            = 0,
+            WRAP            = data_field_flag::WRAP,
+            NONLINEAR       = data_field_flag::NONLINEAR,
+            NO_PREFERRED    = data_field_flag::NO_PREFERRED,
+            NULL_STATE      = data_field_flag::NULL_STATE,
+            VOLATILE        = data_field_flag::VOLATILE,
+        };
+
+        template<const byte_type DATA_SIZE>
+        class data_field_item : public short_item<DATA_SIZE>
+        {
+            using base_t = short_item<DATA_SIZE>;
+        public:
+            constexpr data_field_item(main::tag tag, std::uint16_t flags)
+                : base_t(tag, flags)
+            {
+            }
+        };
+
+        template<const hid::report_type TYPE>
+        class data_field
+        {
+            template<const hid::report_type TYPE_>
+            constexpr static main::tag report_type_to_tag()
+            {
+                if (std::integral_constant<bool, TYPE_ == report_type::INPUT>::value)
+                {
+                    return main::tag::INPUT;
+                }
+                else if (std::integral_constant<bool, TYPE_ == report_type::OUTPUT>::value)
+                {
+                    return main::tag::OUTPUT;
+                }
+                else // if (std::integral_constant<bool, TYPE_ == report_type::FEATURE>::value)
+                {
+                    return main::tag::FEATURE;
+                }
+            }
+            constexpr static const main::tag TAG = report_type_to_tag<TYPE>();
+
+        public:
+            using flags = field_flags;
+            using type = field_type;
+
+            constexpr static auto array()
+            {
+                return data_field_item<0>(TAG, field_type::ARRAY);
+            }
+
+            constexpr static auto buffered_variable()
+            {
+                return data_field_item<2>(TAG, field_type::BUFFERED_VARIABLE);
+            }
+
+            constexpr static auto absolute_variable(flags extra_flags = flags::NONE)
+            {
+                return data_field_item<1>(TAG, static_cast<std::uint16_t>(extra_flags) | field_type::ABSOLUTE_VARIABLE);
+            }
+
+            constexpr static auto relative_variable(flags extra_flags = flags::NONE)
+            {
+                return data_field_item<1>(TAG, static_cast<std::uint16_t>(extra_flags) | field_type::RELATIVE_VARIABLE);
+            }
+
+            constexpr static auto absolute_constant(flags extra_flags = flags::NONE)
+            {
+                return data_field_item<1>(TAG, static_cast<std::uint16_t>(extra_flags) | field_type::ABSOLUTE_CONSTANT);
+            }
+
+            constexpr static auto relative_constant(flags extra_flags = flags::NONE)
+            {
+                return data_field_item<1>(TAG, static_cast<std::uint16_t>(extra_flags) | field_type::RELATIVE_CONSTANT);
+            }
+
+            /// \brief  Creates not only the data field item, but adds \ref report_count and \ref report_size
+            ///         items as well, in order to define a specific bit padding with a single entry.
+            /// \param  bitsize: the number of bits of padding to add as a new data field
+            /// \return Minimal set of items to define a padding.
+            constexpr static auto padding(byte_type bitsize)
+            {
+                return report_count<1>(1), report_size<1>(bitsize), data_field_item<1>(TAG, field_type::PADDING);
+            }
+        };
+    }
+
+    using input   = main::data_field<hid::report_type::INPUT>;
+
+    using output  = main::data_field<hid::report_type::OUTPUT>;
+
+    using feature = main::data_field<hid::report_type::FEATURE>;
+
+} // namespace hid::rdf
 
 #endif // __HID_RDF_MAIN_ITEMS_H_

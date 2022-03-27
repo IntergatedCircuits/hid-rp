@@ -14,34 +14,29 @@
 #include "hid/rdf/all_items.h"
 #include "hid/report.h"
 
-namespace hid
+namespace hid::reports::opaque
 {
-	namespace reports
-	{
-	    namespace opaque
-		{
-            template<const unsigned BYTE_SIZE, const hid::report_type TYPE, const uint8_t REPORT_ID>
-            struct report : public hid::report<TYPE, REPORT_ID>
-            {
-                std::array<uint8_t, BYTE_SIZE> payload {};
-            };
+    template<const unsigned BYTE_SIZE, const hid::report_type TYPE, const uint8_t REPORT_ID>
+    struct report : public hid::report<TYPE, REPORT_ID>
+    {
+        std::array<uint8_t, BYTE_SIZE> payload {};
+    };
 
-            template<typename TReport, typename TUsage>
-			static constexpr auto report_descriptor(TUsage use)
-			{
-				using namespace hid;
-				using namespace hid::rdf;
+    template<typename TReport, typename TUsage>
+    static constexpr auto report_descriptor(TUsage use)
+    {
+        using namespace hid;
+        using namespace hid::rdf;
 
-				return (
-                    report_size(8),
-                    report_count(sizeof(TReport) - (TReport::ID > 0) ? 1 : 0),
-                    logical_limits<1, 1>(0, 0xff),
-                    usage_extended(use),
-                    main::data_field<TReport::type()>::buffered_variable()
-                );
-			}
-		};
-	}
-}
+        return (
+            report_size(8),
+            report_count(sizeof(TReport) - (TReport::ID > 0) ? 1 : 0),
+            logical_limits<1, 1>(0, 0xff),
+            usage_extended(use),
+            main::data_field<TReport::type()>::buffered_variable()
+        );
+    }
+
+} // namespace hid::reports::opaque
 
 #endif // __HID_REPORTS_OPAQUE_H_
