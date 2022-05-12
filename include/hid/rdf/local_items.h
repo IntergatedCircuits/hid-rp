@@ -1,9 +1,9 @@
-/// \file
+/// @file
 ///
-/// \author Benedek Kupper
-/// \date   2022
+/// @author Benedek Kupper
+/// @date   2022
 ///
-/// \copyright
+/// @copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
@@ -24,7 +24,7 @@ namespace hid::rdf
         return short_item<ID_SIZE>(local::tag::USAGE, static_cast<usage_index_type>(value));
     }
 
-    /// \note  Extended usage contains the usage page as well, otherwise the global usage page is considered.
+    /// @note  Extended usage contains the usage page as well, otherwise the global usage page is considered.
     ///        Extended usage is identified not by tag, but by the data size of the item.
     template<typename T>
     constexpr auto usage_extended(T value)
@@ -33,7 +33,7 @@ namespace hid::rdf
         return short_item<EXT_ID_SIZE>(local::tag::USAGE, static_cast<usage_id_type>(value));
     }
 
-    /// \note  Usages are local items, there must be a min-max pair each time
+    /// @note  Usages are local items, there must be a min-max pair each time
     ///        (hence no definition for usage_min or usage_max).
     template<const byte_type DATA_MIN_SIZE = 2, const byte_type DATA_MAX_SIZE = 2, typename T>
     constexpr auto usage_limits(T min, T max)

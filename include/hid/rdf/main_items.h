@@ -1,9 +1,9 @@
-/// \file
+/// @file
 ///
-/// \author Benedek Kupper
-/// \date   2022
+/// @author Benedek Kupper
+/// @date   2022
 ///
-/// \copyright
+/// @copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
@@ -87,8 +87,8 @@ namespace hid::rdf
 
     namespace main // internal use
     {
-        /// \brief The data field flags are split and condensed to this subset that makes most sense,
-        ///        and additional \ref field_flags that can be set independently when needed.
+        /// @brief The data field flags are split and condensed to this subset that makes most sense,
+        ///        and additional @ref field_flags that can be set independently when needed.
         enum field_type : std::uint16_t
         {
             ARRAY                = data_field_flag::ARRAY,
@@ -100,7 +100,7 @@ namespace hid::rdf
             PADDING              = data_field_flag::CONSTANT | data_field_flag::ARRAY,
         };
 
-        /// \brief Additional flags that can be set for fields beyond the base type.
+        /// @brief Additional flags that can be set for fields beyond the base type.
         enum field_flags : std::uint16_t
         {
             NONE            = 0,
@@ -177,10 +177,10 @@ namespace hid::rdf
                 return data_field_item<1>(TAG, static_cast<std::uint16_t>(extra_flags) | field_type::RELATIVE_CONSTANT);
             }
 
-            /// \brief  Creates not only the data field item, but adds \ref report_count and \ref report_size
+            /// @brief  Creates not only the data field item, but adds @ref report_count and @ref report_size
             ///         items as well, in order to define a specific bit padding with a single entry.
-            /// \param  bitsize: the number of bits of padding to add as a new data field
-            /// \return Minimal set of items to define a padding.
+            /// @param  bitsize: the number of bits of padding to add as a new data field
+            /// @return Minimal set of items to define a padding.
             constexpr static auto padding(byte_type bitsize)
             {
                 return report_count<1>(1), report_size<1>(bitsize), data_field_item<1>(TAG, field_type::PADDING);

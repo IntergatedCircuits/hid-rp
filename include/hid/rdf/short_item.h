@@ -1,9 +1,9 @@
-/// \file
+/// @file
 ///
-/// \author Benedek Kupper
-/// \date   2022
+/// @author Benedek Kupper
+/// @date   2022
 ///
-/// \copyright
+/// @copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
@@ -15,7 +15,7 @@
 
 namespace hid::rdf
 {
-    /// \brief A byte array that concatenates with another using the comma operator.
+    /// @brief A byte array that concatenates with another using the comma operator.
     template<const std::size_t SIZE>
     class array : public std::array<byte_type, SIZE>
     {
@@ -36,7 +36,7 @@ namespace hid::rdf
         }
     };
 
-    /// \brief This class stores exactly one HID report descriptor item.
+    /// @brief This class stores exactly one HID report descriptor item.
     template<const byte_type DATA_SIZE>
     class short_item : public array<1 + DATA_SIZE>
     {

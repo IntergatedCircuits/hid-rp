@@ -1,9 +1,9 @@
-/// \file
+/// @file
 ///
-/// \author Benedek Kupper
-/// \date   2022
+/// @author Benedek Kupper
+/// @date   2022
 ///
-/// \copyright
+/// @copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
@@ -71,7 +71,7 @@ namespace hid::rdf
         return physical_min<0>(0), physical_max<0>(0);
     }
 
-    /// \note  An HID report descriptor either doesn't define report IDs at all,
+    /// @note  An HID report descriptor either doesn't define report IDs at all,
     ///        or uses report IDs starting from index 1.
     ///        When report IDs are used, they are always the first byte of any HID report.
     class report_id : public short_item<1>
@@ -92,7 +92,7 @@ namespace hid::rdf
         }
     };
 
-    /// \brief Creates a report ID item only if the template parameter is valid.
+    /// @brief Creates a report ID item only if the template parameter is valid.
     template<const byte_type REPORT_ID>
     constexpr array<(REPORT_ID > 0) ? sizeof(report_id) : 0> conditional_report_id()
     {

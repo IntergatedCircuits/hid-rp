@@ -1,9 +1,9 @@
-/// \file
+/// @file
 ///
-/// \author Benedek Kupper
-/// \date   2022
+/// @author Benedek Kupper
+/// @date   2022
 ///
-/// \copyright
+/// @copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
@@ -17,7 +17,7 @@
 
 namespace hid::rdf
 {
-    /// \brief HID report descriptor iterator, which casts the underlying raw data to an item.
+    /// @brief HID report descriptor iterator, which casts the underlying raw data to an item.
     class reinterpret_iterator
     {
     public:
@@ -70,7 +70,7 @@ namespace hid::rdf
         pointer ptr_;
     };
 
-    /// \brief HID report descriptor iterator, which copies the actual short (!) item
+    /// @brief HID report descriptor iterator, which copies the actual short (!) item
     ///        into an internal buffer.
     class copy_iterator
     {
@@ -193,10 +193,10 @@ namespace hid::rdf
         const byte_type* end_;
     };
 
-    /// \brief HID report descriptor view, use for runtime descriptor parsing.
+    /// @brief HID report descriptor view, use for runtime descriptor parsing.
     using descriptor_view = descriptor_view_base<reinterpret_iterator>;
 
-    /// \brief HID report descriptor view, use for compile-time descriptor parsing.
+    /// @brief HID report descriptor view, use for compile-time descriptor parsing.
     ///        It needs to copy each item to buffer, not the optimal solution for runtime.
     using ce_descriptor_view = descriptor_view_base<copy_iterator>;
 

@@ -1,9 +1,9 @@
-/// \file
+/// @file
 ///
-/// \author Benedek Kupper
-/// \date   2022
+/// @author Benedek Kupper
+/// @date   2022
 ///
-/// \copyright
+/// @copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
@@ -16,7 +16,7 @@
 
 namespace hid::rdf
 {
-    /// \brief This class provides a view of an existing HID report descriptor item.
+    /// @brief This class provides a view of an existing HID report descriptor item.
     ///        Items are variable in length, therefore are challenging to
     ///        consistently represent as a single type.
     class alignas(1) item
@@ -38,7 +38,7 @@ namespace hid::rdf
             return static_cast<types>((prefix_ >> 2) & 0x3);
         }
 
-        /// \note Long item format is specified, but their use isn't.
+        /// @note Long item format is specified, but their use isn't.
         ///       It's highly recommended to reject HID report descriptors
         ///       as soon as a long item is encountered (is_type_valid() will evaluate to false).
         constexpr bool is_short() const
@@ -55,9 +55,9 @@ namespace hid::rdf
             return type() != types::RESERVED;
         }
 
-        /// \brief Get the item's tag, which can only be done once the item's type is known.
-        /// \tparam TTag: HID item tag type
-        /// \return The item's tag value
+        /// @brief Get the item's tag, which can only be done once the item's type is known.
+        /// @tparam TTag: HID item tag type
+        /// @return The item's tag value
         template<typename TTag>
         constexpr TTag tag() const
         {
@@ -196,7 +196,7 @@ namespace hid::rdf
         byte_type prefix_;
     };
 
-    /// \brief This class is used to store a copy of an existing HID report descriptor short item.
+    /// @brief This class is used to store a copy of an existing HID report descriptor short item.
     ///        Since reinterpret_cast<item*>(uint8_t*) isn't constexpr, copying is the next best
     ///        solution to be able to iterate through a descriptor in compile-time.
     class alignas(1) short_item_buffer : public item

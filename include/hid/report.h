@@ -1,9 +1,9 @@
-/// \file
+/// @file
 ///
-/// \author Benedek Kupper
-/// \date   2022
+/// @author Benedek Kupper
+/// @date   2022
 ///
-/// \copyright
+/// @copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
@@ -29,7 +29,7 @@ namespace hid
         BOOT       = 0x00, // BOOT protocol (either keyboard or mouse, as specified in USB HID class document)
     };
 
-    /// \brief A report is uniquely identified by two parameters: its type, and its (optional) ID
+    /// @brief A report is uniquely identified by two parameters: its type, and its (optional) ID
     class report_selector
     {
     public:
@@ -69,7 +69,7 @@ namespace hid
         std::uint16_t storage_ = 0;
     };
 
-    /// \brief Base type for report storage structures. Inherit from \ref report type instead!
+    /// @brief Base type for report storage structures. Inherit from @ref report type instead!
     template<const report_type TYPE, const std::uint8_t REPORT_ID>
     struct report_base
     {

@@ -1,9 +1,9 @@
-/// \file
+/// @file
 ///
-/// \author Benedek Kupper
-/// \date   2022
+/// @author Benedek Kupper
+/// @date   2022
 ///
-/// \copyright
+/// @copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
@@ -16,10 +16,10 @@
 
 namespace hid
 {
-    /// \brief Full identifier of a usage. Consists of 16 bits usage page ID and 16 bits usage index.
+    /// @brief Full identifier of a usage. Consists of 16 bits usage page ID and 16 bits usage index.
     using usage_id_type    = std::uint32_t;
 
-    /// \brief Relative identifier of a usage within a usage page.
+    /// @brief Relative identifier of a usage within a usage page.
     using usage_index_type = std::uint16_t;
 
     constexpr usage_id_type    USAGE_INDEX_MASK   = std::numeric_limits<usage_index_type>::max();
@@ -73,16 +73,16 @@ namespace hid
         }
     };
 
-    /// \brief Variable that expresses null usage state (for usage_limits min)
+    /// @brief Variable that expresses null usage state (for usage_limits min)
     constexpr nullusage_t nullusage;
 
     /// Usage types can either be an enum type, where the enum has:
-    /// * \ref usage_ext_id_type underlying type
+    /// * @ref usage_ext_id_type underlying type
     /// * PAGE_ID = the page ID shifted with USAGE_PAGE_OFFSET
     /// * MAX_USAGE = the highest usage ID in extended format (encoding the usage page)
     ///
     /// OR a class type which:
-    /// * defines conversion operator to \ref usage_ext_id_type
+    /// * defines conversion operator to @ref usage_ext_id_type
     /// * defines constexpr static usage_ext_id_type PAGE_ID
     /// * defines constexpr static usage_ext_id_type MAX_USAGE
     ///
