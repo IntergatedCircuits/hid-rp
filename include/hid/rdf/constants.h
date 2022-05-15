@@ -137,15 +137,15 @@ namespace hid::rdf
     template<typename TTag>
     constexpr item_type match_type()
     {
-        if (std::integral_constant<bool, std::is_same<TTag, main::tag>::value>::value)
+        if constexpr (std::is_same<TTag, main::tag>::value)
         {
             return item_type::MAIN;
         }
-        else if (std::integral_constant<bool, std::is_same<TTag, global::tag>::value>::value)
+        else if constexpr (std::is_same<TTag, global::tag>::value)
         {
             return item_type::GLOBAL;
         }
-        else if (std::integral_constant<bool, std::is_same<TTag, local::tag>::value>::value)
+        else if constexpr (std::is_same<TTag, local::tag>::value)
         {
             return item_type::LOCAL;
         }
