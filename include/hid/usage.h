@@ -26,6 +26,19 @@ namespace hid
     constexpr std::size_t      USAGE_PAGE_OFFSET  = (8 * sizeof(usage_index_type));
     constexpr usage_id_type    USAGE_PAGE_ID_MASK = std::numeric_limits<std::uint16_t>::max() << USAGE_PAGE_OFFSET;
 
+    namespace page
+    {
+        /// @brief Each usage page type needs the specialization of this template class
+        ///        for this library to function correctly.
+        template <typename T>
+        struct info
+        {
+            constexpr static usage_id_type max_usage = 0;
+            constexpr static usage_id_type base_id = 0;
+            constexpr static const char* name = "invalid";
+        };
+    }
+
     namespace rdf
     {
         namespace local
@@ -33,7 +46,7 @@ namespace hid
             template<typename T>
             constexpr byte_type usage_size()
             {
-                return (static_cast<usage_id_type>(T::MAX_USAGE) & USAGE_INDEX_MASK)
+                return (page::info<T>::max_usage & USAGE_INDEX_MASK)
                     > std::numeric_limits<std::uint8_t>::max() ? 2 : 1;
             }
         }
@@ -42,7 +55,7 @@ namespace hid
             template<typename T>
             constexpr byte_type usage_page_size()
             {
-                return (static_cast<usage_id_type>(T::PAGE_ID) >> USAGE_PAGE_OFFSET) 
+                return (page::info<T>::base_id >> USAGE_PAGE_OFFSET)
                     > std::numeric_limits<std::uint8_t>::max() ? 2 : 1;
             }
         }
@@ -52,7 +65,6 @@ namespace hid
     {
         // The usage page isn't encoded, so it's not a full usage type
     public:
-        constexpr static usage_id_type MAX_USAGE = 0;
         constexpr nullusage_t()
         {
         }
@@ -76,16 +88,6 @@ namespace hid
     /// @brief Variable that expresses null usage state (for usage_limits min)
     constexpr nullusage_t nullusage;
 
-    /// Usage types can either be an enum type, where the enum has:
-    /// * @ref usage_ext_id_type underlying type
-    /// * PAGE_ID = the page ID shifted with USAGE_PAGE_OFFSET
-    /// * MAX_USAGE = the highest usage ID in extended format (encoding the usage page)
-    ///
-    /// OR a class type which:
-    /// * defines conversion operator to @ref usage_ext_id_type
-    /// * defines constexpr static usage_ext_id_type PAGE_ID
-    /// * defines constexpr static usage_ext_id_type MAX_USAGE
-    ///
-}
+} // namespace hid
 
 #endif // __HID_RDF_USAGE_H_

@@ -128,7 +128,7 @@ namespace hid::rdf
     {
         constexpr std::size_t PAGE_ID_SIZE = global::usage_page_size<T>();
         return short_item<PAGE_ID_SIZE>(global::tag::USAGE_PAGE,
-            static_cast<usage_id_type>(T::PAGE_ID) >> USAGE_PAGE_OFFSET);
+            (page::info<T>::base_id) >> USAGE_PAGE_OFFSET);
     }
 
     constexpr auto push()
