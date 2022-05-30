@@ -106,7 +106,12 @@ depending on the application/device variant, instead of having to copy-paste and
 Parsing the report descriptor is a lot more complicated, that's why it was delegated to be performed by the host operating system.
 In practice it's done in iterations, the higher levels only determining the application type, then looking up the appropriate subdriver
 for it (that's also when a peripheral with multiple top-level applications gets split).
-The current implementation only implements a `descriptor_view`, with an iterator that advances item-by-item.
+
+This library implements two types of descriptor views, one for runtime (`descriptor_view`)
+and one for `constexpr` compile-time (`ce_descriptor_view`), which offer iterating item-by-item.
+A generic `parser` class is implemented that serves as a base for any kind of descriptor parsing logic.
+Being able to parse the descriptor at compile-time and using the compiler for descriptor error checking
+greatly reduces the development time of report descriptors.
 
 ## Usage pages
 
