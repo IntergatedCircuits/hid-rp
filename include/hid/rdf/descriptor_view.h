@@ -29,33 +29,33 @@ namespace hid::rdf
 
         using iterator_category = std::forward_iterator_tag;
 
-        reinterpret_iterator(const byte_type* data)
-            : ptr_(reinterpret_cast<pointer>(data))
+        constexpr reinterpret_iterator(const byte_type* data)
+            : ptr_(data)
         {
         }
-        constexpr reinterpret_iterator(pointer ptr)
-            : ptr_(ptr)
+        reinterpret_iterator(pointer ptr)
+            : ptr_(reinterpret_cast<decltype(ptr_)>(ptr))
         {
         }
-        constexpr reinterpret_iterator operator++()
+        reinterpret_iterator operator++()
         {
             reinterpret_iterator i = *this;
             ptr_ += i->size();
             return i;
         }
-        constexpr reinterpret_iterator operator++(int)
+        reinterpret_iterator operator++(int)
         {
             reinterpret_iterator retval = *this;
             ++(*this);
             return retval;
         }
-        constexpr reference operator*()
+        reference operator*()
         {
-            return *ptr_;
+            return *ptr();
         }
-        constexpr pointer operator->()
+        pointer operator->()
         {
-            return ptr_;
+            return ptr();
         }
         constexpr bool operator==(const reinterpret_iterator& rhs) const
         {
@@ -67,15 +67,24 @@ namespace hid::rdf
         }
 
     private:
-        pointer ptr_;
+        pointer ptr()
+        {
+            return reinterpret_cast<pointer>(ptr_);
+        }
+
+        template<typename TIterator>
+        friend class items_view_base;
+
+        const byte_type* ptr_;
     };
 
     /// @brief HID report descriptor iterator, which copies the actual short (!) item
-    ///        into an internal buffer.
+    ///        into an internal buffer. This approach is mandatory for constexpr use,
+    ///        but suboptimal in runtime to @ref reinterpret_iterator.
     class copy_iterator
     {
     public:
-        using value_type      = item;
+        using value_type      = short_item_buffer;
         using const_pointer   = const value_type*;
         using const_reference = const value_type&;
         using pointer         = const value_type*;
@@ -88,7 +97,7 @@ namespace hid::rdf
         {
         }
         copy_iterator(pointer ptr)
-            : ptr_(reinterpret_cast<decltype(ptr_)>(ptr))
+            : copy_iterator(reinterpret_cast<decltype(ptr_)>(ptr))
         {
         }
         constexpr copy_iterator operator++()
@@ -126,42 +135,27 @@ namespace hid::rdf
             copy_ = decltype(copy_)(ptr_);
             return copy_;
         }
-        const byte_type *ptr_;
-        short_item_buffer copy_;
+
+        template<typename TIterator>
+        friend class items_view_base;
+
+        const byte_type* ptr_;
+        short_item_buffer copy_ {};
     };
 
+    /// @brief A view to a section of items in an HID report descriptor.
+    /// @tparam TIterator Either @ref reinterpret_iterator or @ref copy_iterator
     template<typename TIterator>
-    class descriptor_view_base
+    class items_view_base
     {
     public:
-        using value_type      = item;
+        using value_type      = TIterator::value_type;
         using const_pointer   = const value_type*;
         using const_reference = const value_type&;
         using pointer         = const value_type*;
         using reference       = const value_type&;
         using iterator        = TIterator;
-        using const_iterator  = const iterator;
-
-        constexpr descriptor_view_base()
-            : begin_(nullptr), end_(nullptr)
-        {
-        }
-        constexpr descriptor_view_base(const byte_type *data, std::size_t size)
-            : begin_(data), end_(data + size)
-        {
-        }
-        template<typename TArray>
-        constexpr descriptor_view_base(const TArray& arr)
-            : begin_(arr.data())
-            , end_(arr.data() + arr.size())
-        {
-        }
-        template <typename TIter>
-        constexpr descriptor_view_base(const TIter begin, const TIter end)
-            : begin_(std::addressof(*begin)),
-            end_(std::addressof(*begin) + std::distance(begin, end))
-        {
-        }
+        using const_iterator  = iterator;
 
         constexpr const byte_type* data() const
         {
@@ -188,16 +182,129 @@ namespace hid::rdf
             return end_;
         }
 
+        /// @brief  Verifies that the view has correct bounds, all items are intact and complete.
+        ///         This is the first check that needs to be done on a new HID report descriptor
+        ///         (usually done by the OS itself).
+        /// @return true if the view is valid, false otherwise
+        constexpr bool has_valid_bounds() const
+        {
+            for (auto it = this->begin(); it != this->end(); ++it)
+            {
+                if ((it.ptr_ + (*it).size()) > end_)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        template<typename TTag>
+        constexpr std::size_t tag_count(TTag tag) const
+        {
+            std::size_t hits = 0;
+            for (const value_type& item : (*this))
+            {
+                if (item.has_tag(tag))
+                {
+                    hits++;
+                }
+            }
+            return hits;
+        }
+
+        template<typename TTag>
+        constexpr std::uint32_t tag_max_value_unsigned(TTag tag) const
+        {
+            std::uint32_t result = std::numeric_limits<decltype(result)>::min();
+            for (const value_type& item : (*this))
+            {
+                if (item.has_tag(tag))
+                {
+                    result = std::max(result, item.value_unsigned());
+                }
+            }
+            return result;
+        }
+
+        template<typename TTag>
+        constexpr std::int32_t tag_max_value_signed(TTag tag) const
+        {
+            std::int32_t result = std::numeric_limits<decltype(result)>::min();
+            for (const value_type& item : (*this))
+            {
+                if (item.has_tag(tag))
+                {
+                    result = std::max(result, item.value_unsigned());
+                }
+            }
+            return result;
+        }
+
+        constexpr items_view_base(const TIterator& begin, const TIterator& end)
+            : begin_(begin.ptr_), end_(end.ptr_)
+        {
+        }
+
+    protected:
+        constexpr items_view_base()
+            : begin_(nullptr), end_(nullptr)
+        {
+        }
+        constexpr items_view_base(const byte_type* begin, const byte_type* end)
+            : begin_(begin), end_(end)
+        {
+        }
+
     private:
         const byte_type* begin_;
         const byte_type* end_;
+    };
+
+    /// @brief A view of the HID report descriptor, allowing iterating through its items.
+    /// @tparam TIterator Either @ref reinterpret_iterator or @ref copy_iterator
+    template<typename TIterator>
+    class descriptor_view_base : public items_view_base<TIterator>
+    {
+        using base = items_view_base<TIterator>;
+    public:
+        using value_type      = TIterator::value_type;
+        using const_pointer   = const value_type*;
+        using const_reference = const value_type&;
+        using pointer         = const value_type*;
+        using reference       = const value_type&;
+        using iterator        = TIterator;
+        using const_iterator  = iterator;
+
+        constexpr descriptor_view_base()
+            : base()
+        {
+        }
+        constexpr descriptor_view_base(const byte_type* data, std::size_t size)
+            : descriptor_view_base(data, data + size)
+        {
+        }
+        template<typename TArray>
+        constexpr descriptor_view_base(const TArray& arr)
+            : descriptor_view_base(arr.data(), arr.data() + arr.size())
+        {
+        }
+        template<typename TIter>
+        constexpr descriptor_view_base(const TIter begin, const TIter end)
+            : descriptor_view_base(std::addressof(*begin), std::addressof(*begin) + std::distance(begin, end))
+        {
+        }
+
+    private:
+        constexpr descriptor_view_base(const byte_type* begin, const byte_type* end)
+            : base(begin, end)
+        {
+        }
     };
 
     /// @brief HID report descriptor view, use for runtime descriptor parsing.
     using descriptor_view = descriptor_view_base<reinterpret_iterator>;
 
     /// @brief HID report descriptor view, use for compile-time descriptor parsing.
-    ///        It needs to copy each item to buffer, not the optimal solution for runtime.
     using ce_descriptor_view = descriptor_view_base<copy_iterator>;
 
 } // namespace hid::rdf

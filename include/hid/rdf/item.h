@@ -16,111 +16,104 @@
 
 namespace hid::rdf
 {
-    /// @brief This class provides a view of an existing HID report descriptor item.
-    ///        Items are variable in length, therefore are challenging to
-    ///        consistently represent as a single type.
-    class alignas(1) item
+    /// @brief This base class represents the single byte HID report descriptor item header.
+    class alignas(1) item_header
     {
-    private:
-        constexpr static byte_type LONG_ITEM_PREFIX = 0xfe;
+    public:
+        constexpr item_type type() const
+        {
+            return static_cast<item_type>((prefix_ >> 2) & 0x3);
+        }
 
+        /// @note   Long item format is specified, but their use isn't.
+        ///         Long items store their properties in subsequent bytes (see @ref long_item)
+        constexpr bool is_long() const
+        {
+            return prefix_ == LONG_ITEM_PREFIX;
+        }
+
+        constexpr bool is_short() const
+        {
+            return !is_long();
+        }
+
+        constexpr bool is_type_valid() const
+        {
+            return type() != item_type::RESERVED;
+        }
+
+        constexpr global::tag global_tag() const
+        {
+            HID_RDF_ASSERT(is_correct_type<global::tag>(), ex_item_invalid_tag_type);
+            return static_cast<global::tag>(short_tag());
+        }
+
+        constexpr local::tag local_tag() const
+        {
+            HID_RDF_ASSERT(is_correct_type<local::tag>(), ex_item_invalid_tag_type);
+            return static_cast<local::tag>(short_tag());
+        }
+
+        constexpr main::tag main_tag() const
+        {
+            HID_RDF_ASSERT(is_correct_type<main::tag>(), ex_item_invalid_tag_type);
+            return static_cast<main::tag>(short_tag());
+        }
+
+        template<typename TTag>
+        constexpr bool has_tag(TTag tag) const
+        {
+            return (match_type<TTag>() == type()) and (static_cast<TTag>(short_tag()) == tag);
+        }
+
+    protected:
         template<typename TTag>
         constexpr bool is_correct_type() const
         {
             return match_type<TTag>() == type();
         }
 
-    public:
-        using types = item_type;
-
-        constexpr types type() const
+        constexpr byte_type short_tag() const
         {
-            return static_cast<types>((prefix_ >> 2) & 0x3);
+            return static_cast<byte_type>(prefix_ >> 4);
         }
 
-        /// @note Long item format is specified, but their use isn't.
-        ///       It's highly recommended to reject HID report descriptors
-        ///       as soon as a long item is encountered (is_type_valid() will evaluate to false).
-        constexpr bool is_short() const
+        constexpr byte_type short_data_size() const
         {
-#if (HID_RDF_LONG_ITEM_SUPPORT != 0)
-            return prefix_ != LONG_ITEM_PREFIX;
-#else
-            return true;
-#endif
+            auto size = prefix_ & 3;
+            if (size == 3)
+            {
+                size = 4;
+            }
+            return size;
         }
 
-        constexpr bool is_type_valid() const
+        constexpr bool equals(const item_header& other) const
         {
-            return type() != types::RESERVED;
+            return prefix_ == other.prefix_;
         }
 
-        /// @brief Get the item's tag, which can only be done once the item's type is known.
-        /// @tparam TTag: HID item tag type
-        /// @return The item's tag value
-        template<typename TTag>
-        constexpr TTag tag() const
+        constexpr const byte_type& header() const
         {
-            HID_RDF_ASSERT(is_correct_type<TTag>(), ex_item_invalid_tag_type);
-            if (is_short())
-            {
-                return static_cast<TTag>(prefix_ >> 4);
-            }
-            else
-            {
-                return static_cast<TTag>(*(&prefix_ + 2));
-            }
+            return prefix_;
         }
 
-        constexpr byte_type data_size() const
+        constexpr item_header(byte_type prefix)
+            : prefix_(prefix)
         {
-            if (is_short())
-            {
-                auto sizefield = prefix_ & 3;
-                return (sizefield < 3) ? sizefield : 4;
-            }
-            else
-            {
-                return *(&prefix_ + 1);
-            }
+        }
+        /// @brief Default constructing creates an unknown MAIN item with no data
+        constexpr item_header()
+            : item_header(0)
+        {
         }
 
-        constexpr std::size_t size() const
+        constexpr static std::uint32_t get_unsigned_value(const item_header* header, const byte_type* ptr)
         {
-            if (is_short())
-            {
-                return sizeof(prefix_) + data_size();
-            }
-            else
-            {
-                return sizeof(prefix_) + 2 + data_size();
-            }
-        }
+            HID_RDF_ASSERT(!header->is_long(), ex_item_long);
 
-        constexpr bool has_data() const
-        {
-            return data_size() > 0;
-        }
-
-        constexpr const byte_type* data() const
-        {
-            if (is_short())
-            {
-                return (&prefix_ + 1);
-            }
-            else
-            {
-                return (&prefix_ + 3);
-            }
-        }
-
-        constexpr std::uint32_t value_unsigned() const
-        {
-            HID_RDF_ASSERT(is_short(), ex_item_long);
-
-            const byte_type* ptr = &prefix_ + 1;
             std::uint32_t value = 0;
-            for (byte_type i = data_size(); i > 0;)
+            for (byte_type i = header->short_data_size(); i > 0;)
             {
                 i--;
                 value = (value << 8) | ptr[i];
@@ -128,11 +121,11 @@ namespace hid::rdf
             return value;
         }
 
-        constexpr std::int32_t value_signed() const
+        constexpr static std::int32_t get_signed_value(const item_header* header, const byte_type* ptr)
         {
-            std::uint32_t uval = value_unsigned();
+            std::uint32_t uval = get_unsigned_value(header, ptr);
             std::int32_t value = static_cast<std::int32_t>(uval);
-            const auto size = data_size();
+            const auto size = header->short_data_size();
             if ((size > 0) and (size < 4))
             {
                 // sign extend
@@ -146,13 +139,105 @@ namespace hid::rdf
             return value;
         }
 
-        constexpr bool is_value_signed() const
+        constexpr static bool is_signed_value(std::int32_t sval)
         {
-            auto sval = value_signed();
             return (sval & (1 << (8 * sizeof(sval) - 1))) != 0;
         }
 
-        constexpr bool operator==(const item& rhs)
+    private:
+        template<const byte_type DATA_SIZE>
+        friend class short_item;
+
+        constexpr static byte_type LONG_ITEM_PREFIX = 0xfe;
+
+        byte_type prefix_;
+    };
+
+    /// @brief This class provides a flat view of an existing HID report descriptor item.
+    ///        Items are variable in length, therefore cannot be represented by any single type.
+    class alignas(1) item : public item_header
+    {
+        /// @brief This class is a simple layout definition of long items.
+        struct alignas(1) long_item
+        {
+            byte_type prefix_;
+            byte_type data_size_;
+            byte_type tag_;
+            byte_type data_[0];
+        };
+        static_assert(sizeof(long_item) == 3);
+
+    public:
+        using types = item_type;
+
+        template<typename TTag>
+        TTag tag() const
+        {
+            HID_RDF_ASSERT(is_correct_type<TTag>(), ex_item_invalid_tag_type);
+            if (is_short())
+            {
+                return static_cast<TTag>(short_tag());
+            }
+            else
+            {
+                return static_cast<TTag>(as_long().tag_);
+            }
+        }
+
+        constexpr byte_type data_size() const
+        {
+            if (is_short())
+            {
+                return short_data_size();
+            }
+            else
+            {
+                return as_long().data_size_;
+            }
+        }
+
+        constexpr std::size_t size() const
+        {
+            if (is_short())
+            {
+                return sizeof(item_header) + short_data_size();
+            }
+            else
+            {
+                return sizeof(as_long()) + as_long().data_size_;
+            }
+        }
+
+        constexpr bool has_data() const
+        {
+            return data_size() > 0;
+        }
+
+        constexpr const byte_type* data() const
+        {
+            if (is_short())
+            {
+                return data_;
+            }
+            else
+            {
+                return as_long().data_;
+            }
+        }
+
+        std::uint32_t value_unsigned() const
+        {
+            HID_RDF_ASSERT(is_short(), ex_item_long);
+            return get_unsigned_value(this, data_);
+        }
+
+        std::int32_t value_signed() const
+        {
+            HID_RDF_ASSERT(is_short(), ex_item_long);
+            return get_signed_value(this, data_);
+        }
+
+        bool operator==(const item& rhs)
         {
             if (this->size() != rhs.size())
             {
@@ -160,69 +245,132 @@ namespace hid::rdf
             }
             else
             {
-                const byte_type* l = &this->prefix_;
-                const byte_type* r = &rhs.prefix_;
-                auto len = this->size();
-                while (len--)
+                return std::equal(&header(), &header() + this->size(), &rhs.header());
+            }
+        }
+
+        bool operator!=(const item& rhs)
+        {
+            return !(*this == rhs);
+        }
+
+    private:
+        item()
+            : item_header()
+        {
+        }
+
+        const long_item& as_long() const
+        {
+            return *reinterpret_cast<const long_item*>(this);
+        }
+
+        // the actual contents of this class don't cover the possible entire extent of the item,
+        // so copying is senseless
+        item(const item&) = delete;
+        item& operator=(const item&) = delete;
+
+        friend class short_item_buffer;
+
+        byte_type data_[0];
+    };
+
+    /// @brief This class is used to store a copy of an existing HID report descriptor short item.
+    ///        It's emphasis on constexpr is in order to be used as a helper class to implement
+    ///        iterating through an HID report descriptor in compile-time.
+    class alignas(1) short_item_buffer : public item_header
+    {
+    public:
+        constexpr short_item_buffer()
+            : item_header(), data_buffer_()
+        {
+            HID_RDF_ASSERT(is_short(), ex_item_long);
+        }
+
+        constexpr short_item_buffer(const byte_type* data)
+            : item_header(data[0]), data_buffer_()
+        {
+            HID_RDF_ASSERT(is_short(), ex_item_long);
+#if __cplusplus > 201703L
+            std::copy(data + 1, data + 1 + data_size(), data_buffer_.begin());
+#else
+            for (std::size_t i = 0; i < data_size(); i++)
+            {
+                data_buffer_[i] = data[1 + i];
+            }
+#endif
+        }
+
+        constexpr byte_type data_size() const
+        {
+            return short_data_size();
+        }
+
+        constexpr std::size_t size() const
+        {
+            return sizeof(item_header) + short_data_size();
+        }
+
+        constexpr bool has_data() const
+        {
+            return data_size() > 0;
+        }
+
+        constexpr const byte_type* data() const
+        {
+            return data_buffer_.data();
+        }
+
+        constexpr std::uint32_t value_unsigned() const
+        {
+            return get_unsigned_value(this, data_buffer_.data());
+        }
+
+        constexpr std::int32_t value_signed() const
+        {
+            return get_signed_value(this, data_buffer_.data());
+        }
+
+        constexpr bool operator==(const short_item_buffer& rhs)
+        {
+            if (!this->equals(rhs))
+            {
+                return false;
+            }
+            else
+            {
+#if __cplusplus > 201703L
+                return std::equal(data_buffer_.begin(), data_buffer_.end(), rhs.data_buffer_.begin());
+#else
+                for (std::size_t i = 0; i < data_size(); ++i)
                 {
-                    if (*l++ != *r++)
+                    if (data_buffer_[i] != rhs.data_buffer_[i])
                     {
                         return false;
                     }
                 }
                 return true;
+#endif
             }
         }
 
-        constexpr bool operator!=(const item& rhs)
+        constexpr bool operator!=(const short_item_buffer& rhs)
         {
             return !(*this == rhs);
         }
 
-    protected:
-        constexpr item(byte_type prefix)
-            : prefix_(prefix)
+        constexpr short_item_buffer(const item& it)
+            : short_item_buffer(&it.header())
         {
         }
-        constexpr item()
-            : prefix_(LONG_ITEM_PREFIX)
+        constexpr short_item_buffer& operator=(const item& it)
         {
+            *this = short_item_buffer(it);
+            return *this;
         }
-
-        item(const item&) = default;
-        item& operator=(const item&) = default;
 
     private:
-        byte_type prefix_;
-    };
-
-    /// @brief This class is used to store a copy of an existing HID report descriptor short item.
-    ///        Since reinterpret_cast<item*>(uint8_t*) isn't constexpr, copying is the next best
-    ///        solution to be able to iterate through a descriptor in compile-time.
-    class alignas(1) short_item_buffer : public item
-    {
-    public:
-        constexpr short_item_buffer()
-            : item(), buffer_()
-        {
-        }
-
-        constexpr short_item_buffer(const byte_type* data)
-            : item(data[0]), buffer_()
-        {
-            HID_RDF_ASSERT(is_short(), ex_item_long);
-
-            for (std::size_t i = 0; i < data_size(); i++)
-            {
-                buffer_[i] = data[1 + i];
-            }
-        }
-
-        short_item_buffer(const short_item_buffer&) = default;
-        short_item_buffer& operator=(const short_item_buffer&) = default;
-
-    private:
-        byte_type buffer_[4];
+        std::array<byte_type, 4> data_buffer_;
     };
 
 } // namespace hid::rdf

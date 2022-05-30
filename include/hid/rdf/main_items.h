@@ -45,42 +45,49 @@ namespace hid::rdf
         template <std::size_t... sz>
         constexpr auto application(array<sz>... items)
         {
+            static_assert(sizeof...(items) > 0);
             return main::collection_begin_item(type::APPLICATION), (items, ...), main::collection_end_item();
         }
 
         template <std::size_t... sz>
         constexpr auto logical(array<sz>... items)
         {
+            static_assert(sizeof...(items) > 0);
             return main::collection_begin_item(type::LOGICAL), (items, ...), main::collection_end_item();
         }
 
         template <std::size_t... sz>
         constexpr auto report(array<sz>... items)
         {
+            static_assert(sizeof...(items) > 0);
             return main::collection_begin_item(type::REPORT), (items, ...), main::collection_end_item();
         }
 
         template <std::size_t... sz>
         constexpr auto named_array(array<sz>... items)
         {
+            static_assert(sizeof...(items) > 0);
             return main::collection_begin_item(type::NAMED_ARRAY), (items, ...), main::collection_end_item();
         }
 
         template <std::size_t... sz>
         constexpr auto physical(array<sz>... items)
         {
+            static_assert(sizeof...(items) > 0);
             return main::collection_begin_item(type::PHYSICAL), (items, ...), main::collection_end_item();
         }
 
         template <std::size_t... sz>
         constexpr auto usage_modifier(array<sz>... items)
         {
+            static_assert(sizeof...(items) > 0);
             return main::collection_begin_item(type::USAGE_MODIFIER), (items, ...), main::collection_end_item();
         }
 
         template <std::size_t... sz>
         constexpr auto usage_switch(array<sz>... items)
         {
+            static_assert(sizeof...(items) > 0);
             return main::collection_begin_item(type::USAGE_SWITCH), (items, ...), main::collection_end_item();
         }
     }

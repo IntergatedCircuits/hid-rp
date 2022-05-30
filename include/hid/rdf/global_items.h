@@ -131,6 +131,16 @@ namespace hid::rdf
             static_cast<usage_id_type>(T::PAGE_ID) >> USAGE_PAGE_OFFSET);
     }
 
+    constexpr auto push()
+    {
+        return short_item<1>(global::tag::PUSH);
+    }
+
+    constexpr auto pop()
+    {
+        return short_item<1>(global::tag::POP);
+    }
+
 } // namespace hid::rdf
 
 #endif // __HID_RDF_GLOBAL_ITEMS_H_

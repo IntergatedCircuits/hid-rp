@@ -83,7 +83,8 @@ namespace hid::rdf
                 ((luminous_int_count & 0xf) << (global::unit_nibble_index::LUMINOUS_INTENSITY * 4));
         }
 
-        constexpr std::int32_t get_exponent(const rdf::item& exp)
+        template<typename TItem>
+        constexpr std::int32_t get_exponent(const TItem& exp)
         {
             // stored on 4 bytes
             std::uint32_t uval = exp.value_unsigned() & 0xf;

@@ -67,26 +67,44 @@ namespace hid::rdf
             }
         }
 
-        constexpr bool operator==(const item& rhs)
+        template<typename T>
+        bool operator==(const item& rhs)
         {
-            if (this->size() != rhs.size())
+            return std::equal(this->begin(), this->end(), &rhs.header());
+        }
+
+        template<typename T>
+        bool operator!=(const item& rhs)
+        {
+            return !(*this == rhs);
+        }
+
+        template<typename T>
+        constexpr bool operator==(const short_item_buffer& rhs)
+        {
+            if ((*this)[0] != rhs.header())
             {
                 return false;
             }
             else
             {
-                for (std::size_t i = 0; i < this->size(); ++i)
+#if __cplusplus > 201703L
+                return std::equal(this->begin() + 1, this->end(), rhs.data());
+#else
+                for (std::size_t i = 0; i < this->data_size(); ++i)
                 {
-                    if ((*this)[i] != rhs.data()[i])
+                    if ((*this)[1 + i] != rhs.data()[i])
                     {
                         return false;
                     }
                 }
                 return true;
+#endif
             }
         }
 
-        constexpr bool operator!=(const item& rhs)
+        template<typename T>
+        constexpr bool operator!=(const short_item_buffer& rhs)
         {
             return !(*this == rhs);
         }
