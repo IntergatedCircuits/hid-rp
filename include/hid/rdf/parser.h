@@ -318,10 +318,13 @@ namespace hid::rdf
                 return control::BREAK;
             }
 
-            usage_id_type usage_;
+            usage_id_type usage_ = 0;
         };
 
-        return application_usage_id_parser(desc_view).usage_;
+        auto usage = application_usage_id_parser(desc_view).usage_;
+        // this assert could hit due to either no collection, or the usage value being actually 0
+        HID_RDF_ASSERT(usage != nullusage, ex_collection_missing);
+        return usage;
     }
 }
 

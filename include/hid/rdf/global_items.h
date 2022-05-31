@@ -131,12 +131,12 @@ namespace hid::rdf
             (page::info<T>::base_id) >> USAGE_PAGE_OFFSET);
     }
 
-    constexpr auto push()
+    constexpr auto push_globals()
     {
         return short_item<1>(global::tag::PUSH);
     }
 
-    constexpr auto pop()
+    constexpr auto pop_globals()
     {
         return short_item<1>(global::tag::POP);
     }

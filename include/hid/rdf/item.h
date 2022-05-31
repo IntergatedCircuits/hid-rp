@@ -255,18 +255,17 @@ namespace hid::rdf
         }
 
     private:
-        item()
-            : item_header()
-        {
-        }
-
         const long_item& as_long() const
         {
             return *reinterpret_cast<const long_item*>(this);
         }
 
         // the actual contents of this class don't cover the possible entire extent of the item,
-        // so copying is senseless
+        // so constructing or copying is senseless
+        item()
+            : item_header()
+        {
+        }
         item(const item&) = delete;
         item& operator=(const item&) = delete;
 
