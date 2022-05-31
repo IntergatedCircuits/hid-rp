@@ -63,14 +63,14 @@ and extract relevant properties of the resulting descriptor.
 The current implementation allows us to rewrite the above descriptor to this:
 
 ```C++
-#include "hid/rdf/all_items.h"
+#include "hid/rdf/descriptor.h"
 #include "hid/page/generic_desktop.h"
 #include "hid/page/button.h"
 
 using namespace hid::rdf;
 using namespace hid::page;
 
-constexpr auto mouse_report_desc = (
+constexpr auto mouse_report_desc = descriptor(
     usage_page<generic_desktop>(),
     usage(generic_desktop::MOUSE),
     collection::application(

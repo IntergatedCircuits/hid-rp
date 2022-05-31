@@ -11,10 +11,10 @@
 #ifndef __HID_REPORTS_MOUSE_H_
 #define __HID_REPORTS_MOUSE_H_
 
-#include "hid/rdf/all_items.h"
+#include "../report.h"
+#include "../rdf/descriptor.h"
 #include "hid/page/generic_desktop.h"
 #include "hid/page/button.h"
-#include "hid/report.h"
 
 namespace hid::reports::mouse
 {
@@ -51,7 +51,7 @@ namespace hid::reports::mouse
         using namespace hid::page;
         using namespace hid::rdf;
 
-        return (
+        return descriptor(
             usage_page<generic_desktop>(),
             usage(generic_desktop::MOUSE),
             collection::application(

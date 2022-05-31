@@ -11,8 +11,8 @@
 #ifndef __HID_REPORTS_OPAQUE_H_
 #define __HID_REPORTS_OPAQUE_H_
 
-#include "hid/rdf/all_items.h"
-#include "hid/report.h"
+#include "../report.h"
+#include "../rdf/descriptor.h"
 
 namespace hid::reports::opaque
 {
@@ -28,7 +28,7 @@ namespace hid::reports::opaque
         using namespace hid;
         using namespace hid::rdf;
 
-        return (
+        return descriptor(
             report_size(8),
             report_count(sizeof(TReport) - (TReport::ID > 0) ? 1 : 0),
             logical_limits<1, 1>(0, 0xff),

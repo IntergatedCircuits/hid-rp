@@ -12,11 +12,11 @@
 #define __HID_REPORTS_KEYBOARD_H_
 
 #include <array>
-#include "hid/rdf/all_items.h"
+#include "../report.h"
+#include "../rdf/descriptor.h"
 #include "hid/page/generic_desktop.h"
 #include "hid/page/keyboard_keypad.h"
 #include "hid/page/leds.h"
-#include "hid/report.h"
 
 namespace hid::reports::keyboard
 {
@@ -27,7 +27,7 @@ namespace hid::reports::keyboard
         using namespace hid::page;
         using namespace hid::rdf;
 
-        return (
+        return descriptor(
             conditional_report_id<REPORT_ID>(),
             // modifier byte
             report_size(1),
@@ -115,7 +115,7 @@ namespace hid::reports::keyboard
         using namespace hid::page;
         using namespace hid::rdf;
 
-        return (
+        return descriptor(
             conditional_report_id<REPORT_ID>(),
             report_size(1),
             report_count(5),
@@ -145,7 +145,7 @@ namespace hid::reports::keyboard
         using namespace hid::page;
         using namespace hid::rdf;
 
-        return (
+        return descriptor(
             usage_extended(generic_desktop::KEYBOARD),
             collection::application(
                 // input keys report
