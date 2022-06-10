@@ -73,7 +73,7 @@ namespace hid::reports::keyboard
             }
             else if (pressed)
             {
-                for (auto &code : scancodes)
+                for (auto& code : scancodes)
                 {
                     if (code == 0)
                     {
@@ -82,7 +82,7 @@ namespace hid::reports::keyboard
                     }
                 }
                 // scancodes buffer full, need to raise rollover error
-                for (auto &code : scancodes)
+                for (auto& code : scancodes)
                 {
                     code = static_cast<uint8_t>(keyboard_keypad::ERRORROLLOVER);
                 }
@@ -90,7 +90,7 @@ namespace hid::reports::keyboard
             }
             else
             {
-                for (auto &code : scancodes)
+                for (auto& code : scancodes)
                 {
                     if (code == static_cast<uint8_t>(key))
                     {

@@ -44,7 +44,7 @@ namespace hid
         namespace local
         {
             template<typename T>
-            constexpr byte_type usage_size()
+            constexpr std::size_t usage_size()
             {
                 return (page::info<T>::max_usage & USAGE_INDEX_MASK)
                     > std::numeric_limits<std::uint8_t>::max() ? 2 : 1;
@@ -53,7 +53,7 @@ namespace hid
         namespace global
         {
             template<typename T>
-            constexpr byte_type usage_page_size()
+            constexpr std::size_t usage_page_size()
             {
                 return (page::info<T>::base_id >> USAGE_PAGE_OFFSET)
                     > std::numeric_limits<std::uint8_t>::max() ? 2 : 1;

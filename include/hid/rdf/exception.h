@@ -14,7 +14,7 @@
 #include "constants.h"
 
 #ifndef HID_RDF_ASSERT
-#define HID_RDF_ASSERT(CONDITION, EXCEPTION)   {if (!(CONDITION)) { throw (EXCEPTION()); }}
+#define HID_RDF_ASSERT(CONDITION, EXCEPTION)   {if (!(CONDITION)) { using namespace hid::rdf; throw (EXCEPTION()); }}
 #endif
 
 namespace hid::rdf
@@ -86,6 +86,27 @@ namespace hid::rdf
                 global::tag::REPORT_ID, 0) {}
     };
 
+    struct ex_report_id_excess : public parser_exception
+    {
+        constexpr ex_report_id_excess()
+            : parser_exception("report ID exceeds valid range",
+                global::tag::REPORT_ID, 1) {}
+    };
+
+    struct ex_report_id_missing : public parser_exception
+    {
+        constexpr ex_report_id_missing()
+            : parser_exception("report ID missing for a subset of main data items",
+                global::tag::REPORT_ID, 2) {}
+    };
+
+    struct ex_report_crossing_tlc_bounds : public parser_exception
+    {
+        constexpr ex_report_crossing_tlc_bounds()
+            : parser_exception("data elements of the same report are bound to different TLCs",
+                global::tag::REPORT_ID, 3) {}
+    };
+
     struct ex_item_long : public parser_exception
     {
         constexpr ex_item_long()
@@ -142,6 +163,69 @@ namespace hid::rdf
                 global::tag::POP, 1) {}
     };
 
+    struct ex_report_size_zero : public parser_exception
+    {
+        constexpr ex_report_size_zero()
+            : parser_exception("report size must be non-zero",
+                global::tag::REPORT_SIZE, 0) {}
+    };
+
+    struct ex_report_size_missing : public parser_exception
+    {
+        constexpr ex_report_size_missing()
+            : parser_exception("report size missing",
+                global::tag::REPORT_SIZE, 1) {}
+    };
+
+    struct ex_report_count_zero : public parser_exception
+    {
+        constexpr ex_report_count_zero()
+            : parser_exception("report count must be non-zero",
+                global::tag::REPORT_COUNT, 0) {}
+    };
+
+    struct ex_report_count_missing : public parser_exception
+    {
+        constexpr ex_report_count_missing()
+            : parser_exception("report count missing",
+                global::tag::REPORT_COUNT, 1) {}
+    };
+
+    struct ex_logical_min_missing : public parser_exception
+    {
+        constexpr ex_logical_min_missing()
+            : parser_exception("logical minimum must be defined before any main items",
+                global::tag::LOGICAL_MINIMUM, 1) {}
+    };
+
+    struct ex_logical_min_oob : public parser_exception
+    {
+        constexpr ex_logical_min_oob()
+            : parser_exception("logical minimum must be within bounds of report size",
+                global::tag::LOGICAL_MINIMUM, 0) {}
+    };
+
+    struct ex_logical_max_missing : public parser_exception
+    {
+        constexpr ex_logical_max_missing()
+            : parser_exception("logical maximum must be defined before any main items",
+                global::tag::LOGICAL_MAXIMUM, 1) {}
+    };
+
+    struct ex_logical_max_oob : public parser_exception
+    {
+        constexpr ex_logical_max_oob()
+            : parser_exception("logical maximum must be within bounds of report size",
+                global::tag::LOGICAL_MAXIMUM, 0) {}
+    };
+
+    struct ex_logical_limits_crossed : public parser_exception
+    {
+        constexpr ex_logical_limits_crossed()
+            : parser_exception("logical min must be less than or equal to max",
+                global::tag::LOGICAL_MAXIMUM, 3) {}
+    };
+
     struct ex_usage_page_zero : public parser_exception
     {
         constexpr ex_usage_page_zero()
@@ -173,7 +257,7 @@ namespace hid::rdf
     struct ex_collection_missing : public parser_exception
     {
         constexpr ex_collection_missing()
-            : parser_exception("collection must be defined before any other main items",
+            : parser_exception("all other main items must be enclosed by a collection",
                 main::tag::COLLECTION, 10) {}
     };
 
@@ -195,6 +279,13 @@ namespace hid::rdf
     {
         constexpr ex_collection_end_unmatched()
             : parser_exception("unmatched end collection item",
+                main::tag::END_COLLECTION, 0) {}
+    };
+
+    struct ex_report_total_size_invalid : public parser_exception
+    {
+        constexpr ex_report_total_size_invalid()
+            : parser_exception("all report total sizes must be byte-aligned",
                 main::tag::END_COLLECTION, 0) {}
     };
 

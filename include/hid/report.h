@@ -69,8 +69,10 @@ namespace hid
         std::uint16_t storage_ = 0;
     };
 
+    using report_id_type = std::uint8_t;
+
     /// @brief Base type for report storage structures. Inherit from @ref report type instead!
-    template<const report_type TYPE, const std::uint8_t REPORT_ID>
+    template<const report_type TYPE, const report_id_type REPORT_ID>
     struct report_base
     {
         std::uint8_t *data()
@@ -85,8 +87,8 @@ namespace hid
         {
             return TYPE;
         }
-        constexpr static std::uint8_t ID = REPORT_ID;
-        constexpr static std::uint8_t id()
+        constexpr static report_id_type ID = REPORT_ID;
+        constexpr static report_id_type id()
         {
             return REPORT_ID;
         }
@@ -96,10 +98,10 @@ namespace hid
         }
     };
 
-    template<const report_type TYPE, const std::uint8_t REPORT_ID = 0, typename Enabled = void>
+    template<const report_type TYPE, const report_id_type REPORT_ID = 0, typename Enabled = void>
     struct report;
 
-    template<const report_type TYPE, const std::uint8_t REPORT_ID>
+    template<const report_type TYPE, const report_id_type REPORT_ID>
     struct report<TYPE, REPORT_ID, std::enable_if_t<REPORT_ID == 0>> : public report_base<TYPE, REPORT_ID>
     {
         constexpr bool is_id_valid() const
@@ -108,10 +110,10 @@ namespace hid
         }
     };
 
-    template<const report_type TYPE, const std::uint8_t REPORT_ID>
+    template<const report_type TYPE, const report_id_type REPORT_ID>
     struct report<TYPE, REPORT_ID, std::enable_if_t<(REPORT_ID > 0)>> : public report_base<TYPE, REPORT_ID>
     {
-        std::uint8_t id_ = REPORT_ID;
+        report_id_type id_ = REPORT_ID;
 
         constexpr bool is_id_valid() const
         {

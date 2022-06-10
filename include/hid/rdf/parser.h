@@ -11,6 +11,8 @@
 #ifndef __HID_RDF_PARSER_H_
 #define __HID_RDF_PARSER_H_
 
+#include <span>
+#include "../usage.h"
 #include "descriptor_view.h"
 
 namespace hid::rdf
@@ -121,11 +123,13 @@ namespace hid::rdf
         /// @param  collection: the type of collection
         /// @param  global_state: the current global items state
         /// @param  main_section: the span of items between the previous and this main item, for local items parsing
+        /// @param  tlc_number: the Top Level Collection index, where this item is found (incremented before this method is called)
         /// @return CONTINUE to continue the parsing until the next main item,
         ///         or BREAK to terminate it early
         constexpr virtual control parse_collection_begin(main::collection_type collection,
                 const global_item_store& global_state,
-                const items_view_type& main_section)
+                const items_view_type& main_section,
+                unsigned tlc_number)
         {
             return control::CONTINUE;
         }
@@ -133,10 +137,12 @@ namespace hid::rdf
         /// @brief  The override of this method is meant to handle the collection ends of the descriptor.
         /// @param  global_state: the current global items state
         /// @param  main_section: the span of items between the previous and this main item, for local items parsing
+        /// @param  tlc_number: the Top Level Collection index, where this item is found
         /// @return CONTINUE to continue the parsing until the next main item,
         ///         or BREAK to terminate it early
         constexpr virtual control parse_collection_end(const global_item_store& global_state,
-                const items_view_type& main_section)
+                const items_view_type& main_section,
+                unsigned tlc_number)
         {
             return control::CONTINUE;
         }
@@ -146,21 +152,36 @@ namespace hid::rdf
         /// @param  main_item: the current main item that needs parsing
         /// @param  global_state: the current global items state
         /// @param  main_section: the span of items between the previous and this main item, for local items parsing
+        /// @param  tlc_number: the Top Level Collection index, where this item is found
         /// @return CONTINUE to continue the parsing until the next main item,
         ///         or BREAK to terminate it early
         constexpr virtual control parse_report_data_field(const item_type& main_item,
                 const global_item_store& global_state,
-                const items_view_type& main_section)
+                const items_view_type& main_section,
+                unsigned tlc_number)
         {
             return control::CONTINUE;
         }
 
-        template<typename TArray>
-        constexpr void fixed_stack_parse(const descriptor_view_type& desc_view, TArray& global_stack)
+        constexpr control parse_items(const descriptor_view_type& desc_view)
+        {
+            auto global_stack_depth = 1 + desc_view.tag_count(global::tag::PUSH);
+
+            // using this global stack logic is hardly justifiable at all
+            HID_RDF_ASSERT(global_stack_depth <= 4, ex_global_stack_overflow);
+
+            global_item_store global_stack[global_stack_depth];
+            return fixed_stack_parse(desc_view, std::span<global_item_store>(global_stack, global_stack_depth));
+        }
+
+        template<std::size_t _Extent>
+        constexpr control fixed_stack_parse(const descriptor_view_type& desc_view,
+                std::span<global_item_store, _Extent> global_stack)
         {
             std::size_t global_stack_depth = 0;
             auto last_section_begin = desc_view.end();
             int collection_balance = 0;
+            unsigned tlc_number = 0;
 
             for (auto item_iter = desc_view.begin(); item_iter != desc_view.end(); ++item_iter)
             {
@@ -186,29 +207,42 @@ namespace hid::rdf
                             case main::tag::INPUT:
                             case main::tag::OUTPUT:
                             case main::tag::FEATURE:
+                                HID_RDF_ASSERT(collection_balance > 0, ex_collection_missing);
                                 ctrl = parse_report_data_field(this_item,
-                                        global_stack[global_stack_depth], last_section);
+                                        global_stack[global_stack_depth], last_section, tlc_number);
                                 break;
 
                             case main::tag::COLLECTION:
+                            {
+                                auto coll_type = static_cast<main::collection_type>(this_item.value_unsigned());
                                 collection_balance++;
-                                ctrl = parse_collection_begin(static_cast<main::collection_type>(this_item.value_unsigned()),
-                                        global_stack[global_stack_depth], last_section);
+                                if (collection_balance == 1)
+                                {
+                                    tlc_number++;
+                                }
+                                else
+                                {
+                                    HID_RDF_ASSERT(coll_type != main::collection_type::APPLICATION, ex_collection_nested_application);
+                                }
+                                ctrl = parse_collection_begin(coll_type,
+                                        global_stack[global_stack_depth], last_section, tlc_number);
                                 break;
+                            }
 
                             case main::tag::END_COLLECTION:
                                 collection_balance--;
+                                HID_RDF_ASSERT(not (collection_balance < 0), ex_collection_end_unmatched);
                                 ctrl = parse_collection_end(
-                                        global_stack[global_stack_depth], last_section);
+                                        global_stack[global_stack_depth], last_section, tlc_number);
                                 break;
 
                             default:
                                 HID_RDF_ASSERT(false, ex_item_unknown);
                                 break;
                         }
-                        if (ctrl == control::BREAK)
+                        if (ctrl != control::CONTINUE)
                         {
-                            return;
+                            return ctrl;
                         }
 
                         // when this section is processed, mark the section begin marker as invalid
@@ -221,7 +255,7 @@ namespace hid::rdf
                         switch (this_item.global_tag())
                         {
                             case global::tag::PUSH:
-                                HID_RDF_ASSERT(!this_item.has_data(), ex_push_nonempty);
+                                HID_RDF_ASSERT(not this_item.has_data(), ex_push_nonempty);
                                 HID_RDF_ASSERT((global_stack_depth + 1) < global_stack.size(), ex_global_stack_overflow);
 
                                 // the current state is kept, backed up on the stack
@@ -231,7 +265,7 @@ namespace hid::rdf
 
                             case global::tag::POP:
                                 HID_RDF_ASSERT(global_stack_depth > 0, ex_pop_unmatched);
-                                HID_RDF_ASSERT(!this_item.has_data(), ex_pop_nonempty);
+                                HID_RDF_ASSERT(not this_item.has_data(), ex_pop_nonempty);
 
                                 // the last backup is restored
                                 global_stack_depth--;
@@ -253,22 +287,17 @@ namespace hid::rdf
 
                     default:
                     {
-                        if (this_item.is_short())
-                        {
-                            HID_RDF_ASSERT(false, ex_item_unknown);
-                        }
-                        else
-                        {
-                            HID_RDF_ASSERT(false, ex_item_long);
-                        }
+                        HID_RDF_ASSERT(this_item.is_short() == false, ex_item_unknown);
+                        HID_RDF_ASSERT(this_item.is_short() == true, ex_item_long);
                         break;
                     }
                 }
             }
 
             HID_RDF_ASSERT(global_stack_depth == 0, ex_push_unmatched);
-            HID_RDF_ASSERT(!(collection_balance > 0), ex_collection_begin_unmatched);
-            HID_RDF_ASSERT(!(collection_balance < 0), ex_collection_end_unmatched);
+            HID_RDF_ASSERT(not (collection_balance > 0), ex_collection_begin_unmatched);
+
+            return control::CONTINUE;
         }
 
     protected:
@@ -298,13 +327,13 @@ namespace hid::rdf
             constexpr application_usage_id_parser(const descriptor_view_type& desc_view)
                 : parser<TIterator>()
             {
-                std::array<global_item_store, 1> global_stack;
-                base::fixed_stack_parse(desc_view, global_stack);
+                base::parse_items(desc_view);
             }
 
-            constexpr virtual control parse_collection_begin(main::collection_type collection,
+            constexpr control parse_collection_begin(main::collection_type collection,
                     const global_item_store& global_state,
-                    const items_view_type& main_section) override
+                    const items_view_type& main_section,
+                    unsigned tlc_count) override
             {
                 for (auto& it : main_section)
                 {

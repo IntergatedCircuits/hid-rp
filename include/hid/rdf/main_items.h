@@ -132,22 +132,6 @@ namespace hid::rdf
         template<const hid::report_type TYPE>
         class data_field
         {
-            template<const hid::report_type TYPE_>
-            constexpr static main::tag report_type_to_tag()
-            {
-                if (std::integral_constant<bool, TYPE_ == report_type::INPUT>::value)
-                {
-                    return main::tag::INPUT;
-                }
-                else if (std::integral_constant<bool, TYPE_ == report_type::OUTPUT>::value)
-                {
-                    return main::tag::OUTPUT;
-                }
-                else // if (std::integral_constant<bool, TYPE_ == report_type::FEATURE>::value)
-                {
-                    return main::tag::FEATURE;
-                }
-            }
             constexpr static const main::tag TAG = report_type_to_tag<TYPE>();
 
         public:

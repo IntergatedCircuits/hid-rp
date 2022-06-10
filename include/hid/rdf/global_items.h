@@ -77,23 +77,23 @@ namespace hid::rdf
     class report_id : public short_item<1>
     {
     public:
-        constexpr report_id(byte_type value)
+        constexpr report_id(report_id_type value)
             : short_item(global::tag::REPORT_ID, value)
         {
             HID_RDF_ASSERT((value > 0), ex_report_id_zero);
         }
-        constexpr static byte_type min()
+        constexpr static report_id_type min()
         {
             return 1;
         }
-        constexpr static byte_type max()
+        constexpr static report_id_type max()
         {
-            return std::numeric_limits<byte_type>::max();
+            return std::numeric_limits<report_id_type>::max();
         }
     };
 
     /// @brief Creates a report ID item only if the template parameter is valid.
-    template<const byte_type REPORT_ID>
+    template<const report_id_type REPORT_ID>
     constexpr array<(REPORT_ID > 0) ? sizeof(report_id) : 0> conditional_report_id()
     {
         array<(REPORT_ID > 0) ? sizeof(report_id) : 0> data {};

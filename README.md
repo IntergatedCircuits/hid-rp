@@ -118,13 +118,5 @@ greatly reduces the development time of report descriptors.
 In the above example the `hid/page/` files aren't supplied by this library. They are in fact generated code,
 using the [hid-usage-tables] project.
 
-## Future plans
-
-This library has a lot of potential for expansion, but as always, development resources are limited.
-Contributions in any forms are welcome.
-
-* add `constexpr` descriptor validator
-* add `constexpr` descriptor properties parser (max IN, OUT and FEATURE report size is the most relevant information)
-
 [USB-HID]: https://www.usb.org/sites/default/files/hid1_11.pdf
 [hid-usage-tables]: https://github.com/IntergatedCircuits/hid-usage-tables

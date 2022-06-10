@@ -11,8 +11,7 @@
 #ifndef __HID_RDF_CONSTANTS_H_
 #define __HID_RDF_CONSTANTS_H_
 
-#include <cstdint>
-#include <type_traits>
+#include "../report.h"
 
 namespace hid::rdf
 {
@@ -73,6 +72,42 @@ namespace hid::rdf
 
             constexpr std::uint16_t BUFFERED_BYTES = 0x100;
         };
+
+        constexpr static report_type tag_to_report_type(tag t)
+        {
+            if (t == tag::INPUT)
+            {
+                return report_type::INPUT;
+            }
+            else if (t == tag::OUTPUT)
+            {
+                return report_type::OUTPUT;
+            }
+            else //if (t == tag::FEATURE)
+            {
+                return report_type::FEATURE;
+            }
+        }
+
+        template<const hid::report_type TYPE_>
+        constexpr static main::tag report_type_to_tag()
+        {
+            static_assert((std::integral_constant<bool, TYPE_ == report_type::INPUT>::value) or
+                          (std::integral_constant<bool, TYPE_ == report_type::OUTPUT>::value) or
+                          (std::integral_constant<bool, TYPE_ == report_type::FEATURE>::value));
+            if (std::integral_constant<bool, TYPE_ == report_type::INPUT>::value)
+            {
+                return main::tag::INPUT;
+            }
+            else if (std::integral_constant<bool, TYPE_ == report_type::OUTPUT>::value)
+            {
+                return main::tag::OUTPUT;
+            }
+            else if (std::integral_constant<bool, TYPE_ == report_type::FEATURE>::value)
+            {
+                return main::tag::FEATURE;
+            }
+        }
     }
 
     namespace global

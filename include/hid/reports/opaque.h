@@ -29,8 +29,9 @@ namespace hid::reports::opaque
         using namespace hid::rdf;
 
         return descriptor(
+            conditional_report_id<TReport::ID>(),
             report_size(8),
-            report_count(sizeof(TReport) - (TReport::ID > 0) ? 1 : 0),
+            report_count(sizeof(TReport) - ((TReport::ID > 0) ? 1 : 0)),
             logical_limits<1, 1>(0, 0xff),
             usage_extended(use),
             main::data_field<TReport::type()>::buffered_variable()
