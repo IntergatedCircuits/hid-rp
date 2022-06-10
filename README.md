@@ -1,7 +1,19 @@
 # HID report descriptor format library
 
-This project utilizes C++17 and above language features to implement a common library for creating and parsing
-HID report descriptors.
+This project utilizes C++17 and above language features to implement a common, standalone library
+for creating and parsing HID report descriptors.
+
+## Features
+
+* Easy to use C++ syntax to define HID report descriptors and reports (examples in `include/hid/reports`)
+* Compile-time validation of HID report descriptors (any C/C++ source header is supported)
+* Base design for implementing any custom descriptor parsing logic, either for compile or runtime
+
+## Demos
+
+### [stm32-i2c-hid][stm32-i2c-hid]
+
+HID over I2C using a generic STM32 devkit, tested with Raspberry Pi.
 
 ## Motivation
 
@@ -120,3 +132,4 @@ using the [hid-usage-tables] project.
 
 [USB-HID]: https://www.usb.org/sites/default/files/hid1_11.pdf
 [hid-usage-tables]: https://github.com/IntergatedCircuits/hid-usage-tables
+[stm32-i2c-hid]: https://github.com/benedekkupper/stm32-i2c-hid
