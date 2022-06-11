@@ -118,7 +118,7 @@ namespace hid::rdf
             VOLATILE        = data_field_flag::VOLATILE,
         };
 
-        template<const byte_type DATA_SIZE>
+        template<byte_type DATA_SIZE>
         class data_field_item : public short_item<DATA_SIZE>
         {
             using base_t = short_item<DATA_SIZE>;
@@ -129,7 +129,7 @@ namespace hid::rdf
             }
         };
 
-        template<const hid::report_type TYPE>
+        template<report_type TYPE>
         class data_field
         {
             constexpr static const main::tag TAG = report_type_to_tag<TYPE>();
@@ -179,11 +179,11 @@ namespace hid::rdf
         };
     }
 
-    using input   = main::data_field<hid::report_type::INPUT>;
+    using input   = main::data_field<report_type::INPUT>;
 
-    using output  = main::data_field<hid::report_type::OUTPUT>;
+    using output  = main::data_field<report_type::OUTPUT>;
 
-    using feature = main::data_field<hid::report_type::FEATURE>;
+    using feature = main::data_field<report_type::FEATURE>;
 
 } // namespace hid::rdf
 

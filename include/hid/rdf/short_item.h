@@ -16,11 +16,11 @@
 namespace hid::rdf
 {
     /// @brief A byte array that concatenates with another using the comma operator.
-    template<const std::size_t SIZE>
+    template<std::size_t SIZE>
     class array : public std::array<byte_type, SIZE>
     {
     public:
-        template<const std::size_t SIZE_2>
+        template<std::size_t SIZE_2>
         constexpr array<SIZE + SIZE_2> operator , (array<SIZE_2> a2)
         {
             array<SIZE + SIZE_2> concat = { 0 };
@@ -37,7 +37,7 @@ namespace hid::rdf
     };
 
     /// @brief This class stores exactly one HID report descriptor item.
-    template<const byte_type DATA_SIZE>
+    template<byte_type DATA_SIZE>
     class short_item : public array<1 + DATA_SIZE>
     {
         static_assert((DATA_SIZE <= 4) and (DATA_SIZE != 3));

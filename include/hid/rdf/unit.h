@@ -97,7 +97,7 @@ namespace hid::rdf
             return value;
         }
 
-        template<const byte_type DATA_SIZE>
+        template<byte_type DATA_SIZE>
         class unit_item : public short_item<DATA_SIZE>
         {
             using base_t = short_item<DATA_SIZE>;
@@ -122,7 +122,7 @@ namespace hid::rdf
         ///         Creating a derived object will therefore contain a unit and a unit exponent item.
         /// @tparam CODE_: The unit's code
         /// @tparam BASE_EXP_: The unit's base exponent
-        template<const code CODE_, const std::int8_t BASE_EXP_ = 0>
+        template<code CODE_, std::int8_t BASE_EXP_ = 0>
         class base : public array<1 + ((static_cast<std::uint32_t>(CODE_) > 0xffff) ? 4 : ((static_cast<std::uint32_t>(CODE_) > 0xff) ? 2 : 1)) + sizeof(exponent_item) >
         {
             static constexpr std::size_t UNIT_CODE_SIZE = ((static_cast<std::uint32_t>(CODE_) > 0xffff) ? 4 :

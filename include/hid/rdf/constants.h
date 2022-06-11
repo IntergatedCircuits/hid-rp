@@ -89,7 +89,7 @@ namespace hid::rdf
             }
         }
 
-        template<const hid::report_type TYPE_>
+        template<hid::report_type TYPE_>
         constexpr static main::tag report_type_to_tag()
         {
             static_assert((std::integral_constant<bool, TYPE_ == report_type::INPUT>::value) or
@@ -103,7 +103,7 @@ namespace hid::rdf
             {
                 return main::tag::OUTPUT;
             }
-            else if (std::integral_constant<bool, TYPE_ == report_type::FEATURE>::value)
+            else // if (std::integral_constant<bool, TYPE_ == report_type::FEATURE>::value)
             {
                 return main::tag::FEATURE;
             }

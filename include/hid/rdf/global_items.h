@@ -18,49 +18,49 @@
 
 namespace hid::rdf
 {
-    template<const byte_type DATA_SIZE = 4, typename T>
+    template<byte_type DATA_SIZE = 4, typename T>
     constexpr auto logical_min(T value)
     {
         return short_item<DATA_SIZE>(global::tag::LOGICAL_MINIMUM, value);
     }
 
-    template<const byte_type DATA_SIZE = 4, typename T>
+    template<byte_type DATA_SIZE = 4, typename T>
     constexpr auto logical_max(T value)
     {
         return short_item<DATA_SIZE>(global::tag::LOGICAL_MAXIMUM, value);
     }
 
-    template<const byte_type DATA_SIZE = 4, typename TMin, typename TMax>
+    template<byte_type DATA_SIZE = 4, typename TMin, typename TMax>
     constexpr auto logical_limits(TMin min, TMax max)
     {
         return logical_min<DATA_SIZE>(min), logical_max<DATA_SIZE>(max);
     }
 
-    template<const byte_type DATA_MIN_SIZE, const byte_type DATA_MAX_SIZE = DATA_MIN_SIZE, typename TMin, typename TMax>
+    template<byte_type DATA_MIN_SIZE, byte_type DATA_MAX_SIZE = DATA_MIN_SIZE, typename TMin, typename TMax>
     constexpr auto logical_limits(TMin min, TMax max)
     {
         return logical_min<DATA_MIN_SIZE>(min), logical_max<DATA_MAX_SIZE>(max);
     }
 
-    template<const byte_type DATA_SIZE = 4, typename T>
+    template<byte_type DATA_SIZE = 4, typename T>
     constexpr auto physical_min(T value)
     {
         return short_item<DATA_SIZE>(global::tag::PHYSICAL_MINIMUM, value);
     }
 
-    template<const byte_type DATA_SIZE = 4, typename T>
+    template<byte_type DATA_SIZE = 4, typename T>
     constexpr auto physical_max(T value)
     {
         return short_item<DATA_SIZE>(global::tag::PHYSICAL_MAXIMUM, value);
     }
 
-    template<const byte_type DATA_SIZE = 4, typename TMin, typename TMax>
+    template<byte_type DATA_SIZE = 4, typename TMin, typename TMax>
     constexpr auto physical_limits(TMin min, TMax max)
     {
         return physical_min<DATA_SIZE>(min), physical_max<DATA_SIZE>(max);
     }
 
-    template<const byte_type DATA_MIN_SIZE, const byte_type DATA_MAX_SIZE = DATA_MIN_SIZE, typename TMin, typename TMax>
+    template<byte_type DATA_MIN_SIZE, byte_type DATA_MAX_SIZE = DATA_MIN_SIZE, typename TMin, typename TMax>
     constexpr auto physical_limits(TMin min, TMax max)
     {
         return physical_min<DATA_MIN_SIZE>(min), physical_max<DATA_MAX_SIZE>(max);
@@ -93,7 +93,7 @@ namespace hid::rdf
     };
 
     /// @brief Creates a report ID item only if the template parameter is valid.
-    template<const report_id_type REPORT_ID>
+    template<report_id_type REPORT_ID>
     constexpr array<(REPORT_ID > 0) ? sizeof(report_id) : 0> conditional_report_id()
     {
         array<(REPORT_ID > 0) ? sizeof(report_id) : 0> data {};
@@ -104,13 +104,13 @@ namespace hid::rdf
         return data;
     }
 
-    template<const byte_type DATA_SIZE = 1, typename T>
+    template<byte_type DATA_SIZE = 1, typename T>
     constexpr auto report_count(T value)
     {
         return short_item<DATA_SIZE>(global::tag::REPORT_COUNT, value);
     }
 
-    template<const byte_type DATA_SIZE = 1, typename T>
+    template<byte_type DATA_SIZE = 1, typename T>
     constexpr auto report_size(T value)
     {
         return short_item<DATA_SIZE>(global::tag::REPORT_SIZE, value);

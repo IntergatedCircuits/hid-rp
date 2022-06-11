@@ -16,7 +16,7 @@
 
 namespace hid::reports::opaque
 {
-    template<const unsigned BYTE_SIZE, const hid::report_type TYPE, const uint8_t REPORT_ID>
+    template<unsigned BYTE_SIZE, report_type TYPE, uint8_t REPORT_ID>
     struct report : public hid::report<TYPE, REPORT_ID>
     {
         std::array<uint8_t, BYTE_SIZE> payload {};

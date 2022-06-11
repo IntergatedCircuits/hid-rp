@@ -16,7 +16,7 @@
 
 namespace hid::rdf
 {
-    template<const std::size_t DATA_SIZE = 2, typename T>
+    template<std::size_t DATA_SIZE = 2, typename T>
     constexpr auto usage(T value)
     {
         constexpr std::size_t ID_SIZE = std::min(local::usage_size<T>(), DATA_SIZE);
@@ -35,7 +35,7 @@ namespace hid::rdf
 
     /// @note  Usages are local items, there must be a min-max pair each time
     ///        (hence no definition for usage_min or usage_max).
-    template<const std::size_t DATA_MIN_SIZE = 2, const std::size_t DATA_MAX_SIZE = 2, typename T>
+    template<std::size_t DATA_MIN_SIZE = 2, std::size_t DATA_MAX_SIZE = 2, typename T>
     constexpr auto usage_limits(T min, T max)
     {
         constexpr std::size_t MIN_ID_SIZE = std::min(local::usage_size<T>(), DATA_MIN_SIZE);
@@ -46,7 +46,7 @@ namespace hid::rdf
             short_item<MAX_ID_SIZE>(local::tag::USAGE_MAXIMUM, static_cast<usage_index_type>(max));
     }
 
-    template<const std::size_t DATA_MAX_SIZE = 2, typename T>
+    template<std::size_t DATA_MAX_SIZE = 2, typename T>
     constexpr auto usage_limits(nullusage_t min, T max)
     {
         constexpr std::size_t MIN_ID_SIZE = 1;

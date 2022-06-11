@@ -72,7 +72,7 @@ namespace hid
     using report_id_type = std::uint8_t;
 
     /// @brief Base type for report storage structures. Inherit from @ref report type instead!
-    template<const report_type TYPE, const report_id_type REPORT_ID>
+    template<report_type TYPE, report_id_type REPORT_ID>
     struct report_base
     {
         std::uint8_t *data()
@@ -98,10 +98,10 @@ namespace hid
         }
     };
 
-    template<const report_type TYPE, const report_id_type REPORT_ID = 0, typename Enabled = void>
+    template<report_type TYPE, report_id_type REPORT_ID = 0, typename Enabled = void>
     struct report;
 
-    template<const report_type TYPE, const report_id_type REPORT_ID>
+    template<report_type TYPE, report_id_type REPORT_ID>
     struct report<TYPE, REPORT_ID, std::enable_if_t<REPORT_ID == 0>> : public report_base<TYPE, REPORT_ID>
     {
         constexpr bool is_id_valid() const
@@ -110,7 +110,7 @@ namespace hid
         }
     };
 
-    template<const report_type TYPE, const report_id_type REPORT_ID>
+    template<report_type TYPE, report_id_type REPORT_ID>
     struct report<TYPE, REPORT_ID, std::enable_if_t<(REPORT_ID > 0)>> : public report_base<TYPE, REPORT_ID>
     {
         report_id_type id_ = REPORT_ID;

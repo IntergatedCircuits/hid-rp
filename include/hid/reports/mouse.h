@@ -18,7 +18,7 @@
 
 namespace hid::reports::mouse
 {
-    template<const uint8_t REPORT_ID>
+    template<uint8_t REPORT_ID>
     struct report : public hid::report<report_type::INPUT, REPORT_ID>
     {
         uint8_t buttons = 0;
@@ -44,7 +44,7 @@ namespace hid::reports::mouse
         }
     };
 
-    template<const uint8_t REPORT_ID = 0>
+    template<uint8_t REPORT_ID = 0>
     static constexpr auto app_report_descriptor()
     {
         using namespace hid;

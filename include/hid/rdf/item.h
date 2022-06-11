@@ -145,7 +145,7 @@ namespace hid::rdf
         }
 
     private:
-        template<const byte_type DATA_SIZE>
+        template<byte_type DATA_SIZE>
         friend class short_item;
 
         constexpr static byte_type LONG_ITEM_PREFIX = 0xfe;

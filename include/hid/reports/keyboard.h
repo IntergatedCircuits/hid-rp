@@ -20,7 +20,7 @@
 
 namespace hid::reports::keyboard
 {
-    template<const uint8_t REPORT_ID>
+    template<uint8_t REPORT_ID>
     static constexpr auto keys_input_report_descriptor()
     {
         using namespace hid;
@@ -47,7 +47,7 @@ namespace hid::reports::keyboard
         );
     }
 
-    template<const uint8_t REPORT_ID>
+    template<uint8_t REPORT_ID>
     struct keys_input_report : public report<report_type::INPUT, REPORT_ID>
     {
         uint8_t modifiers = 0;
@@ -108,7 +108,7 @@ namespace hid::reports::keyboard
         }
     };
 
-    template<const uint8_t REPORT_ID>
+    template<uint8_t REPORT_ID>
     static constexpr auto leds_output_report_descriptor()
     {
         using namespace hid;
@@ -127,7 +127,7 @@ namespace hid::reports::keyboard
         );
     }
 
-    template<const uint8_t REPORT_ID>
+    template<uint8_t REPORT_ID>
     struct output_report : public report<report_type::OUTPUT, REPORT_ID>
     {
         uint8_t leds = 0;
@@ -138,7 +138,7 @@ namespace hid::reports::keyboard
         }
     };
 
-    template<const uint8_t REPORT_ID = 0>
+    template<uint8_t REPORT_ID = 0>
     static constexpr auto app_report_descriptor()
     {
         using namespace hid;
