@@ -63,6 +63,22 @@ namespace hid
             {
                 return value_ >= min();
             }
+            constexpr friend bool operator ==(const id &lhs, const id& rhs)
+            {
+                return (lhs.value_ == rhs.value_);
+            }
+            constexpr friend bool operator !=(const id &lhs, const id& rhs)
+            {
+                return !(lhs == rhs);
+            }
+            constexpr friend bool operator ==(const id &lhs, const id::type& rhs)
+            {
+                return (lhs.value_ == rhs);
+            }
+            constexpr friend bool operator !=(const id &lhs, const id::type& rhs)
+            {
+                return !(lhs == rhs);
+            }
 
         private:
             type value_;
