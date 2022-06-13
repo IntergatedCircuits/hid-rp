@@ -19,13 +19,13 @@
 namespace hid::reports::mouse
 {
     template<uint8_t REPORT_ID>
-    struct report : public hid::report<report_type::INPUT, REPORT_ID>
+    struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
     {
         uint8_t buttons = 0;
         int8_t x = 0;
         int8_t y = 0;
 
-        constexpr void set_button_state(hid::page::button b, bool pressed)
+        constexpr void set_button_state(page::button b, bool pressed)
         {
             uint8_t mask = 1 << (static_cast<uint8_t>(b) - 1);
             if (pressed)
@@ -47,7 +47,6 @@ namespace hid::reports::mouse
     template<uint8_t REPORT_ID = 0>
     static constexpr auto app_report_descriptor()
     {
-        using namespace hid;
         using namespace hid::page;
         using namespace hid::rdf;
 

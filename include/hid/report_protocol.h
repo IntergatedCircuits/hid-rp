@@ -30,11 +30,11 @@ namespace hid
         size_type max_input_size = 0;
         size_type max_output_size = 0;
         size_type max_feature_size = 0;
-        report_id_type max_report_id = 0;
+        report::id::type max_report_id = 0;
 
         constexpr bool uses_report_ids() const
         {
-            return max_report_id >= rdf::report_id::min();
+            return max_report_id >= report::id::min();
         }
 
         /// @brief Define the report protocol manually.
@@ -47,7 +47,7 @@ namespace hid
                 size_type max_input_size,
                 size_type max_output_size,
                 size_type max_feature_size,
-                report_id_type max_report_id = 0)
+                report::id::type max_report_id = 0)
             : descriptor(desc_view),
               max_input_size(max_input_size),
               max_output_size(max_output_size),
@@ -62,9 +62,9 @@ namespace hid
             : descriptor(desc_view)
         {
             auto parsed = report_protocol::parser(desc_view);
-            max_input_size = parsed.max_report_size(report_type::INPUT);
-            max_output_size = parsed.max_report_size(report_type::OUTPUT);
-            max_feature_size = parsed.max_report_size(report_type::FEATURE);
+            max_input_size = parsed.max_report_size(report::type::INPUT);
+            max_output_size = parsed.max_report_size(report::type::OUTPUT);
+            max_feature_size = parsed.max_report_size(report::type::FEATURE);
             max_report_id = parsed.max_report_id();
         }
 
@@ -94,7 +94,7 @@ namespace hid
                 }
             }
 
-            constexpr size_type max_report_size(report_type type) const
+            constexpr size_type max_report_size(report::type type) const
             {
                 if (!uses_report_ids())
                 {
@@ -106,7 +106,7 @@ namespace hid
                     auto max_size = *std::max_element(&report_sizes[1], report_sizes.end()) / 8;
                     if (max_size > 0)
                     {
-                        return sizeof(report_id_type) + max_size;
+                        return sizeof(report::id) + max_size;
                     }
                     else
                     {
@@ -120,7 +120,7 @@ namespace hid
                 return max_report_id_ > 0;
             }
 
-            constexpr report_id_type max_report_id() const
+            constexpr report::id::type max_report_id() const
             {
                 return max_report_id_;
             }
@@ -132,18 +132,18 @@ namespace hid
                     unsigned tlc_count) override
             {
                 using namespace hid::rdf;
-                report_type rtype = main::tag_to_report_type(main_item.main_tag());
+                report::type rtype = main::tag_to_report_type(main_item.main_tag());
 
                 // get report ID (or use 0 if not present)
-                report_id_type report_id = 0;
+                report::id::type report_id = 0;
                 const auto* report_id_item = global_state.get_item(global::tag::REPORT_ID);
                 if (report_id_item != nullptr)
                 {
                     report_id = report_id_item->value_unsigned();
 
                     // report ID verification
-                    HID_RDF_ASSERT(report_id >= report_id::min(), ex_report_id_zero);
-                    HID_RDF_ASSERT(report_id <= report_id::max(), ex_report_id_excess);
+                    HID_RDF_ASSERT(report_id >= report::id::min(), ex_report_id_zero);
+                    HID_RDF_ASSERT(report_id <= report::id::max(), ex_report_id_excess);
                     if (!uses_report_ids())
                     {
                         for (auto& sizes : report_bit_sizes_)
@@ -182,43 +182,43 @@ namespace hid
                 return control::CONTINUE;
             }
 
-            constexpr size_type& bit_size(report_type rt, report_id_type id)
+            constexpr size_type& bit_size(report::type rt, report::id::type id)
             {
                 return bit_sizes_by_type(rt)[id];
             }
-            constexpr const size_type& bit_size(report_type rt, report_id_type id) const
+            constexpr const size_type& bit_size(report::type rt, report::id::type id) const
             {
                 return bit_sizes_by_type(rt)[id];
             }
-            constexpr std::array<size_type, rdf::report_id::max()>& bit_sizes_by_type(report_type rt)
+            constexpr std::array<size_type, report::id::max()>& bit_sizes_by_type(report::type rt)
             {
-                return report_bit_sizes_[static_cast<report_id_type>(rt) - 1];
+                return report_bit_sizes_[static_cast<report::id::type>(rt) - 1];
             }
-            constexpr const std::array<size_type, rdf::report_id::max()>& bit_sizes_by_type(report_type rt) const
+            constexpr const std::array<size_type, report::id::max()>& bit_sizes_by_type(report::type rt) const
             {
-                return report_bit_sizes_[static_cast<report_id_type>(rt) - 1];
+                return report_bit_sizes_[static_cast<report::id::type>(rt) - 1];
             }
 
-            constexpr unsigned& tlc_index(report_type rt, report_id_type id)
+            constexpr unsigned& tlc_index(report::type rt, report::id::type id)
             {
                 return tlc_indexes_by_type(rt)[id];
             }
-            constexpr const unsigned& tlc_index(report_type rt, report_id_type id) const
+            constexpr const unsigned& tlc_index(report::type rt, report::id::type id) const
             {
                 return tlc_indexes_by_type(rt)[id];
             }
-            constexpr std::array<unsigned, rdf::report_id::max()>& tlc_indexes_by_type(report_type rt)
+            constexpr std::array<unsigned, report::id::max()>& tlc_indexes_by_type(report::type rt)
             {
-                return report_tlc_indexes_[static_cast<report_id_type>(rt) - 1];
+                return report_tlc_indexes_[static_cast<report::id::type>(rt) - 1];
             }
-            constexpr const std::array<unsigned, rdf::report_id::max()>& tlc_indexes_by_type(report_type rt) const
+            constexpr const std::array<unsigned, report::id::max()>& tlc_indexes_by_type(report::type rt) const
             {
-                return report_tlc_indexes_[static_cast<report_id_type>(rt) - 1];
+                return report_tlc_indexes_[static_cast<report::id::type>(rt) - 1];
             }
 
-            std::array<std::array<size_type, rdf::report_id::max()>, 3> report_bit_sizes_ {};
-            std::array<std::array<unsigned, rdf::report_id::max()>, 3> report_tlc_indexes_ {};
-            report_id_type max_report_id_ = 0;
+            std::array<std::array<size_type, report::id::max()>, 3> report_bit_sizes_ {};
+            std::array<std::array<unsigned, report::id::max()>, 3> report_tlc_indexes_ {};
+            report::id::type max_report_id_ = 0;
         };
     };
 }

@@ -16,8 +16,8 @@
 
 namespace hid::reports::opaque
 {
-    template<unsigned BYTE_SIZE, report_type TYPE, uint8_t REPORT_ID>
-    struct report : public hid::report<TYPE, REPORT_ID>
+    template<unsigned BYTE_SIZE, report::type TYPE, report::id::type REPORT_ID>
+    struct report : public hid::report::base<TYPE, REPORT_ID>
     {
         std::array<uint8_t, BYTE_SIZE> payload {};
     };
@@ -25,7 +25,6 @@ namespace hid::reports::opaque
     template<typename TReport, typename TUsage>
     static constexpr auto report_descriptor(TUsage use)
     {
-        using namespace hid;
         using namespace hid::rdf;
 
         return descriptor(

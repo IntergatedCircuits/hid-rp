@@ -23,7 +23,6 @@ namespace hid::reports::keyboard
     template<uint8_t REPORT_ID>
     static constexpr auto keys_input_report_descriptor()
     {
-        using namespace hid;
         using namespace hid::page;
         using namespace hid::rdf;
 
@@ -48,13 +47,13 @@ namespace hid::reports::keyboard
     }
 
     template<uint8_t REPORT_ID>
-    struct keys_input_report : public report<report_type::INPUT, REPORT_ID>
+    struct keys_input_report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
     {
         uint8_t modifiers = 0;
         uint8_t reserved = 0;
         std::array<uint8_t, 6> scancodes = {};
 
-        constexpr bool set_key_state(hid::page::keyboard_keypad key, bool pressed)
+        constexpr bool set_key_state(page::keyboard_keypad key, bool pressed)
         {
             using namespace hid::page;
 
@@ -111,7 +110,6 @@ namespace hid::reports::keyboard
     template<uint8_t REPORT_ID>
     static constexpr auto leds_output_report_descriptor()
     {
-        using namespace hid;
         using namespace hid::page;
         using namespace hid::rdf;
 
@@ -128,20 +126,19 @@ namespace hid::reports::keyboard
     }
 
     template<uint8_t REPORT_ID>
-    struct output_report : public report<report_type::OUTPUT, REPORT_ID>
+    struct output_report : public hid::report::base<hid::report::type::OUTPUT, REPORT_ID>
     {
         uint8_t leds = 0;
 
-        constexpr bool get_led_state(hid::page::leds led) const
+        constexpr bool get_led_state(page::leds led) const
         {
-            return ((leds >> (static_cast<uint8_t>(led) - static_cast<uint8_t>(hid::page::leds::NUM_LOCK))) & 1) != 0;
+            return ((leds >> (static_cast<uint8_t>(led) - static_cast<uint8_t>(page::leds::NUM_LOCK))) & 1) != 0;
         }
     };
 
     template<uint8_t REPORT_ID = 0>
     static constexpr auto app_report_descriptor()
     {
-        using namespace hid;
         using namespace hid::page;
         using namespace hid::rdf;
 

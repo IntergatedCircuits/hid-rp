@@ -73,37 +73,37 @@ namespace hid::rdf
             constexpr std::uint16_t BUFFERED_BYTES = 0x100;
         };
 
-        constexpr static report_type tag_to_report_type(tag t)
+        constexpr static report::type tag_to_report_type(tag t)
         {
             if (t == tag::INPUT)
             {
-                return report_type::INPUT;
+                return report::type::INPUT;
             }
             else if (t == tag::OUTPUT)
             {
-                return report_type::OUTPUT;
+                return report::type::OUTPUT;
             }
             else //if (t == tag::FEATURE)
             {
-                return report_type::FEATURE;
+                return report::type::FEATURE;
             }
         }
 
-        template<hid::report_type TYPE_>
+        template<hid::report::type TYPE_>
         constexpr static main::tag report_type_to_tag()
         {
-            static_assert((std::integral_constant<bool, TYPE_ == report_type::INPUT>::value) or
-                          (std::integral_constant<bool, TYPE_ == report_type::OUTPUT>::value) or
-                          (std::integral_constant<bool, TYPE_ == report_type::FEATURE>::value));
-            if (std::integral_constant<bool, TYPE_ == report_type::INPUT>::value)
+            static_assert((std::integral_constant<bool, TYPE_ == report::type::INPUT>::value) or
+                          (std::integral_constant<bool, TYPE_ == report::type::OUTPUT>::value) or
+                          (std::integral_constant<bool, TYPE_ == report::type::FEATURE>::value));
+            if (std::integral_constant<bool, TYPE_ == report::type::INPUT>::value)
             {
                 return main::tag::INPUT;
             }
-            else if (std::integral_constant<bool, TYPE_ == report_type::OUTPUT>::value)
+            else if (std::integral_constant<bool, TYPE_ == report::type::OUTPUT>::value)
             {
                 return main::tag::OUTPUT;
             }
-            else // if (std::integral_constant<bool, TYPE_ == report_type::FEATURE>::value)
+            else // if (std::integral_constant<bool, TYPE_ == report::type::FEATURE>::value)
             {
                 return main::tag::FEATURE;
             }

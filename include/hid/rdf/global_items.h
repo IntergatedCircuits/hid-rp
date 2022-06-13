@@ -11,10 +11,11 @@
 #ifndef __HID_RDF_GLOBAL_ITEMS_H_
 #define __HID_RDF_GLOBAL_ITEMS_H_
 
+#include "../report.h"
+#include "../usage.h"
 #include "exception.h"
 #include "short_item.h"
 #include "unit.h"
-#include "../usage.h"
 
 namespace hid::rdf
 {
@@ -71,29 +72,18 @@ namespace hid::rdf
         return physical_min<0>(0), physical_max<0>(0);
     }
 
-    /// @note  An HID report descriptor either doesn't define report IDs at all,
-    ///        or uses report IDs starting from index 1.
-    ///        When report IDs are used, they are always the first byte of any HID report.
     class report_id : public short_item<1>
     {
     public:
-        constexpr report_id(report_id_type value)
+        constexpr report_id(report::id::type value)
             : short_item(global::tag::REPORT_ID, value)
         {
-            HID_RDF_ASSERT((value > 0), ex_report_id_zero);
-        }
-        constexpr static report_id_type min()
-        {
-            return 1;
-        }
-        constexpr static report_id_type max()
-        {
-            return std::numeric_limits<report_id_type>::max();
+            HID_RDF_ASSERT((value >= report::id::min()), ex_report_id_zero);
         }
     };
 
     /// @brief Creates a report ID item only if the template parameter is valid.
-    template<report_id_type REPORT_ID>
+    template<report::id::type REPORT_ID>
     constexpr array<(REPORT_ID > 0) ? sizeof(report_id) : 0> conditional_report_id()
     {
         array<(REPORT_ID > 0) ? sizeof(report_id) : 0> data {};

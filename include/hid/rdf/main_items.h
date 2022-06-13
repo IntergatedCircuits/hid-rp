@@ -129,7 +129,7 @@ namespace hid::rdf
             }
         };
 
-        template<report_type TYPE>
+        template<report::type TYPE>
         class data_field
         {
             constexpr static const main::tag TAG = report_type_to_tag<TYPE>();
@@ -179,11 +179,11 @@ namespace hid::rdf
         };
     }
 
-    using input   = main::data_field<report_type::INPUT>;
+    using input   = main::data_field<report::type::INPUT>;
 
-    using output  = main::data_field<report_type::OUTPUT>;
+    using output  = main::data_field<report::type::OUTPUT>;
 
-    using feature = main::data_field<report_type::FEATURE>;
+    using feature = main::data_field<report::type::FEATURE>;
 
 } // namespace hid::rdf
 

@@ -16,110 +16,139 @@
 
 namespace hid
 {
-    enum class report_type : std::uint8_t
-    {
-        INPUT    = 0x01, // Report sent by the device
-        OUTPUT   = 0x02, // Report sent to the device
-        FEATURE  = 0x03, // Bidirectional configuration report
-    };
-
     enum class protocol : std::uint8_t
     {
         REPORT     = 0x01, // Default HID protocol
         BOOT       = 0x00, // BOOT protocol (either keyboard or mouse, as specified in USB HID class document)
     };
 
-    /// @brief A report is uniquely identified by two parameters: its type, and its (optional) ID
-    class report_selector
+    namespace report
     {
-    public:
-        constexpr report_selector(report_type type, std::uint8_t id = 0)
-            : storage_((static_cast<std::uint16_t>(type) << 8) | id)
+        enum class type : std::uint8_t
         {
-        }
-        constexpr report_selector()
-        {
-        }
-        constexpr void clear()
-        {
-            *this = report_selector();
-        }
-        constexpr bool valid() const
-        {
-            return static_cast<std::uint8_t>(type()) > 0;
-        }
-        constexpr report_type type() const
-        {
-            return static_cast<report_type>(storage_ >> 8);
-        }
-        constexpr std::uint8_t id() const
-        {
-            return static_cast<std::uint8_t>(storage_);
-        }
-        constexpr friend bool operator ==(const report_selector &lhs, const report_selector& rhs)
-        {
-            return (lhs.storage_ == rhs.storage_);
-        }
-        constexpr friend bool operator !=(const report_selector &lhs, const report_selector& rhs)
-        {
-            return !(lhs == rhs);
-        }
+            INPUT    = 0x01, // Report sent by the device
+            OUTPUT   = 0x02, // Report sent to the device
+            FEATURE  = 0x03, // Bidirectional configuration report
+        };
 
-    private:
-        std::uint16_t storage_ = 0;
-    };
+        /// @note  An HID report descriptor either doesn't define report IDs at all,
+        ///        or uses report IDs starting from index 1.
+        ///        When report IDs are used, they are always the first byte of any HID report.
+        class id
+        {
+        public:
+            using type = std::uint8_t;
 
-    using report_id_type = std::uint8_t;
+            constexpr id(type value)
+                : value_(value)
+            {
+            }
+            constexpr static type min()
+            {
+                return 1;
+            }
+            constexpr static type max()
+            {
+                return std::numeric_limits<type>::max();
+            }
+            constexpr operator type&()
+            {
+                return value_;
+            }
+            constexpr operator type() const
+            {
+                return value_;
+            }
+            constexpr bool valid() const
+            {
+                return value_ >= min();
+            }
 
-    /// @brief Base type for report storage structures. Inherit from @ref report type instead!
-    template<report_type TYPE, report_id_type REPORT_ID>
-    struct report_base
-    {
-        std::uint8_t *data()
-        {
-            return reinterpret_cast<std::uint8_t*>(this);
-        }
-        const std::uint8_t *data() const
-        {
-            return reinterpret_cast<const std::uint8_t*>(this);
-        }
-        constexpr static report_type type()
-        {
-            return TYPE;
-        }
-        constexpr static report_id_type ID = REPORT_ID;
-        constexpr static report_id_type id()
-        {
-            return REPORT_ID;
-        }
-        constexpr static report_selector selector()
-        {
-            return report_selector(type(), id());
-        }
-    };
+        private:
+            type value_;
+        };
 
-    template<report_type TYPE, report_id_type REPORT_ID = 0, typename Enabled = void>
-    struct report;
-
-    template<report_type TYPE, report_id_type REPORT_ID>
-    struct report<TYPE, REPORT_ID, std::enable_if_t<REPORT_ID == 0>> : public report_base<TYPE, REPORT_ID>
-    {
-        constexpr bool is_id_valid() const
+        /// @brief A report is uniquely identified by two parameters: its type, and its (optional) ID
+        class selector
         {
-            return true;
-        }
-    };
+        public:
+            constexpr selector(report::type t, report::id i = 0)
+                : storage_((static_cast<std::uint16_t>(t) << 8) | static_cast<std::uint16_t>(i))
+            {
+            }
+            constexpr selector()
+            {
+            }
+            constexpr void clear()
+            {
+                *this = selector();
+            }
+            constexpr bool valid() const
+            {
+                return static_cast<std::uint8_t>(this->type()) > 0;
+            }
+            constexpr report::type type() const
+            {
+                return static_cast<report::type>(storage_ >> 8);
+            }
+            constexpr report::id id() const
+            {
+                return report::id(storage_);
+            }
+            constexpr friend bool operator ==(const selector &lhs, const selector& rhs)
+            {
+                return (lhs.storage_ == rhs.storage_);
+            }
+            constexpr friend bool operator !=(const selector &lhs, const selector& rhs)
+            {
+                return !(lhs == rhs);
+            }
 
-    template<report_type TYPE, report_id_type REPORT_ID>
-    struct report<TYPE, REPORT_ID, std::enable_if_t<(REPORT_ID > 0)>> : public report_base<TYPE, REPORT_ID>
-    {
-        report_id_type id_ = REPORT_ID;
+        private:
+            std::uint16_t storage_ = 0;
+        };
 
-        constexpr bool is_id_valid() const
+        /// @brief Base type for report storage structures. Inherit from @ref base type instead!
+        template<report::type TYPE, id::type REPORT_ID>
+        struct base_data
         {
-            return id_ == REPORT_ID;
-        }
-    };
+            std::uint8_t *data()
+            {
+                return reinterpret_cast<std::uint8_t*>(this);
+            }
+            const std::uint8_t *data() const
+            {
+                return reinterpret_cast<const std::uint8_t*>(this);
+            }
+            constexpr static report::type type()
+            {
+                return TYPE;
+            }
+            constexpr static report::id::type ID = REPORT_ID;
+            constexpr static report::id id()
+            {
+                return report::id(ID);
+            }
+            constexpr static report::selector selector()
+            {
+                return report::selector(type(), id());
+            }
+        };
+
+        template<type TYPE, id::type REPORT_ID = 0, typename Enabled = void>
+        struct base;
+
+        template<type TYPE, id::type REPORT_ID>
+        struct base<TYPE, REPORT_ID, std::enable_if_t<REPORT_ID == 0>> : public base_data<TYPE, REPORT_ID>
+        {
+        };
+
+        template<type TYPE, id::type REPORT_ID>
+        struct base<TYPE, REPORT_ID, std::enable_if_t<(REPORT_ID > 0)>> : public base_data<TYPE, REPORT_ID>
+        {
+            id id_ { REPORT_ID };
+        };
+    }
 }
 
 #endif // __HID_REPORT_H_
