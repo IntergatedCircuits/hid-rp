@@ -8,13 +8,13 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_REPORTS_OPAQUE_H_
-#define __HID_REPORTS_OPAQUE_H_
+#ifndef __HID_APP_OPAQUE_H_
+#define __HID_APP_OPAQUE_H_
 
 #include "../report.h"
 #include "../rdf/descriptor.h"
 
-namespace hid::reports::opaque
+namespace hid::app::opaque
 {
     template<unsigned BYTE_SIZE, report::type TYPE, report::id::type REPORT_ID>
     struct report : public hid::report::base<TYPE, REPORT_ID>
@@ -37,6 +37,6 @@ namespace hid::reports::opaque
         );
     }
 
-} // namespace hid::reports::opaque
+} // namespace hid::app::opaque
 
-#endif // __HID_REPORTS_OPAQUE_H_
+#endif // __HID_APP_OPAQUE_H_

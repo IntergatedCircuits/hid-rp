@@ -8,15 +8,15 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_REPORTS_MOUSE_H_
-#define __HID_REPORTS_MOUSE_H_
+#ifndef __HID_APP_MOUSE_H_
+#define __HID_APP_MOUSE_H_
 
 #include "../report.h"
 #include "../rdf/descriptor.h"
 #include "hid/page/generic_desktop.h"
 #include "hid/page/button.h"
 
-namespace hid::reports::mouse
+namespace hid::app::mouse
 {
     template<uint8_t REPORT_ID>
     struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
@@ -77,6 +77,6 @@ namespace hid::reports::mouse
         );
     }
 
-} // namespace hid::reports::mouse
+} // namespace hid::app::mouse
 
-#endif // __HID_REPORTS_MOUSE_H_
+#endif // __HID_APP_MOUSE_H_

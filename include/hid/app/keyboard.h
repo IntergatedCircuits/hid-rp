@@ -8,8 +8,8 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_REPORTS_KEYBOARD_H_
-#define __HID_REPORTS_KEYBOARD_H_
+#ifndef __HID_APP_KEYBOARD_H_
+#define __HID_APP_KEYBOARD_H_
 
 #include <array>
 #include "../report.h"
@@ -18,7 +18,7 @@
 #include "hid/page/keyboard_keypad.h"
 #include "hid/page/leds.h"
 
-namespace hid::reports::keyboard
+namespace hid::app::keyboard
 {
     template<uint8_t REPORT_ID>
     static constexpr auto keys_input_report_descriptor()
@@ -154,6 +154,6 @@ namespace hid::reports::keyboard
         );
     }
 
-} // namespace hid::reports::keyboard
+} // namespace hid::app::keyboard
 
-#endif // __HID_REPORTS_KEYBOARD_H_
+#endif // __HID_APP_KEYBOARD_H_
