@@ -27,7 +27,7 @@ namespace hid::rdf
         using pointer         = const value_type*;
         using reference       = const value_type&;
 
-        using iterator_category = std::forward_iterator_tag;
+        using iterator_category = std::input_iterator_tag;
 
         constexpr reinterpret_iterator(const byte_type* data)
             : ptr_(data)
@@ -63,7 +63,7 @@ namespace hid::rdf
         }
         constexpr bool operator!=(const reinterpret_iterator& rhs) const
         {
-            return ptr_ != rhs.ptr_;
+            return !(*this == rhs);
         }
 
     private:
@@ -90,7 +90,7 @@ namespace hid::rdf
         using pointer         = const value_type*;
         using reference       = const value_type&;
 
-        using iterator_category = std::forward_iterator_tag;
+        using iterator_category = std::input_iterator_tag;
 
         constexpr copy_iterator(const byte_type* data)
             : ptr_(data)
@@ -126,7 +126,7 @@ namespace hid::rdf
         }
         constexpr bool operator!=(const copy_iterator& rhs) const
         {
-            return ptr_ != rhs.ptr_;
+            return !(*this == rhs);
         }
 
     private:
@@ -198,6 +198,10 @@ namespace hid::rdf
             return true;
         }
 
+        /// @brief  Counts the occurrences of a certain tag in the descriptor.
+        /// @tparam TTag: tag type
+        /// @param  tag: the tag to count
+        /// @return number of items having the specified tag
         template<typename TTag>
         constexpr std::size_t tag_count(TTag tag) const
         {
@@ -212,29 +216,43 @@ namespace hid::rdf
             return hits;
         }
 
-        template<typename TTag>
-        constexpr std::uint32_t tag_max_value_unsigned(TTag tag) const
+        template<typename TTag, class Compare>
+        constexpr iterator tag_value_unsigned_most(TTag tag, Compare comp) const
         {
-            std::uint32_t result = std::numeric_limits<decltype(result)>::min();
-            for (const value_type& item : (*this))
+            iterator result = this->end();
+            std::uint32_t most = 0;
+            for (iterator it = this->begin(); it != this->end(); ++it)
             {
+                const value_type& item = *it;
                 if (item.has_tag(tag))
                 {
-                    result = std::max(result, item.value_unsigned());
+                    auto value = item.value_unsigned();
+                    if ((result == this->end()) or comp(most, value))
+                    {
+                        result = it;
+                        most = value;
+                    }
                 }
             }
             return result;
         }
 
-        template<typename TTag>
-        constexpr std::int32_t tag_max_value_signed(TTag tag) const
+        template<typename TTag, class Compare>
+        constexpr iterator tag_value_signed_most(TTag tag, Compare comp) const
         {
-            std::int32_t result = std::numeric_limits<decltype(result)>::min();
-            for (const value_type& item : (*this))
+            iterator result = this->end();
+            std::int32_t most = 0;
+            for (iterator it = this->begin(); it != this->end(); ++it)
             {
+                const value_type& item = *it;
                 if (item.has_tag(tag))
                 {
-                    result = std::max(result, item.value_unsigned());
+                    auto value = item.value_signed();
+                    if ((result == this->end()) or comp(most, value))
+                    {
+                        result = it;
+                        most = value;
+                    }
                 }
             }
             return result;
