@@ -128,11 +128,11 @@ namespace hid
         template<report::type TYPE, id::type REPORT_ID>
         struct base_data
         {
-            std::uint8_t *data()
+            std::uint8_t* data()
             {
                 return reinterpret_cast<std::uint8_t*>(this);
             }
-            const std::uint8_t *data() const
+            const std::uint8_t* data() const
             {
                 return reinterpret_cast<const std::uint8_t*>(this);
             }

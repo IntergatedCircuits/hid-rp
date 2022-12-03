@@ -37,11 +37,10 @@ namespace hid::rdf
             : ptr_(reinterpret_cast<decltype(ptr_)>(ptr))
         {
         }
-        reinterpret_iterator operator++()
+        reinterpret_iterator& operator++()
         {
-            reinterpret_iterator i = *this;
-            ptr_ += i->size();
-            return i;
+            ptr_ += (*this)->size();
+            return *this;
         }
         reinterpret_iterator operator++(int)
         {
@@ -100,11 +99,10 @@ namespace hid::rdf
             : copy_iterator(reinterpret_cast<decltype(ptr_)>(ptr))
         {
         }
-        constexpr copy_iterator operator++()
+        constexpr copy_iterator& operator++()
         {
-            copy_iterator i = *this;
-            ptr_ += i->size();
-            return i;
+            ptr_ += (*this)->size();
+            return *this;
         }
         constexpr copy_iterator operator++(int)
         {
