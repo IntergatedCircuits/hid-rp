@@ -23,8 +23,7 @@ namespace hid::rdf
     public:
         constexpr global_item_store()
             : items_()
-        {
-        }
+        {}
 
         constexpr void add_item(const short_item_buffer& new_item)
         {

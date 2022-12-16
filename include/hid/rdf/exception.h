@@ -32,8 +32,7 @@ namespace hid::rdf
     protected:
         constexpr exception(string_type name)
             : name_(name)
-        {
-        }
+        {}
 
     private:
         string_type const name_;
@@ -43,8 +42,7 @@ namespace hid::rdf
     {
         constexpr ex_item_invalid_tag_type()
             : exception("invalid item tag type")
-        {
-        }
+        {}
     };
 
     class parser_exception : public exception
@@ -63,8 +61,7 @@ namespace hid::rdf
 
         constexpr parser_exception(string_type name, code_type subcode)
             : parser_exception(name, subcode, 0, 0)
-        {
-        }
+        {}
 
     private:
         code_type const code_;
@@ -75,8 +72,7 @@ namespace hid::rdf
         constexpr parser_exception(string_type name, code_type subcode, code_type tag, code_type tag_type)
             : exception(name), code_(ERROR_FLAG | ((static_cast<code_type>(subcode) & 0xcf) << 8) |
                 (static_cast<code_type>(tag) << 4) | (static_cast<code_type>(tag_type) << 2))
-        {
-        }
+        {}
     };
 
     struct ex_report_id_zero : public parser_exception

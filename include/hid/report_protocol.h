@@ -53,8 +53,7 @@ namespace hid
               max_output_size(max_output_size),
               max_feature_size(max_feature_size),
               max_report_id(max_report_id)
-        {
-        }
+        {}
 
         /// @brief Define the report protocol by parsing the descriptor in compile-time.
         /// @param desc_view: View of the HID report descriptor

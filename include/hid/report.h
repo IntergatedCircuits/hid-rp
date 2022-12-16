@@ -41,8 +41,7 @@ namespace hid
 
             constexpr id(type value)
                 : value_(value)
-            {
-            }
+            {}
             constexpr static type min()
             {
                 return 1;
@@ -90,11 +89,12 @@ namespace hid
         public:
             constexpr selector(report::type t, report::id i = 0)
                 : storage_((static_cast<std::uint16_t>(t) << 8) | static_cast<std::uint16_t>(i))
-            {
-            }
+            {}
+            constexpr explicit selector(std::uint16_t raw)
+                : storage_(raw)
+            {}
             constexpr selector()
-            {
-            }
+            {}
             constexpr void clear()
             {
                 *this = selector();
@@ -156,8 +156,7 @@ namespace hid
 
         template<type TYPE, id::type REPORT_ID>
         struct base<TYPE, REPORT_ID, std::enable_if_t<REPORT_ID == 0>> : public base_data<TYPE, REPORT_ID>
-        {
-        };
+        {};
 
         template<type TYPE, id::type REPORT_ID>
         struct base<TYPE, REPORT_ID, std::enable_if_t<(REPORT_ID > 0)>> : public base_data<TYPE, REPORT_ID>

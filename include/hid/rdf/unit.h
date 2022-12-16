@@ -104,8 +104,7 @@ namespace hid::rdf
         public:
             constexpr unit_item(std::uint32_t flags)
                 : base_t(global::tag::UNIT, flags)
-            {
-            }
+            {}
         };
 
         class exponent_item : public short_item<1>
@@ -113,8 +112,7 @@ namespace hid::rdf
         public:
             constexpr exponent_item(int exp = 0)
                 : short_item(global::tag::UNIT_EXPONENT, static_cast<byte_type>(exp & 0xf))
-            {
-            }
+            {}
         };
 
         /// @brief  Template for exact units. Each unit is defined by its code and its base exponent
@@ -140,8 +138,7 @@ namespace hid::rdf
             constexpr base(std::int8_t relative_exponent = 0)
                 : base_t((unit_item<UNIT_CODE_SIZE>(static_cast<std::uint32_t>(CODE)),
                     exponent_item(BASE_EXPONENT + relative_exponent)))
-            {
-            }
+            {}
         };
 
         using none                  = base<code::NONE>;

@@ -100,13 +100,11 @@ namespace hid::rdf
 
         constexpr item_header(byte_type prefix)
             : prefix_(prefix)
-        {
-        }
+        {}
         /// @brief Default constructing creates an unknown MAIN item with no data
         constexpr item_header()
             : item_header(0)
-        {
-        }
+        {}
 
         constexpr static std::uint32_t get_unsigned_value(const item_header* header, const byte_type* ptr)
         {
@@ -264,8 +262,7 @@ namespace hid::rdf
         // so constructing or copying is senseless
         item()
             : item_header()
-        {
-        }
+        {}
         item(const item&) = delete;
         item& operator=(const item&) = delete;
 

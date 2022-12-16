@@ -31,12 +31,10 @@ namespace hid::rdf
 
         constexpr reinterpret_iterator(const byte_type* data)
             : ptr_(data)
-        {
-        }
+        {}
         reinterpret_iterator(pointer ptr)
             : ptr_(reinterpret_cast<decltype(ptr_)>(ptr))
-        {
-        }
+        {}
         reinterpret_iterator& operator++()
         {
             ptr_ += (*this)->size();
@@ -93,12 +91,10 @@ namespace hid::rdf
 
         constexpr copy_iterator(const byte_type* data)
             : ptr_(data)
-        {
-        }
+        {}
         copy_iterator(pointer ptr)
             : copy_iterator(reinterpret_cast<decltype(ptr_)>(ptr))
-        {
-        }
+        {}
         constexpr copy_iterator& operator++()
         {
             ptr_ += (*this)->size();
@@ -256,20 +252,17 @@ namespace hid::rdf
             return result;
         }
 
-        constexpr items_view_base(const TIterator& begin, const TIterator& end)
+        constexpr items_view_base(const iterator& begin, const iterator& end)
             : begin_(begin.ptr_), end_(end.ptr_)
-        {
-        }
+        {}
 
     protected:
         constexpr items_view_base()
             : begin_(nullptr), end_(nullptr)
-        {
-        }
+        {}
         constexpr items_view_base(const byte_type* begin, const byte_type* end)
             : begin_(begin), end_(end)
-        {
-        }
+        {}
 
     private:
         const byte_type* begin_;
@@ -293,28 +286,23 @@ namespace hid::rdf
 
         constexpr descriptor_view_base()
             : base()
-        {
-        }
+        {}
         constexpr descriptor_view_base(const byte_type* data, std::size_t size)
             : descriptor_view_base(data, data + size)
-        {
-        }
+        {}
         template<typename TArray>
         constexpr descriptor_view_base(const TArray& arr)
             : descriptor_view_base(arr.data(), arr.data() + arr.size())
-        {
-        }
+        {}
         template<typename TIter>
         constexpr descriptor_view_base(const TIter begin, const TIter end)
             : descriptor_view_base(std::addressof(*begin), std::addressof(*begin) + std::distance(begin, end))
-        {
-        }
+        {}
 
     private:
         constexpr descriptor_view_base(const byte_type* begin, const byte_type* end)
             : base(begin, end)
-        {
-        }
+        {}
     };
 
     /// @brief HID report descriptor view, use for runtime descriptor parsing.
