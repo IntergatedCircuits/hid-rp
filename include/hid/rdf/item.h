@@ -11,6 +11,7 @@
 #ifndef __HID_RDF_ITEM_H_
 #define __HID_RDF_ITEM_H_
 
+#include <array>
 #include "constants.h"
 #include "exception.h"
 

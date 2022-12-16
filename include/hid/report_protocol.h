@@ -11,6 +11,7 @@
 #ifndef __HID_RDF_REPORT_PROTOCOL_H_
 #define __HID_RDF_REPORT_PROTOCOL_H_
 
+#include <algorithm>
 #include "rdf/parser.h"
 #include "rdf/global_items.h"
 
