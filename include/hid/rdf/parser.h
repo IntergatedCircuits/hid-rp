@@ -163,15 +163,38 @@ namespace hid::rdf
             return control::CONTINUE;
         }
 
-        constexpr control parse_items(const descriptor_view_type& desc_view)
+        constexpr static std::size_t global_stack_depth(descriptor_view_type desc_view)
         {
-            auto global_stack_depth = 1 + desc_view.tag_count(global::tag::PUSH);
+            std::size_t depth = 0;
+            for (const item_type& item : desc_view)
+            {
+                if (item.has_tag(global::tag::PUSH))
+                {
+                    depth++;
+                }
+                else if (item.has_tag(global::tag::POP))
+                {
+                    HID_RDF_ASSERT(depth > 0, ex_pop_unmatched);
+                    depth--;
+                }
+            }
+            return depth;
+        }
+
+        constexpr control parse_items(descriptor_view_type desc_view)
+        {
+            const auto global_stack_size = 1 + global_stack_depth(desc_view);
 
             // using this global stack logic is hardly justifiable at all
-            HID_RDF_ASSERT(global_stack_depth <= 4, ex_global_stack_overflow);
+            HID_RDF_ASSERT(global_stack_size <= 4, ex_global_stack_overflow);
 
-            global_item_store global_stack[global_stack_depth];
-            return fixed_stack_parse(desc_view, std::span<global_item_store>(global_stack, global_stack_depth));
+#ifdef _MSC_BUILD
+            global_item_store global_stack[4];
+            return fixed_stack_parse(desc_view, std::span(global_stack));
+#else
+            global_item_store global_stack[global_stack_size];
+            return fixed_stack_parse(desc_view, std::span(global_stack, global_stack_size));
+#endif
         }
 
         template<std::size_t _Extent>

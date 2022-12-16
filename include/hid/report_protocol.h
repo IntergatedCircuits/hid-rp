@@ -58,7 +58,7 @@ namespace hid
 
         /// @brief Define the report protocol by parsing the descriptor in compile-time.
         /// @param desc_view: View of the HID report descriptor
-        constexpr report_protocol(const descriptor_view_type &desc_view)
+        consteval report_protocol(const descriptor_view_type &desc_view)
             : descriptor(desc_view)
         {
             auto parsed = report_protocol::parser(desc_view);
@@ -103,7 +103,8 @@ namespace hid
                 else
                 {
                     auto& report_sizes = bit_sizes_by_type(type);
-                    auto max_size = *std::max_element(&report_sizes[1], report_sizes.end()) / 8;
+                    auto begin = report_sizes.begin();
+                    auto max_size = *std::max_element(++begin, report_sizes.end()) / 8;
                     if (max_size > 0)
                     {
                         return sizeof(report::id) + max_size;
