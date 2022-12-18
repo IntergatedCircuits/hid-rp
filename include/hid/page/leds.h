@@ -1,0 +1,117 @@
+#ifndef __HID_PAGE_LEDS_H_
+#define __HID_PAGE_LEDS_H_
+
+#include "hid/usage.h"
+
+namespace hid::page
+{
+    enum class leds : usage_id_type;
+    template<>
+    struct info<leds>
+    {
+        constexpr static usage_id_type base_id = 0x00080000;
+        constexpr static usage_id_type max_usage = 0x0068 | base_id;
+        constexpr static const char* name = "LEDs";
+    };
+    enum class leds : usage_id_type
+    {
+        NUM_LOCK = 0x0001 | info<leds>::base_id,
+        CAPS_LOCK = 0x0002 | info<leds>::base_id,
+        SCROLL_LOCK = 0x0003 | info<leds>::base_id,
+        COMPOSE = 0x0004 | info<leds>::base_id,
+        KANA = 0x0005 | info<leds>::base_id,
+        POWER = 0x0006 | info<leds>::base_id,
+        SHIFT = 0x0007 | info<leds>::base_id,
+        DO_NOT_DISTURB = 0x0008 | info<leds>::base_id,
+        MUTE = 0x0009 | info<leds>::base_id,
+        TONE_ENABLE = 0x000a | info<leds>::base_id,
+        HIGH_CUT_FILTER = 0x000b | info<leds>::base_id,
+        LOW_CUT_FILTER = 0x000c | info<leds>::base_id,
+        EQUALIZER_ENABLE = 0x000d | info<leds>::base_id,
+        SOUND_FIELD_ON = 0x000e | info<leds>::base_id,
+        SURROUND_ON = 0x000f | info<leds>::base_id,
+        REPEAT = 0x0010 | info<leds>::base_id,
+        STEREO = 0x0011 | info<leds>::base_id,
+        SAMPLING_RATE_DETECT = 0x0012 | info<leds>::base_id,
+        SPINNING = 0x0013 | info<leds>::base_id,
+        CAV = 0x0014 | info<leds>::base_id,
+        CLV = 0x0015 | info<leds>::base_id,
+        RECORDING_FORMAT_DETECT = 0x0016 | info<leds>::base_id,
+        OFF_HOOK = 0x0017 | info<leds>::base_id,
+        RING = 0x0018 | info<leds>::base_id,
+        MESSAGE_WAITING = 0x0019 | info<leds>::base_id,
+        DATA_MODE = 0x001a | info<leds>::base_id,
+        BATTERY_OPERATION = 0x001b | info<leds>::base_id,
+        BATTERY_OK = 0x001c | info<leds>::base_id,
+        BATTERY_LOW = 0x001d | info<leds>::base_id,
+        SPEAKER = 0x001e | info<leds>::base_id,
+        HEAD_SET = 0x001f | info<leds>::base_id,
+        HOLD = 0x0020 | info<leds>::base_id,
+        MICROPHONE = 0x0021 | info<leds>::base_id,
+        COVERAGE = 0x0022 | info<leds>::base_id,
+        NIGHT_MODE = 0x0023 | info<leds>::base_id,
+        SEND_CALLS = 0x0024 | info<leds>::base_id,
+        CALL_PICKUP = 0x0025 | info<leds>::base_id,
+        CONFERENCE = 0x0026 | info<leds>::base_id,
+        STAND_BY = 0x0027 | info<leds>::base_id,
+        CAMERA_ON = 0x0028 | info<leds>::base_id,
+        CAMERA_OFF = 0x0029 | info<leds>::base_id,
+        ON_LINE = 0x002a | info<leds>::base_id,
+        OFF_LINE = 0x002b | info<leds>::base_id,
+        BUSY = 0x002c | info<leds>::base_id,
+        READY = 0x002d | info<leds>::base_id,
+        PAPER_OUT = 0x002e | info<leds>::base_id,
+        PAPER_JAM = 0x002f | info<leds>::base_id,
+        REMOTE = 0x0030 | info<leds>::base_id,
+        FORWARD = 0x0031 | info<leds>::base_id,
+        REVERSE = 0x0032 | info<leds>::base_id,
+        STOP = 0x0033 | info<leds>::base_id,
+        REWIND = 0x0034 | info<leds>::base_id,
+        FAST_FORWARD = 0x0035 | info<leds>::base_id,
+        PLAY = 0x0036 | info<leds>::base_id,
+        PAUSE = 0x0037 | info<leds>::base_id,
+        RECORD = 0x0038 | info<leds>::base_id,
+        ERROR = 0x0039 | info<leds>::base_id,
+        USAGE_SELECTED_INDICATOR = 0x003a | info<leds>::base_id,
+        USAGE_IN_USE_INDICATOR = 0x003b | info<leds>::base_id,
+        USAGE_MULTI_MODE_INDICATOR = 0x003c | info<leds>::base_id,
+        INDICATOR_ON = 0x003d | info<leds>::base_id,
+        INDICATOR_FLASH = 0x003e | info<leds>::base_id,
+        INDICATOR_SLOW_BLINK = 0x003f | info<leds>::base_id,
+        INDICATOR_FAST_BLINK = 0x0040 | info<leds>::base_id,
+        INDICATOR_OFF = 0x0041 | info<leds>::base_id,
+        FLASH_ON_TIME = 0x0042 | info<leds>::base_id,
+        SLOW_BLINK_ON_TIME = 0x0043 | info<leds>::base_id,
+        SLOW_BLINK_OFF_TIME = 0x0044 | info<leds>::base_id,
+        FAST_BLINK_ON_TIME = 0x0045 | info<leds>::base_id,
+        FAST_BLINK_OFF_TIME = 0x0046 | info<leds>::base_id,
+        USAGE_INDICATOR_COLOR = 0x0047 | info<leds>::base_id,
+        INDICATOR_RED = 0x0048 | info<leds>::base_id,
+        INDICATOR_GREEN = 0x0049 | info<leds>::base_id,
+        INDICATOR_AMBER = 0x004a | info<leds>::base_id,
+        GENERIC_INDICATOR = 0x004b | info<leds>::base_id,
+        SYSTEM_SUSPEND = 0x004c | info<leds>::base_id,
+        EXTERNAL_POWER_CONNECTED = 0x004d | info<leds>::base_id,
+        INDICATOR_BLUE = 0x004e | info<leds>::base_id,
+        INDICATOR_ORANGE = 0x004f | info<leds>::base_id,
+        GOOD_STATUS = 0x0050 | info<leds>::base_id,
+        WARNING_STATUS = 0x0051 | info<leds>::base_id,
+        RGB_LED = 0x0052 | info<leds>::base_id,
+        RED_LED_CHANNEL = 0x0053 | info<leds>::base_id,
+        GREEN_LED_CHANNEL = 0x0054 | info<leds>::base_id,
+        BLUE_LED_CHANNEL = 0x0055 | info<leds>::base_id,
+        LED_INTENSITY = 0x0056 | info<leds>::base_id,
+        PLAYER_INDICATOR = 0x0060 | info<leds>::base_id,
+        PLAYER_1 = 0x0061 | info<leds>::base_id,
+        PLAYER_2 = 0x0062 | info<leds>::base_id,
+        PLAYER_3 = 0x0063 | info<leds>::base_id,
+        PLAYER_4 = 0x0064 | info<leds>::base_id,
+        PLAYER_5 = 0x0065 | info<leds>::base_id,
+        PLAYER_6 = 0x0066 | info<leds>::base_id,
+        PLAYER_7 = 0x0067 | info<leds>::base_id,
+        PLAYER_8 = 0x0068 | info<leds>::base_id,
+    };
+}
+
+#endif // __HID_PAGE_LEDS_H_
+
