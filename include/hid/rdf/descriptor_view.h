@@ -176,6 +176,11 @@ namespace hid::rdf
             return end_;
         }
 
+        operator std::span<const uint8_t>() const
+        {
+            return { data(), size() };
+        }
+
         /// @brief  Verifies that the view has correct bounds, all items are intact and complete.
         ///         This is the first check that needs to be done on a new HID report descriptor
         ///         (usually done by the OS itself).
