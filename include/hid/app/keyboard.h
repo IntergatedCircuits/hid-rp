@@ -40,7 +40,7 @@ namespace hid::app::keyboard
             // key codes
             report_size(8),
             report_count(6),
-            logical_limits<1, 1>(0, 0xff),
+            logical_limits<1, 1>(0, keyboard_keypad::KEYPAD_HEXADECIMAL),
             usage_limits(nullusage, keyboard_keypad::KEYPAD_HEXADECIMAL),
             input::array()
         );
@@ -52,6 +52,8 @@ namespace hid::app::keyboard
         uint8_t modifiers = 0;
         uint8_t reserved = 0;
         std::array<uint8_t, 6> scancodes = {};
+
+        constexpr keys_input_report() = default;
 
         constexpr bool set_key_state(page::keyboard_keypad key, bool pressed)
         {
@@ -129,6 +131,8 @@ namespace hid::app::keyboard
     struct output_report : public hid::report::base<hid::report::type::OUTPUT, REPORT_ID>
     {
         uint8_t leds = 0;
+
+        constexpr output_report() = default;
 
         constexpr bool get_led_state(page::leds led) const
         {

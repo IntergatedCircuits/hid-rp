@@ -42,26 +42,11 @@ namespace hid
             constexpr id(type value)
                 : value_(value)
             {}
-            constexpr static type min()
-            {
-                return 1;
-            }
-            constexpr static type max()
-            {
-                return std::numeric_limits<type>::max();
-            }
-            constexpr operator type&()
-            {
-                return value_;
-            }
-            constexpr operator type() const
-            {
-                return value_;
-            }
-            constexpr bool valid() const
-            {
-                return value_ >= min();
-            }
+            constexpr static type min()     { return 1; }
+            constexpr static type max()     { return std::numeric_limits<type>::max(); }
+            constexpr operator type&()      { return value_; }
+            constexpr operator type() const { return value_; }
+            constexpr bool valid() const    { return value_ >= min(); }
 
         private:
             type value_;
@@ -79,74 +64,57 @@ namespace hid
             {}
             constexpr selector()
             {}
-            constexpr void clear()
-            {
-                *this = selector();
-            }
-            constexpr bool valid() const
-            {
-                return static_cast<std::uint8_t>(this->type()) > 0;
-            }
-            constexpr report::type type() const
-            {
-                return static_cast<report::type>(storage_ >> 8);
-            }
-            constexpr report::id id() const
-            {
-                return report::id(storage_);
-            }
-            constexpr friend bool operator ==(const selector &lhs, const selector& rhs)
-            {
-                return (lhs.storage_ == rhs.storage_);
-            }
-            constexpr friend bool operator !=(const selector &lhs, const selector& rhs)
-            {
-                return !(lhs == rhs);
-            }
+            constexpr report::type type()  const { return static_cast<report::type>(storage_ >> 8); }
+            constexpr report::id   id()    const { return report::id(storage_); }
+            constexpr bool         valid() const { return static_cast<std::uint8_t>(type()) > 0; }
+            constexpr void         clear()       { *this = selector(); }
+
+            constexpr bool operator ==(const selector& rhs) const = default;
+            constexpr bool operator !=(const selector& rhs) const = default;
 
         private:
             std::uint16_t storage_ = 0;
         };
 
-        /// @brief Base type for report storage structures. Inherit from @ref base type instead!
+        /// @brief Base type for report storage structures.
         template<report::type TYPE, id::type REPORT_ID>
-        struct base_data
+        struct base
         {
-            std::uint8_t* data()
+            constexpr static report::type type()         { return TYPE; }
+            constexpr static bool has_id()               { return (REPORT_ID > 0); }
+            constexpr static report::id::type ID         { REPORT_ID };
+            constexpr static report::selector selector() { return report::selector(type(), ID); }
+            constexpr report::id& id()
+                requires (has_id())
             {
-                return reinterpret_cast<std::uint8_t*>(this);
+                return id_;
             }
-            const std::uint8_t* data() const
+            constexpr report::id id() const
+                requires (has_id())
             {
-                return reinterpret_cast<const std::uint8_t*>(this);
+                return id_;
             }
-            constexpr static report::type type()
-            {
-                return TYPE;
-            }
-            constexpr static report::id::type ID = REPORT_ID;
-            constexpr static report::id id()
-            {
-                return report::id(ID);
-            }
-            constexpr static report::selector selector()
-            {
-                return report::selector(type(), id());
-            }
+            std::uint8_t* data()             { return reinterpret_cast<std::uint8_t*>(this); }
+            const std::uint8_t* data() const { return reinterpret_cast<const std::uint8_t*>(this); }
+
+            constexpr base()
+                requires (has_id())
+                : id_(REPORT_ID)
+            {}
+            constexpr base()
+                requires (not has_id())
+            {}
+
+        private:
+            struct empty {};
+            using conditional_id_t = std::conditional_t <has_id(), report::id, empty>;
+            [[no_unique_address]] conditional_id_t id_;
         };
+        static_assert(base<type::INPUT, 0>().selector() == selector(0x100));
+        static_assert(base<type::OUTPUT, 0x42>().selector() == selector(0x242));
 
-        template<type TYPE, id::type REPORT_ID = 0, typename Enabled = void>
-        struct base;
-
-        template<type TYPE, id::type REPORT_ID>
-        struct base<TYPE, REPORT_ID, std::enable_if_t<REPORT_ID == 0>> : public base_data<TYPE, REPORT_ID>
-        {};
-
-        template<type TYPE, id::type REPORT_ID>
-        struct base<TYPE, REPORT_ID, std::enable_if_t<(REPORT_ID > 0)>> : public base_data<TYPE, REPORT_ID>
-        {
-            id id_ { REPORT_ID };
-        };
+        template<class T, report::type TYPE = T::type(), id::type REPORT_ID = T::ID>
+        concept Data = std::is_base_of<base<TYPE, REPORT_ID>, T>::value;
     }
 }
 

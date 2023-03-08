@@ -14,7 +14,11 @@
 #include "constants.h"
 
 #ifndef HID_RDF_ASSERT
+#if defined(__EXCEPTIONS) // TODO: add other toolchains
 #define HID_RDF_ASSERT(CONDITION, EXCEPTION)   {if (!(CONDITION)) { using namespace hid::rdf; throw (EXCEPTION()); }}
+#else
+#define HID_RDF_ASSERT(CONDITION, EXCEPTION)    (void)sizeof(CONDITION)
+#endif
 #endif
 
 namespace hid::rdf

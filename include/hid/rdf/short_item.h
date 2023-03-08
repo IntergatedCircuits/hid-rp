@@ -58,12 +58,13 @@ namespace hid::rdf
         constexpr short_item(TTag tag, TData data)
             : short_item(tag)
         {
-            static_assert(std::is_integral<TData>::value);
+            static_assert(std::is_integral_v<TData> or std::is_enum_v<TData>);
 
+            auto d = static_cast<std::uint32_t>(data);
             for (byte_type i = 0; i < DATA_SIZE; ++i)
             {
-                (*this)[1 + i] = static_cast<byte_type>(data);
-                data >>= 8;
+                (*this)[1 + i] = static_cast<byte_type>(d);
+                d >>= 8;
             }
         }
 

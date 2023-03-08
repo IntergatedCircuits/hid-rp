@@ -140,7 +140,14 @@ namespace hid::rdf
 
             constexpr static auto array()
             {
-                return data_field_item<0>(TAG, field_type::ARRAY);
+                // FU-MS:
+                // HID spec 1.11, section 6.2.2.4:
+                // "An Input item could have a data size of zero (0) bytes. In this case
+                // the value of each data bit for the item can be assumed to be zero.
+                // This is functionally identical to using a[n] item tag that specifies
+                // a 4-byte data item followed by four zero bytes."
+                // Linux handles this with 0 size, Windows doesn't...
+                return data_field_item<1>(TAG, field_type::ARRAY);
             }
 
             constexpr static auto buffered_variable()
