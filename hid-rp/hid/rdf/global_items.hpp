@@ -8,14 +8,14 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_RDF_GLOBAL_ITEMS_H_
-#define __HID_RDF_GLOBAL_ITEMS_H_
+#ifndef __HID_RDF_GLOBAL_ITEMS_HPP_
+#define __HID_RDF_GLOBAL_ITEMS_HPP_
 
-#include "../report.h"
-#include "../usage.h"
-#include "exception.h"
-#include "short_item.h"
-#include "unit.h"
+#include "hid/report.hpp"
+#include "hid/usage.hpp"
+#include "hid/rdf/exception.hpp"
+#include "hid/rdf/short_item.hpp"
+#include "hid/rdf/unit.hpp"
 
 namespace hid::rdf
 {
@@ -133,4 +133,4 @@ namespace hid::rdf
 
 } // namespace hid::rdf
 
-#endif // __HID_RDF_GLOBAL_ITEMS_H_
+#endif // __HID_RDF_GLOBAL_ITEMS_HPP_

@@ -8,13 +8,13 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_APP_MOUSE_H_
-#define __HID_APP_MOUSE_H_
+#ifndef __HID_APP_MOUSE_HPP_
+#define __HID_APP_MOUSE_HPP_
 
-#include "../report.h"
-#include "../rdf/descriptor.h"
-#include "hid/page/generic_desktop.h"
-#include "hid/page/button.h"
+#include "hid/report.hpp"
+#include "hid/rdf/descriptor.hpp"
+#include "hid/page/generic_desktop.hpp"
+#include "hid/page/button.hpp"
 
 namespace hid::app::mouse
 {
@@ -79,4 +79,4 @@ namespace hid::app::mouse
 
 } // namespace hid::app::mouse
 
-#endif // __HID_APP_MOUSE_H_
+#endif // __HID_APP_MOUSE_HPP_

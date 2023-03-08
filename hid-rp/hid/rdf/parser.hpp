@@ -8,12 +8,12 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_RDF_PARSER_H_
-#define __HID_RDF_PARSER_H_
+#ifndef __HID_RDF_PARSER_HPP_
+#define __HID_RDF_PARSER_HPP_
 
 #include <span>
-#include "../usage.h"
-#include "descriptor_view.h"
+#include "hid/usage.hpp"
+#include "hid/rdf/descriptor_view.hpp"
 
 namespace hid::rdf
 {
@@ -379,4 +379,4 @@ namespace hid::rdf
     }
 }
 
-#endif // __HID_RDF_PARSER_H_
+#endif // __HID_RDF_PARSER_HPP_

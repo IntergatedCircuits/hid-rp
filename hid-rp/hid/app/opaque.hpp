@@ -8,11 +8,11 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_APP_OPAQUE_H_
-#define __HID_APP_OPAQUE_H_
+#ifndef __HID_APP_OPAQUE_HPP_
+#define __HID_APP_OPAQUE_HPP_
 
-#include "../report.h"
-#include "../rdf/descriptor.h"
+#include "hid/report.hpp"
+#include "hid/rdf/descriptor.hpp"
 
 namespace hid::app::opaque
 {
@@ -39,4 +39,4 @@ namespace hid::app::opaque
 
 } // namespace hid::app::opaque
 
-#endif // __HID_APP_OPAQUE_H_
+#endif // __HID_APP_OPAQUE_HPP_

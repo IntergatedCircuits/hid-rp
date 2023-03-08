@@ -8,12 +8,12 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_RDF_REPORT_PROTOCOL_H_
-#define __HID_RDF_REPORT_PROTOCOL_H_
+#ifndef __HID_RDF_REPORT_PROTOCOL_HPP_
+#define __HID_RDF_REPORT_PROTOCOL_HPP_
 
 #include <algorithm>
-#include "rdf/parser.h"
-#include "rdf/global_items.h"
+#include "hid/rdf/parser.hpp"
+#include "hid/rdf/global_items.hpp"
 
 namespace hid
 {
@@ -224,4 +224,4 @@ namespace hid
     };
 }
 
-#endif // __HID_RDF_REPORT_PROTOCOL_H_
+#endif // __HID_RDF_REPORT_PROTOCOL_HPP_

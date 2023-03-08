@@ -8,8 +8,8 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_REPORT_H_
-#define __HID_REPORT_H_
+#ifndef __HID_REPORT_HPP_
+#define __HID_REPORT_HPP_
 
 #include <cstdint>
 #include <type_traits>
@@ -118,4 +118,4 @@ namespace hid
     }
 }
 
-#endif // __HID_REPORT_H_
+#endif // __HID_REPORT_HPP_

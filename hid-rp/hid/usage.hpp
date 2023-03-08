@@ -8,8 +8,8 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_USAGE_H_
-#define __HID_USAGE_H_
+#ifndef __HID_USAGE_HPP_
+#define __HID_USAGE_HPP_
 
 #include <cstdint>
 #include <limits>
@@ -90,4 +90,4 @@ namespace hid
 
 } // namespace hid
 
-#endif // __HID_RDF_USAGE_H_
+#endif // __HID_RDF_USAGE_HPP_

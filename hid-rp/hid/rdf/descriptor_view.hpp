@@ -8,12 +8,12 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_RDF_DESCRIPTOR_VIEW_H_
-#define __HID_RDF_DESCRIPTOR_VIEW_H_
+#ifndef __HID_RDF_DESCRIPTOR_VIEW_HPP_
+#define __HID_RDF_DESCRIPTOR_VIEW_HPP_
 
 #include <iterator>
 
-#include "item.h"
+#include "hid/rdf/item.hpp"
 
 namespace hid::rdf
 {
@@ -318,4 +318,4 @@ namespace hid::rdf
 
 } // namespace hid::rdf
 
-#endif // __HID_RDF_DESCRIPTOR_VIEW_H_
+#endif // __HID_RDF_DESCRIPTOR_VIEW_HPP_

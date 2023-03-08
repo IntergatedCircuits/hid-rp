@@ -8,15 +8,15 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_APP_KEYBOARD_H_
-#define __HID_APP_KEYBOARD_H_
+#ifndef __HID_APP_KEYBOARD_HPP_
+#define __HID_APP_KEYBOARD_HPP_
 
 #include <array>
-#include "../report.h"
-#include "../rdf/descriptor.h"
-#include "hid/page/generic_desktop.h"
-#include "hid/page/keyboard_keypad.h"
-#include "hid/page/leds.h"
+#include "hid/report.hpp"
+#include "hid/rdf/descriptor.hpp"
+#include "hid/page/generic_desktop.hpp"
+#include "hid/page/keyboard_keypad.hpp"
+#include "hid/page/leds.hpp"
 
 namespace hid::app::keyboard
 {
@@ -160,4 +160,4 @@ namespace hid::app::keyboard
 
 } // namespace hid::app::keyboard
 
-#endif // __HID_APP_KEYBOARD_H_
+#endif // __HID_APP_KEYBOARD_HPP_

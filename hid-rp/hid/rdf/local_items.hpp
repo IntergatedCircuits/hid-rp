@@ -8,11 +8,11 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_RDF_LOCAL_ITEMS_H_
-#define __HID_RDF_LOCAL_ITEMS_H_
+#ifndef __HID_RDF_LOCAL_ITEMS_HPP_
+#define __HID_RDF_LOCAL_ITEMS_HPP_
 
-#include "short_item.h"
-#include "../usage.h"
+#include "hid/rdf/short_item.hpp"
+#include "hid/usage.hpp"
 
 namespace hid::rdf
 {
@@ -74,4 +74,4 @@ namespace hid::rdf
 
 } // namespace hid::rdf
 
-#endif // __HID_RDF_LOCAL_ITEMS_H_
+#endif // __HID_RDF_LOCAL_ITEMS_HPP_

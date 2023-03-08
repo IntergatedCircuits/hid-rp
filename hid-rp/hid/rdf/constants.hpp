@@ -8,10 +8,10 @@
 ///         If a copy of the MPL was not distributed with this file, You can obtain one at
 ///         https://mozilla.org/MPL/2.0/.
 ///
-#ifndef __HID_RDF_CONSTANTS_H_
-#define __HID_RDF_CONSTANTS_H_
+#ifndef __HID_RDF_CONSTANTS_HPP_
+#define __HID_RDF_CONSTANTS_HPP_
 
-#include "../report.h"
+#include "hid/report.hpp"
 
 namespace hid::rdf
 {
@@ -192,4 +192,4 @@ namespace hid::rdf
 
 } // namespace hid::rdf
 
-#endif // __HID_RDF_CONSTANTS_H_
+#endif // __HID_RDF_CONSTANTS_HPP_
