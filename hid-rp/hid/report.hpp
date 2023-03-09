@@ -106,8 +106,7 @@ namespace hid
             {}
 
         private:
-            struct empty {};
-            using conditional_id_t = std::conditional_t <has_id(), report::id, empty>;
+            using conditional_id_t = std::conditional_t <has_id(), report::id, std::monostate>;
             [[no_unique_address]] conditional_id_t id_;
         };
         static_assert(base<type::INPUT, 0>().selector() == selector(0x100));
