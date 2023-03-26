@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <variant>
 
 namespace hid
 {
@@ -76,38 +77,33 @@ namespace hid
             std::uint16_t storage_ = 0;
         };
 
+        struct id_base
+        {
+            report::id id;
+        };
+
         /// @brief Base type for report storage structures.
         template<report::type TYPE, id::type REPORT_ID>
-        struct base
+        struct base : public std::conditional_t<REPORT_ID != 0, id_base, std::monostate>
         {
+        private:
+            using base_t = std::conditional_t<REPORT_ID != 0, id_base, std::monostate>;
+        public:
             constexpr static report::type type()         { return TYPE; }
             constexpr static bool has_id()               { return (REPORT_ID > 0); }
             constexpr static report::id::type ID         { REPORT_ID };
             constexpr static report::selector selector() { return report::selector(type(), ID); }
-            constexpr report::id& id()
-                requires (has_id())
-            {
-                return id_;
-            }
-            constexpr report::id id() const
-                requires (has_id())
-            {
-                return id_;
-            }
+
             std::uint8_t* data()             { return reinterpret_cast<std::uint8_t*>(this); }
             const std::uint8_t* data() const { return reinterpret_cast<const std::uint8_t*>(this); }
 
             constexpr base()
                 requires (has_id())
-                : id_(REPORT_ID)
+                    : base_t(REPORT_ID)
             {}
             constexpr base()
                 requires (not has_id())
             {}
-
-        private:
-            using conditional_id_t = std::conditional_t <has_id(), report::id, std::monostate>;
-            [[no_unique_address]] conditional_id_t id_;
         };
         static_assert(base<type::INPUT, 0>().selector() == selector(0x100));
         static_assert(base<type::OUTPUT, 0x42>().selector() == selector(0x242));

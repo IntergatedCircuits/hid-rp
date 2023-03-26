@@ -25,7 +25,7 @@ namespace hid
     struct report_protocol
     {
         using descriptor_view_type = rdf::ce_descriptor_view;
-        using size_type = std::size_t;
+        using size_type = std::uint16_t;
 
         descriptor_view_type descriptor;
         size_type max_input_size = 0;
