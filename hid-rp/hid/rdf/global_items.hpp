@@ -11,7 +11,6 @@
 #ifndef __HID_RDF_GLOBAL_ITEMS_HPP_
 #define __HID_RDF_GLOBAL_ITEMS_HPP_
 
-#include "hid/report.hpp"
 #include "hid/usage.hpp"
 #include "hid/rdf/exception.hpp"
 #include "hid/rdf/short_item.hpp"
@@ -75,15 +74,15 @@ namespace hid::rdf
     class report_id : public short_item<1>
     {
     public:
-        constexpr report_id(report::id::type value)
+        constexpr report_id(std::uint8_t value)
             : short_item(global::tag::REPORT_ID, value)
         {
-            HID_RDF_ASSERT((value >= report::id::min()), ex_report_id_zero);
+            HID_RDF_ASSERT((value > 0), ex_report_id_zero);
         }
     };
 
     /// @brief Creates a report ID item only if the template parameter is valid.
-    template<report::id::type REPORT_ID>
+    template<std::uint8_t REPORT_ID>
     constexpr array<(REPORT_ID > 0) ? sizeof(report_id) : 0> conditional_report_id()
     {
         array<(REPORT_ID > 0) ? sizeof(report_id) : 0> data {};
