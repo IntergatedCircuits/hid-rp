@@ -1,0 +1,3 @@
+[submodule "modules/hid-usage-tables"]
+	path = modules/hid-usage-tables
+	url = https://github.com/IntergatedCircuits/hid-usage-tables.git
