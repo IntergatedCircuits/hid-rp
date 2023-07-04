@@ -12,6 +12,7 @@
 #define __HID_REPORT_HPP_
 
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 #include <variant>
 
