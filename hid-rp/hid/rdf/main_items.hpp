@@ -183,6 +183,20 @@ namespace hid::rdf
             {
                 return report_count<1>(1), report_size<1>(bitsize), data_field_item<1>(TAG, field_type::PADDING);
             }
+
+            /// @brief  Creates optional padding if the report bit size isn't byte aligned.
+            /// @return Minimal set of items to define byte padding.
+            template<std::size_t REPORT_CHUNK_BIT_SIZE>
+            constexpr static auto byte_padding()
+                -> rdf::array<(REPORT_CHUNK_BIT_SIZE % 8 != 0) ? sizeof(padding(8 - (REPORT_CHUNK_BIT_SIZE % 8))) : 0>
+            {
+                rdf::array<(REPORT_CHUNK_BIT_SIZE % 8 != 0) ? sizeof(padding(8 - (REPORT_CHUNK_BIT_SIZE % 8))) : 0> data {};
+                for (unsigned i = 0; i < data.size(); ++i)
+                {
+                    data[i] = padding(8 - (REPORT_CHUNK_BIT_SIZE % 8))[i];
+                }
+                return data;
+            }
         };
     }
 
