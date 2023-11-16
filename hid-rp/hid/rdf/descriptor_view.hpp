@@ -12,7 +12,7 @@
 #define __HID_RDF_DESCRIPTOR_VIEW_HPP_
 
 #include <iterator>
-
+#include <span>
 #include "hid/rdf/item.hpp"
 
 namespace hid::rdf

@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.14)
 
 project(hid-rp LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
+
 include(GNUInstallDirs)
 
 find_package(Python 3 REQUIRED)
@@ -29,3 +33,20 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${INCLUDES}>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+
+# generate a source file and build it to verify syntax
+file(GLOB_RECURSE HEADER_FILES "${INCLUDES}/*.hpp")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp" "")
+foreach(HEADER_FILE ${HEADER_FILES})
+    file(RELATIVE_PATH FILE_RELATIVE_PATH
+        ${INCLUDES} ${HEADER_FILE}
+    )
+    file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp"
+        "#include \"${FILE_RELATIVE_PATH}\"\n"
+    )
+endforeach()
+file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp"
+    "\nint main() { return 0; }\n"
+)
+add_executable(${PROJECT_NAME}-verify ${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp)
+target_link_libraries(${PROJECT_NAME}-verify ${PROJECT_NAME})

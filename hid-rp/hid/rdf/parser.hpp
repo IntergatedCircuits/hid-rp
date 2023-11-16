@@ -11,7 +11,6 @@
 #ifndef __HID_RDF_PARSER_HPP_
 #define __HID_RDF_PARSER_HPP_
 
-#include <span>
 #include "hid/usage.hpp"
 #include "hid/rdf/descriptor_view.hpp"
 
