@@ -45,8 +45,5 @@ foreach(HEADER_FILE ${HEADER_FILES})
         "#include \"${FILE_RELATIVE_PATH}\"\n"
     )
 endforeach()
-file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp"
-    "\nint main() { return 0; }\n"
-)
-add_executable(${PROJECT_NAME}-verify ${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp)
+add_library(${PROJECT_NAME}-verify ${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp)
 target_link_libraries(${PROJECT_NAME}-verify ${PROJECT_NAME})
