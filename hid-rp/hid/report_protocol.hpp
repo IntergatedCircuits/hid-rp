@@ -12,61 +12,103 @@
 #define __HID_RDF_REPORT_PROTOCOL_HPP_
 
 #include <algorithm>
+#include <array>
 #include "hid/rdf/parser.hpp"
 #include "hid/rdf/global_items.hpp"
 
 namespace hid
 {
-    /// @brief This class holds the necessary information about the specific HID report protocol
-    ///        that the device implements. This information is used by the transport layer
-    ///        to establish a proper size data channel between the host and the device.
-    ///        This class can gather all parameters from the HID report descriptor at compile-time,
-    ///        and also performs verification of the descriptor (compiler error when the descriptor is faulty).
-    struct report_protocol
+    struct report_protocol_properties
     {
-        using descriptor_view_type = rdf::ce_descriptor_view;
         using size_type = std::uint16_t;
 
-        descriptor_view_type descriptor;
-        size_type max_input_size = 0;
-        size_type max_output_size = 0;
-        size_type max_feature_size = 0;
-        report::id::type max_report_id = 0;
+        size_type max_input_size {};
+        size_type max_output_size {};
+        size_type max_feature_size {};
+        report::id::type max_input_id {};
+        report::id::type max_output_id {};
+        report::id::type max_feature_id {};
+
+        constexpr size_type max_report_size() const
+        {
+            return std::max(max_input_size, std::max(max_output_size, max_feature_size));
+        }
 
         constexpr bool uses_report_ids() const
         {
-            return max_report_id >= report::id::min();
+            return max_report_id() >= report::id::min();
+        }
+        constexpr report::id::type max_report_id() const
+        {
+            return std::max(max_input_id, std::max(max_output_id, max_feature_id));
         }
 
-        /// @brief Define the report protocol manually.
+        /// @brief Define the report protocol properties, with no report ID use.
+        /// @param max_input_size: The size of the longest INPUT report in bytes, including the report ID (if used)
+        /// @param max_output_size: The size of the longest OUTPUT report in bytes, including the report ID (if used)
+        /// @param max_feature_size: The size of the longest FEATURE report in bytes, including the report ID (if used)
+        /// @param max_report_id: The highest used report ID (or 0 if IDs are not used)
+        constexpr report_protocol_properties(
+                size_type max_input_size,
+                size_type max_output_size,
+                size_type max_feature_size)
+            : max_input_size(max_input_size),
+            max_output_size(max_output_size),
+            max_feature_size(max_feature_size)
+        {}
+
+        /// @brief Define the report protocol properties manually.
         /// @param desc_view: View of the HID report descriptor
         /// @param max_input_size: The size of the longest INPUT report in bytes, including the report ID (if used)
         /// @param max_output_size: The size of the longest OUTPUT report in bytes, including the report ID (if used)
         /// @param max_feature_size: The size of the longest FEATURE report in bytes, including the report ID (if used)
         /// @param max_report_id: The highest used report ID (or 0 if IDs are not used)
-        constexpr report_protocol(const descriptor_view_type &desc_view,
+        constexpr report_protocol_properties(
                 size_type max_input_size,
                 size_type max_output_size,
                 size_type max_feature_size,
-                report::id::type max_report_id = 0)
-            : descriptor(desc_view),
-              max_input_size(max_input_size),
-              max_output_size(max_output_size),
-              max_feature_size(max_feature_size),
-              max_report_id(max_report_id)
+                report::id::type max_input_id,
+                report::id::type max_output_id,
+                report::id::type max_feature_id)
+            : max_input_size(max_input_size),
+            max_output_size(max_output_size),
+            max_feature_size(max_feature_size),
+            max_input_id(max_input_id),
+            max_output_id(max_output_id),
+            max_feature_id(max_feature_id)
+        {}
+    };
+
+    /// @brief This class holds the necessary information about the specific HID report protocol
+    ///        that the device implements. This information is used by the transport layer
+    ///        to establish a proper size data channel between the host and the device.
+    ///        This class can gather all parameters from the HID report descriptor at compile-time,
+    ///        and also performs verification of the descriptor (compiler error when the descriptor is faulty).
+    struct report_protocol : public report_protocol_properties
+    {
+        using descriptor_view_type = rdf::ce_descriptor_view;
+
+        descriptor_view_type descriptor;
+
+        /// @brief Define the report protocol manually.
+        /// @param desc_view: View of the HID report descriptor
+        /// @param args: Arguments for report_protocol_properties constructor
+        template <typename... TArgs>
+        constexpr report_protocol(const descriptor_view_type& desc_view, TArgs&&... args)
+            : report_protocol_properties(std::forward<TArgs>(args)...), descriptor(desc_view)
         {}
 
         /// @brief Define the report protocol by parsing the descriptor in compile-time.
         /// @param desc_view: View of the HID report descriptor
-        consteval report_protocol(const descriptor_view_type &desc_view)
-            : descriptor(desc_view)
-        {
-            auto parsed = report_protocol::parser(desc_view);
-            max_input_size = parsed.max_report_size(report::type::INPUT);
-            max_output_size = parsed.max_report_size(report::type::OUTPUT);
-            max_feature_size = parsed.max_report_size(report::type::FEATURE);
-            max_report_id = parsed.max_report_id();
-        }
+        consteval report_protocol(const descriptor_view_type& desc_view)
+            : report_protocol_properties(parser(desc_view).max_report_size(report::type::INPUT),
+                parser(desc_view).max_report_size(report::type::OUTPUT),
+                parser(desc_view).max_report_size(report::type::FEATURE),
+                parser(desc_view).max_report_id(report::type::INPUT),
+                parser(desc_view).max_report_id(report::type::OUTPUT),
+                parser(desc_view).max_report_id(report::type::FEATURE)),
+                descriptor(desc_view)
+        {}
 
         /// @brief This class parses the HID report descriptor, gathering all report size
         ///        and TLC assignment information, and verifying that the descriptor describes
@@ -118,12 +160,17 @@ namespace hid
 
             constexpr bool uses_report_ids() const
             {
-                return max_report_id_ > 0;
+                return max_report_id() > 0;
             }
 
             constexpr report::id::type max_report_id() const
             {
-                return max_report_id_;
+                return *std::max_element(max_report_ids_.begin(), max_report_ids_.end());
+            }
+
+            constexpr report::id::type max_report_id(report::type type) const
+            {
+                return max_report_ids_[static_cast<size_t>(type) - 1];
             }
 
         private:
@@ -152,7 +199,8 @@ namespace hid
                             HID_RDF_ASSERT(sizes[0] == 0, ex_report_id_missing);
                         }
                     }
-                    max_report_id_ = std::max(max_report_id_, report_id);
+                    auto& rid = max_report_ids_[static_cast<size_t>(rtype) - 1];
+                    rid = std::max(rid, report_id);
                 }
 
                 // get the items defining the size of this/these report data elements
@@ -219,7 +267,7 @@ namespace hid
 
             std::array<std::array<size_type, report::id::max()>, 3> report_bit_sizes_ {};
             std::array<std::array<unsigned, report::id::max()>, 3> report_tlc_indexes_ {};
-            report::id::type max_report_id_ = 0;
+            std::array<report::id::type, 3> max_report_ids_ {};
         };
     };
 }
