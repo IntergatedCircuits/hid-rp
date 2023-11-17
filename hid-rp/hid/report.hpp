@@ -12,6 +12,7 @@
 #define __HID_REPORT_HPP_
 
 #include <cstdint>
+#include <array>
 #include <limits>
 #include <type_traits>
 #include <variant>
@@ -59,23 +60,23 @@ namespace hid
         {
         public:
             constexpr selector(report::type t, report::id i = 0)
-                : storage_((static_cast<std::uint16_t>(t) << 8) | static_cast<std::uint16_t>(i))
+                : storage_{ static_cast<std::uint8_t>(i), static_cast<std::uint8_t>(t) }
             {}
             constexpr explicit selector(std::uint16_t raw)
-                : storage_(raw)
+                : storage_{ static_cast<std::uint8_t>(raw), static_cast<std::uint8_t>(raw >> 8) }
             {}
             constexpr selector()
             {}
-            constexpr report::type type()  const { return static_cast<report::type>(storage_ >> 8); }
-            constexpr report::id   id()    const { return report::id(storage_); }
-            constexpr bool         valid() const { return static_cast<std::uint8_t>(type()) > 0; }
+            constexpr report::type type()  const { return static_cast<report::type>(storage_[1]); }
+            constexpr report::id   id()    const { return report::id(storage_[0]); }
+            constexpr bool         valid() const { return storage_[1] > 0; }
             constexpr void         clear()       { *this = selector(); }
 
             constexpr bool operator ==(const selector& rhs) const = default;
             constexpr bool operator !=(const selector& rhs) const = default;
 
         private:
-            std::uint16_t storage_ = 0;
+            std::array<std::uint8_t, 2> storage_;
         };
 
         struct id_base
