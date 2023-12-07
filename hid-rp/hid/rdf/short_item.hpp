@@ -15,101 +15,101 @@
 
 namespace hid::rdf
 {
-    /// @brief A byte array that concatenates with another using the comma operator.
-    template<std::size_t SIZE>
-    class array : public std::array<byte_type, SIZE>
+/// @brief A byte array that concatenates with another using the comma operator.
+template <std::size_t SIZE>
+class array : public std::array<byte_type, SIZE>
+{
+  public:
+    template <std::size_t SIZE_2>
+    constexpr array<SIZE + SIZE_2> operator,(array<SIZE_2> a2)
     {
-    public:
-        template<std::size_t SIZE_2>
-        constexpr array<SIZE + SIZE_2> operator , (array<SIZE_2> a2)
+        array<SIZE + SIZE_2> concat = {0};
+        for (std::size_t i = 0; i < SIZE; ++i)
         {
-            array<SIZE + SIZE_2> concat = { 0 };
-            for (std::size_t i = 0; i < SIZE; ++i)
-            {
-                concat[i] = (*this)[i];
-            }
-            for (std::size_t i = 0; i < SIZE_2; ++i)
-            {
-                concat[SIZE + i] = a2[i];
-            }
-            return concat;
+            concat[i] = (*this)[i];
         }
-    };
+        for (std::size_t i = 0; i < SIZE_2; ++i)
+        {
+            concat[SIZE + i] = a2[i];
+        }
+        return concat;
+    }
+};
 
-    /// @brief This class stores exactly one HID report descriptor item.
-    template<byte_type DATA_SIZE>
-    class short_item : public array<1 + DATA_SIZE>
+/// @brief This class stores exactly one HID report descriptor item.
+template <byte_type DATA_SIZE>
+class short_item : public array<1 + DATA_SIZE>
+{
+    static_assert((DATA_SIZE <= 4) and (DATA_SIZE != 3));
+
+    using base_t = array<1 + DATA_SIZE>;
+
+  public:
+    template <typename TTag>
+    constexpr short_item(TTag tag)
+        : base_t({static_cast<byte_type>((static_cast<byte_type>(tag) << 4) |
+                                         (static_cast<byte_type>(match_type<TTag>()) << 2) |
+                                         ((DATA_SIZE == 4) ? 3 : (DATA_SIZE & 3)))})
     {
-        static_assert((DATA_SIZE <= 4) and (DATA_SIZE != 3));
+        static_assert(match_type<TTag>() != item_type::RESERVED);
+    }
 
-        using base_t = array<1 + DATA_SIZE>;
+    template <typename TTag, typename TData>
+    constexpr short_item(TTag tag, TData data)
+        : short_item(tag)
+    {
+        static_assert(std::is_integral_v<TData> or std::is_enum_v<TData>);
 
-    public:
-        template<typename TTag>
-        constexpr short_item(TTag tag)
-            : base_t({ static_cast<byte_type>((static_cast<byte_type>(tag) << 4) |
-                (static_cast<byte_type>(match_type<TTag>()) << 2) |
-                ((DATA_SIZE == 4) ? 3 : (DATA_SIZE & 3))) })
+        auto d = static_cast<std::uint32_t>(data);
+        for (byte_type i = 0; i < DATA_SIZE; ++i)
         {
-            static_assert(match_type<TTag>() != item_type::RESERVED);
+            (*this)[1 + i] = static_cast<byte_type>(d);
+            d >>= 8;
         }
+    }
 
-        template<typename TTag, typename TData>
-        constexpr short_item(TTag tag, TData data)
-            : short_item(tag)
+    template <typename T>
+    bool operator==(const item& rhs)
+    {
+        return std::equal(this->begin(), this->end(), &rhs.header());
+    }
+
+    template <typename T>
+    bool operator!=(const item& rhs)
+    {
+        return !(*this == rhs);
+    }
+
+    template <typename T>
+    constexpr bool operator==(const short_item_buffer& rhs)
+    {
+        if ((*this)[0] != rhs.header())
         {
-            static_assert(std::is_integral_v<TData> or std::is_enum_v<TData>);
-
-            auto d = static_cast<std::uint32_t>(data);
-            for (byte_type i = 0; i < DATA_SIZE; ++i)
-            {
-                (*this)[1 + i] = static_cast<byte_type>(d);
-                d >>= 8;
-            }
+            return false;
         }
-
-        template<typename T>
-        bool operator==(const item& rhs)
+        else
         {
-            return std::equal(this->begin(), this->end(), &rhs.header());
-        }
-
-        template<typename T>
-        bool operator!=(const item& rhs)
-        {
-            return !(*this == rhs);
-        }
-
-        template<typename T>
-        constexpr bool operator==(const short_item_buffer& rhs)
-        {
-            if ((*this)[0] != rhs.header())
-            {
-                return false;
-            }
-            else
-            {
 #if __cplusplus > 201703L
-                return std::equal(this->begin() + 1, this->end(), rhs.data());
+            return std::equal(this->begin() + 1, this->end(), rhs.data());
 #else
-                for (std::size_t i = 0; i < this->data_size(); ++i)
+            for (std::size_t i = 0; i < this->data_size(); ++i)
+            {
+                if ((*this)[1 + i] != rhs.data()[i])
                 {
-                    if ((*this)[1 + i] != rhs.data()[i])
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-                return true;
-#endif
             }
+            return true;
+#endif
         }
+    }
 
-        template<typename T>
-        constexpr bool operator!=(const short_item_buffer& rhs)
-        {
-            return !(*this == rhs);
-        }
-    };
+    template <typename T>
+    constexpr bool operator!=(const short_item_buffer& rhs)
+    {
+        return !(*this == rhs);
+    }
+};
 
 } // namespace hid::rdf
 
