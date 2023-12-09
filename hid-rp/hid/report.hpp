@@ -76,7 +76,7 @@ namespace hid
             constexpr bool operator !=(const selector& rhs) const = default;
 
         private:
-            std::array<std::uint8_t, 2> storage_;
+            std::array<std::uint8_t, 2> storage_{};
         };
 
         struct id_base

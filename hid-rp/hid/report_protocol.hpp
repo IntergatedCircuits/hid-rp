@@ -33,11 +33,39 @@ struct report_protocol_properties
     {
         return std::max(max_input_size, std::max(max_output_size, max_feature_size));
     }
+    constexpr size_type max_report_size(report::type type) const
+    {
+        switch (type)
+        {
+        case report::type::INPUT:
+            return max_input_size;
+        case report::type::OUTPUT:
+            return max_output_size;
+        case report::type::FEATURE:
+            return max_feature_size;
+        default:
+            return 0;
+        }
+    }
 
     constexpr bool uses_report_ids() const { return max_report_id() >= report::id::min(); }
     constexpr report::id::type max_report_id() const
     {
         return std::max(max_input_id, std::max(max_output_id, max_feature_id));
+    }
+    constexpr report::id::type max_report_id(report::type type) const
+    {
+        switch (type)
+        {
+        case report::type::INPUT:
+            return max_input_id;
+        case report::type::OUTPUT:
+            return max_output_id;
+        case report::type::FEATURE:
+            return max_feature_id;
+        default:
+            return 0;
+        }
     }
 
     /// @brief Define the report protocol properties, with no report ID use.
