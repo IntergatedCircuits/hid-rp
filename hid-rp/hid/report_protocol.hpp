@@ -20,6 +20,7 @@ namespace hid
 {
 struct report_protocol_properties
 {
+    using descriptor_view_type = rdf::ce_descriptor_view;
     using size_type = std::uint16_t;
 
     size_type max_input_size{};
@@ -103,38 +104,16 @@ struct report_protocol_properties
           max_output_id(max_output_id),
           max_feature_id(max_feature_id)
     {}
-};
 
-/// @brief This class holds the necessary information about the specific HID report protocol
-///        that the device implements. This information is used by the transport layer
-///        to establish a proper size data channel between the host and the device.
-///        This class can gather all parameters from the HID report descriptor at compile-time,
-///        and also performs verification of the descriptor (compiler error when the descriptor is
-///        faulty).
-struct report_protocol : public report_protocol_properties
-{
-    using descriptor_view_type = rdf::ce_descriptor_view;
-
-    descriptor_view_type descriptor;
-
-    /// @brief Define the report protocol manually.
+    /// @brief Define the report protocol properties by parsing the descriptor in compile-time.
     /// @param desc_view: View of the HID report descriptor
-    /// @param args: Arguments for report_protocol_properties constructor
-    template <typename... TArgs>
-    constexpr report_protocol(const descriptor_view_type& desc_view, TArgs&&... args)
-        : report_protocol_properties(std::forward<TArgs>(args)...), descriptor(desc_view)
-    {}
-
-    /// @brief Define the report protocol by parsing the descriptor in compile-time.
-    /// @param desc_view: View of the HID report descriptor
-    consteval report_protocol(const descriptor_view_type& desc_view)
+    consteval report_protocol_properties(const descriptor_view_type& desc_view)
         : report_protocol_properties(parser(desc_view).max_report_size(report::type::INPUT),
                                      parser(desc_view).max_report_size(report::type::OUTPUT),
                                      parser(desc_view).max_report_size(report::type::FEATURE),
                                      parser(desc_view).max_report_id(report::type::INPUT),
                                      parser(desc_view).max_report_id(report::type::OUTPUT),
-                                     parser(desc_view).max_report_id(report::type::FEATURE)),
-          descriptor(desc_view)
+                                     parser(desc_view).max_report_id(report::type::FEATURE))
     {}
 
     /// @brief This class parses the HID report descriptor, gathering all report size
@@ -295,6 +274,31 @@ struct report_protocol : public report_protocol_properties
         std::array<std::array<unsigned, report::id::max()>, 3> report_tlc_indexes_{};
         std::array<report::id::type, 3> max_report_ids_{};
     };
+};
+
+/// @brief This class holds the necessary information about the specific HID report protocol
+///        that the device implements. This information is used by the transport layer
+///        to establish a proper size data channel between the host and the device.
+///        This class can gather all parameters from the HID report descriptor at compile-time,
+///        and also performs verification of the descriptor (compiler error when the descriptor is
+///        faulty).
+struct report_protocol : public report_protocol_properties
+{
+    descriptor_view_type descriptor;
+
+    /// @brief Define the report protocol manually.
+    /// @param desc_view: View of the HID report descriptor
+    /// @param args: Arguments for report_protocol_properties constructor
+    template <typename... TArgs>
+    constexpr report_protocol(const descriptor_view_type& desc_view, TArgs&&... args)
+        : report_protocol_properties(std::forward<TArgs>(args)...), descriptor(desc_view)
+    {}
+
+    /// @brief Define the report protocol by parsing the descriptor in compile-time.
+    /// @param desc_view: View of the HID report descriptor
+    consteval report_protocol(const descriptor_view_type& desc_view)
+        : report_protocol_properties(desc_view), descriptor(desc_view)
+    {}
 };
 } // namespace hid
 
