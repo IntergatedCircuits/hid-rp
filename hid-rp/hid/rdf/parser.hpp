@@ -103,18 +103,18 @@ class parser
     /// @param  usage_item: the USAGE / USAGE_MINIMUM / USAGE_MAXIMUM type local item
     /// @param  global_state: the global items state at the current main item
     /// @return The complete usage ID
-    constexpr static usage_id_type get_usage(const item_type& usage_item,
-                                             const global_item_store& global_state)
+    constexpr static usage_t get_usage(const item_type& usage_item,
+                                       const global_item_store& global_state)
     {
-        if (usage_item.data_size() == sizeof(usage_id_type))
+        if (usage_item.data_size() == sizeof(usage_t))
         {
-            return usage_item.value_unsigned();
+            return usage_t(usage_item.value_unsigned());
         }
         else
         {
             const auto* page = global_state.get_item(global::tag::USAGE_PAGE);
             HID_RDF_ASSERT(page != nullptr, ex_usage_page_missing);
-            return (page->value_unsigned() << USAGE_PAGE_OFFSET) | usage_item.value_unsigned();
+            return usage_t(page->value_unsigned(), usage_item.value_unsigned());
         }
     }
 
@@ -342,7 +342,7 @@ class parser
 /// @return the complete usage ID of the first top-level collection
 /// @throws if errors are encountered during parsing, a @ref parser_exception is raised
 template <typename TIterator>
-constexpr usage_id_type get_application_usage_id(const descriptor_view_base<TIterator>& desc_view)
+constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>& desc_view)
 {
     /// @brief Internal class that implements the parsing logic for the specific task.
     struct application_usage_id_parser : public parser<TIterator>
@@ -375,7 +375,7 @@ constexpr usage_id_type get_application_usage_id(const descriptor_view_base<TIte
             return control::BREAK;
         }
 
-        usage_id_type usage_ = 0;
+        usage_t usage_{0};
     };
 
     auto usage = application_usage_id_parser(desc_view).usage_;

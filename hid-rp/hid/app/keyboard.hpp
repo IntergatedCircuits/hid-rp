@@ -16,10 +16,12 @@
 #include "hid/page/leds.hpp"
 #include "hid/rdf/descriptor.hpp"
 #include "hid/report.hpp"
+#include "hid/report_array.hpp"
+#include "hid/report_bitset.hpp"
 
 namespace hid::app::keyboard
 {
-template <uint8_t REPORT_ID>
+template <uint8_t REPORT_ID = 0, std::size_t ROLLOVER_LIMIT = 6>
 static constexpr auto keys_input_report_descriptor()
 {
     using namespace hid::page;
@@ -33,13 +35,13 @@ static constexpr auto keys_input_report_descriptor()
         report_count(8),
         logical_limits<1, 1>(0, 1),
         usage_page<keyboard_keypad>(),
-        usage_limits(keyboard_keypad::LEFTCTRL, keyboard_keypad::RIGHTGUI),
+        usage_limits(keyboard_keypad::KEYBOARD_LEFT_CONTROL, keyboard_keypad::KEYBOARD_RIGHT_GUI),
         input::absolute_variable(),
         // reserved byte
         input::padding(8),
         // key codes
         report_size(8),
-        report_count(6),
+        report_count(ROLLOVER_LIMIT),
         logical_limits<1, 1>(0, keyboard_keypad::KEYPAD_HEXADECIMAL),
         usage_limits(nullusage, keyboard_keypad::KEYPAD_HEXADECIMAL),
         input::array()
@@ -47,12 +49,14 @@ static constexpr auto keys_input_report_descriptor()
     // clang-format on
 }
 
-template <uint8_t REPORT_ID>
+template <std::uint8_t REPORT_ID = 0, std::size_t ROLLOVER_LIMIT = 6>
 struct keys_input_report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
 {
-    uint8_t modifiers = 0;
-    uint8_t reserved = 0;
-    std::array<uint8_t, 6> scancodes = {};
+    hid::report::bitset<page::keyboard_keypad, page::keyboard_keypad::KEYBOARD_LEFT_CONTROL,
+                        page::keyboard_keypad::KEYBOARD_RIGHT_GUI>
+        modifiers;
+    std::uint8_t reserved{};
+    hid::report::array<page::keyboard_keypad, ROLLOVER_LIMIT> scancodes;
 
     constexpr keys_input_report() = default;
 
@@ -60,54 +64,25 @@ struct keys_input_report : public hid::report::base<hid::report::type::INPUT, RE
     {
         using namespace hid::page;
 
-        if (key >= keyboard_keypad::LEFTCTRL)
+        if (modifiers.set(key, pressed))
         {
-            uint8_t mask =
-                1 << (static_cast<uint8_t>(key) - static_cast<uint8_t>(keyboard_keypad::LEFTCTRL));
-            if (pressed)
-            {
-                modifiers |= mask;
-            }
-            else
-            {
-                modifiers &= ~mask;
-            }
             return true;
         }
-        else if (pressed)
+        if (scancodes.set(key, pressed))
         {
-            for (auto& code : scancodes)
-            {
-                if (code == 0)
-                {
-                    code = static_cast<uint8_t>(key);
-                    return true;
-                }
-            }
+            return true;
+        }
+        if (pressed)
+        {
             // scancodes buffer full, need to raise rollover error
-            for (auto& code : scancodes)
-            {
-                code = static_cast<uint8_t>(keyboard_keypad::ERRORROLLOVER);
-            }
-            return false;
+            scancodes.fill(keyboard_keypad::ERROR_ROLLOVER);
         }
         else
         {
-            for (auto& code : scancodes)
-            {
-                if (code == static_cast<uint8_t>(key))
-                {
-                    code = 0;
-                    return true;
-                }
-                // clear rollover error when a key is released
-                else if (code == static_cast<uint8_t>(keyboard_keypad::ERRORROLLOVER))
-                {
-                    code = 0;
-                }
-            }
-            return false;
+            // clear rollover error when a key is released
+            scancodes.reset();
         }
+        return false;
     }
 };
 static_assert(sizeof(keys_input_report<0>) == 8);
@@ -133,18 +108,10 @@ static constexpr auto leds_output_report_descriptor()
     // clang-format on
 }
 
-template <uint8_t REPORT_ID>
+template <uint8_t REPORT_ID = 0>
 struct output_report : public hid::report::base<hid::report::type::OUTPUT, REPORT_ID>
 {
-    uint8_t leds = 0;
-
-    constexpr output_report() = default;
-
-    constexpr bool get_led_state(page::leds led) const
-    {
-        return ((leds >> (static_cast<uint8_t>(led) - static_cast<uint8_t>(page::leds::NUM_LOCK))) &
-                1) != 0;
-    }
+    hid::report::bitset<page::leds, page::leds::NUM_LOCK, page::leds::KANA> leds;
 };
 
 template <uint8_t REPORT_ID = 0>

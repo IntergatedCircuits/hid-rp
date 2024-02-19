@@ -58,8 +58,6 @@ class short_item : public array<1 + DATA_SIZE>
     constexpr short_item(TTag tag, TData data)
         : short_item(tag)
     {
-        static_assert(std::is_integral_v<TData> or std::is_enum_v<TData>);
-
         auto d = static_cast<std::uint32_t>(data);
         for (byte_type i = 0; i < DATA_SIZE; ++i)
         {

@@ -16,16 +16,8 @@
 
 namespace hid
 {
-/// @brief Full identifier of a usage. Consists of 16 bits usage page ID and 16 bits usage index.
-using usage_id_type = std::uint32_t;
-
-/// @brief Relative identifier of a usage within a usage page.
-using usage_index_type = std::uint16_t;
-
-constexpr usage_id_type USAGE_INDEX_MASK = std::numeric_limits<usage_index_type>::max();
-constexpr std::size_t USAGE_PAGE_OFFSET = (8 * sizeof(usage_index_type));
-constexpr usage_id_type USAGE_PAGE_ID_MASK = std::numeric_limits<std::uint16_t>::max()
-                                             << USAGE_PAGE_OFFSET;
+using page_id_t = std::uint16_t;
+using usage_id_t = std::uint16_t;
 
 namespace page
 {
@@ -34,57 +26,68 @@ namespace page
 template <typename T>
 struct info
 {
-    constexpr static usage_id_type max_usage = 0;
-    constexpr static usage_id_type base_id = 0;
+    constexpr static page_id_t page_id = 0;
     constexpr static const char* name = "invalid";
 };
 } // namespace page
 
-namespace rdf
-{
-namespace local
-{
+/// @brief This concept matches types with valid page information,
+///        which is necessary for determining the full usage value.
 template <typename T>
-constexpr std::size_t usage_size()
+concept UsageType = (sizeof(T) <= sizeof(usage_id_t)) and (page::info<T>::page_id > 0);
+
+namespace rdf::global
 {
-    return (page::info<T>::max_usage & USAGE_INDEX_MASK) > std::numeric_limits<std::uint8_t>::max()
-               ? 2
-               : 1;
-}
-} // namespace local
-namespace global
-{
-template <typename T>
+template <UsageType T>
 constexpr std::size_t usage_page_size()
 {
-    return (page::info<T>::base_id >> USAGE_PAGE_OFFSET) > std::numeric_limits<std::uint8_t>::max()
-               ? 2
-               : 1;
+    return page::info<T>::page_id > std::numeric_limits<std::uint8_t>::max() ? 2 : 1;
 }
-} // namespace global
-} // namespace rdf
+} // namespace rdf::global
 
-class nullusage_t
+/// @brief The usage_t class holds the entire usage information in one class,
+///        combining the page ID and usage ID into a single 32-bit variable.
+class usage_t
 {
-    // The usage page isn't encoded, so it's not a full usage type
   public:
-    constexpr nullusage_t() {}
-    constexpr operator usage_index_type() const { return 0; }
-    template <typename T>
-    constexpr bool operator==(const T& rhs) const
-    {
-        return (static_cast<usage_id_type>(rhs) & USAGE_INDEX_MASK) ==
-               static_cast<usage_index_type>(*this);
-    }
-    template <typename T>
-    constexpr bool operator!=(const T& rhs) const
-    {
-        return !(*this == rhs);
-    }
+    using type = std::uint32_t;
+
+    constexpr explicit usage_t(type value)
+        : value_(value)
+    {}
+    constexpr usage_t(page_id_t page, usage_id_t u)
+        : value_((page << 16) | u)
+    {}
+    template <UsageType T>
+    constexpr usage_t(T u)
+        : value_((page::info<T>::page_id << 16) | static_cast<type>(u))
+    {}
+    constexpr operator type&() { return value_; }
+    constexpr operator type() const { return value_; }
+    constexpr page_id_t page_id() const { return value_ >> 16; }
+    constexpr usage_id_t id() const { return value_ & std::numeric_limits<usage_id_t>::max(); }
+
+    constexpr bool operator<=>(const usage_t&) const = default;
+
+  private:
+    type value_;
 };
 
-/// @brief Variable that expresses null usage state (for usage_limits min)
+/// @brief Type and variable that expresses a never valid null usage state.
+class nullusage_t : public usage_t
+{
+  public:
+    constexpr nullusage_t()
+        : usage_t(0)
+    {}
+};
 constexpr nullusage_t nullusage;
+
+namespace page
+{
+// alias definition to simplify descriptor definition
+using hid::nullusage;
+} // namespace page
 
 } // namespace hid
 

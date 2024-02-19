@@ -15,28 +15,17 @@
 #include "hid/page/generic_desktop.hpp"
 #include "hid/rdf/descriptor.hpp"
 #include "hid/report.hpp"
+#include "hid/report_bitset.hpp"
 
 namespace hid::app::mouse
 {
-template <uint8_t REPORT_ID>
+template <uint8_t REPORT_ID = 0>
 struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
 {
-    uint8_t buttons = 0;
-    int8_t x = 0;
-    int8_t y = 0;
+    hid::report::bitset<page::button, page::button(1), page::button(3)> buttons;
+    std::int8_t x{};
+    std::int8_t y{};
 
-    constexpr void set_button_state(page::button b, bool pressed)
-    {
-        uint8_t mask = 1 << (static_cast<uint8_t>(b) - 1);
-        if (pressed)
-        {
-            buttons |= mask;
-        }
-        else
-        {
-            buttons &= ~mask;
-        }
-    }
     constexpr void reset_movement()
     {
         x = 0;

@@ -107,19 +107,11 @@ constexpr auto report_size(T value)
     return short_item<DATA_SIZE>(global::tag::REPORT_SIZE, value);
 }
 
-template <typename T>
-constexpr auto usage_page(T usage)
-{
-    constexpr std::size_t PAGE_ID_SIZE = global::usage_page_size<T>();
-    return short_item<PAGE_ID_SIZE>(global::tag::USAGE_PAGE,
-                                    static_cast<usage_id_type>(usage) >> USAGE_PAGE_OFFSET);
-}
-template <typename T>
+template <UsageType T>
 constexpr auto usage_page()
 {
     constexpr std::size_t PAGE_ID_SIZE = global::usage_page_size<T>();
-    return short_item<PAGE_ID_SIZE>(global::tag::USAGE_PAGE,
-                                    (page::info<T>::base_id) >> USAGE_PAGE_OFFSET);
+    return short_item<PAGE_ID_SIZE>(global::tag::USAGE_PAGE, page::info<T>::page_id);
 }
 
 constexpr auto push_globals()
