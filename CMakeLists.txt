@@ -8,25 +8,34 @@ set(CMAKE_CXX_EXTENSIONS ON)
 
 include(GNUInstallDirs)
 
+set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}")
+
+# add HID usage tables
+include(ExternalProject)
+
+set(HID_USAGE_TABLES_URL "https://github.com/IntergatedCircuits/hid-usage-tables.git" CACHE STRING "HID Usage Tables repository")
+set(HID_USAGE_TABLES_REV "da4accb23f32500eebf684a0c5c5c36205cb000c" CACHE STRING "HID Usage Tables commit hash")
+
+set(USAGE_TABLES_OUTPUT_DIR ${INCLUDES}/hid/page)
+
 find_package(Python 3 REQUIRED)
 if(Python_VERSION_MAJOR LESS 3)
     message(FATAL_ERROR "Python 3 is required for usage tables code generation.")
 endif()
 
-set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}")
-
-set(USAGE_TABLES_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/hid-usage-tables)
-set(USAGE_TABLES_OUTPUT_DIR ${INCLUDES}/hid/page)
-
-execute_process(
-    COMMAND python ${USAGE_TABLES_SRC_DIR}/src/hid/codegen/cpp.py ${USAGE_TABLES_OUTPUT_DIR}
-    WORKING_DIRECTORY ${USAGE_TABLES_SRC_DIR}
+ExternalProject_Add(hid-usage-tables
+    PREFIX ${CMAKE_BINARY_DIR}/hid-usage-tables
+    GIT_REPOSITORY ${HID_USAGE_TABLES_URL}
+    GIT_TAG ${HID_USAGE_TABLES_REV}
+    CONFIGURE_COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> python <SOURCE_DIR>/src/hid/codegen/cpp.py ${USAGE_TABLES_OUTPUT_DIR}
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+    UPDATE_DISCONNECTED TRUE
 )
 
-set(EXPORT_NAMESPACE "${PROJECT_NAME}::")
-
+# the library itself
 add_library(${PROJECT_NAME} INTERFACE)
-add_library(${EXPORT_NAMESPACE}${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+add_dependencies(${PROJECT_NAME} hid-usage-tables)
 
 target_include_directories(${PROJECT_NAME}
     INTERFACE

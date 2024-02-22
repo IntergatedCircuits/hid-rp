@@ -27,6 +27,7 @@ template <typename T>
 struct info
 {
     constexpr static page_id_t page_id = 0;
+    constexpr static usage_id_t max_usage_id = 0;
     constexpr static const char* name = "invalid";
 };
 } // namespace page
