@@ -13,18 +13,20 @@
 
 #include <array>
 #include <cassert>
-#include "hid/usage.hpp"
+#include "sized_unsigned.hpp"
 
-namespace hid::report
+namespace hid
 {
 
 /// @brief  This class stores usages in a bitset, as a report field.
 /// @tparam T the usage type
 /// @tparam MIN the minimum usage to be stored on a bit
 /// @tparam MAX the maximum usage to be stored on a bit
-template <UsageType T, T MIN, T MAX>
-class bitset
+template <typename T, T MIN, T MAX>
+class report_bitset
 {
+    using numeric_type = sized_unsigned_t<sizeof(T)>;
+
   public:
     constexpr static T min() { return MIN; }
     constexpr static T max() { return MAX; }
@@ -39,7 +41,7 @@ class bitset
     {
         if (in_range(usage))
         {
-            auto n = static_cast<usage_id_t>(usage) - static_cast<usage_id_t>(min());
+            auto n = static_cast<numeric_type>(usage) - static_cast<numeric_type>(min());
             if (value)
             {
                 bits_[n / 8] |= 1 << (n % 8);
@@ -62,21 +64,20 @@ class bitset
     {
         if (in_range(usage))
         {
-            auto n = static_cast<usage_id_t>(usage) - static_cast<usage_id_t>(min());
+            auto n = static_cast<numeric_type>(usage) - static_cast<numeric_type>(min());
             return bits_[n / 8] & (1 << (n % 8));
         }
         assert(false);
         return false;
     }
-    constexpr bitset() = default;
-
-    constexpr bool operator==(const bitset&) const = default;
-    constexpr bool operator!=(const bitset&) const = default;
+    constexpr report_bitset() = default;
+    constexpr bool operator==(const report_bitset&) const = default;
+    constexpr bool operator!=(const report_bitset&) const = default;
 
   private:
     std::array<std::uint8_t, (size() + 7) / 8> bits_{};
 };
 
-} // namespace hid::report
+} // namespace hid
 
 #endif // __HID_REPORT_BITSET_HPP_

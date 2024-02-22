@@ -22,7 +22,7 @@ namespace hid::app::mouse
 template <uint8_t REPORT_ID = 0>
 struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
 {
-    hid::report::bitset<page::button, page::button(1), page::button(3)> buttons;
+    hid::report_bitset<page::button, page::button(1), page::button(3)> buttons;
     std::int8_t x{};
     std::int8_t y{};
 
