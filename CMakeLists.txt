@@ -54,5 +54,7 @@ foreach(HEADER_FILE ${HEADER_FILES})
         "#include \"${FILE_RELATIVE_PATH}\"\n"
     )
 endforeach()
-add_library(${PROJECT_NAME}-verify ${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp)
+add_library(${PROJECT_NAME}-verify EXCLUDE_FROM_ALL
+    ${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp
+)
 target_link_libraries(${PROJECT_NAME}-verify ${PROJECT_NAME})
