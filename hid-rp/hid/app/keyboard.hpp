@@ -122,7 +122,8 @@ static constexpr auto app_report_descriptor()
 
     // clang-format off
     return descriptor(
-        usage_extended(generic_desktop::KEYBOARD),
+        usage_page<generic_desktop>(),
+        usage(generic_desktop::KEYBOARD),
         collection::application(
             // input keys report
             keys_input_report_descriptor<REPORT_ID>(),
