@@ -1,23 +1,33 @@
 # HID report descriptor format library
 
-This project utilizes C++17 and above language features to implement a common, standalone library
-for creating and parsing HID report descriptors.
+This project utilizes C++20 language features (notably `constexpr`) to implement a unified standalone library
+for creating and parsing HID report descriptors. It's designed to ease the HID report protocol handling
+on both the HID device and host side.
 
 ## Features
 
-* Easy to use C++ syntax to define HID report descriptors and reports (examples in `include/hid/reports`)
-* Compile-time validation of HID report descriptors (any C/C++ source header is supported)
-* Base design for implementing any custom descriptor parsing logic, either for compile or runtime
+* Easy to use C++ syntax (no macros) to define and reuse HID report descriptors and reports (or their building blocks)
+* [HID usage tables code generator][hid-usage-tables] support, with extension possibilities
+* Base `hid::rdf::parser` design for implementing any custom descriptor parsing logic, for both compile and runtime
+* HID report descriptors are validated for common errors at compile time by `hid::report_protocol` [^1]
 
-## Demos
+[^1]: This feature requires C++ exceptions to be enabled, therefore in embedded software you need a separate compilation step with added exception support flag.
+
+## Getting started
+
+### Common samples
+
+The [hid-rp/hid/app](hid-rp/hid/app) folder contains definitions for the most common HID applications, such as a keyboard or a mouse.
+They take an optional report ID template parameter, so they can either be standalone, or easily combined into
+a multiple TLC protocol.
 
 ### [stm32-i2c-hid][stm32-i2c-hid]
 
-HID over I2C using a generic STM32 devkit, tested with Raspberry Pi.
+HID over I2C demonstration using a generic STM32 devkit, tested with Raspberry Pi as the host.
 
 ## Motivation
 
-The HID report descriptor format (HID RDF) is a unique descriptor format that was standardized in the USB HID class specification ([pdf][USB-HID]).
+The HID **report descriptor format** (HID RDF) is a unique descriptor format that was standardized in the USB HID class specification ([pdf][USB-HID]).
 An HID peripheral device uses this descriptor to explain the internal layout of its messages to the host system.
 This descriptor is therefore fixed at design time on the peripheral device, while the host system has to parse it
 to understand the purpose(s) of the peripheral and its messages (known as reports).
@@ -105,7 +115,8 @@ constexpr auto mouse_report_desc = descriptor(
 );
 ```
 
-It is clear that the latter descriptor is much more expressive. We can create combined items such as `logical_limits(0, 1)`
+Note that `mouse_report_desc` is actually an `std::array`, with the size figured out by the compiler from the parameters.
+It is clear that this descriptor is much more expressive. We can create combined items such as `logical_limits(0, 1)`
 instead of having a minimum and maximum in separate lines. Some item groups can be coded in more expressive way,
 such as `input::padding(5)`. No COLLECTION will be left without a terminating END_COLLECTION item, and it's obvious,
 which items belong to which collection.
@@ -121,14 +132,15 @@ for it (that's also when a peripheral with multiple top-level applications gets 
 
 This library implements two types of descriptor views, one for runtime (`descriptor_view`)
 and one for `constexpr` compile-time (`ce_descriptor_view`), which offer iterating item-by-item.
-A generic `parser` class is implemented that serves as a base for any kind of descriptor parsing logic.
+A generic `hid::rdf::parser` class is implemented that serves as a base for any kind of descriptor parsing logic.
 Being able to parse the descriptor at compile-time and using the compiler for descriptor error checking
 greatly reduces the development time of report descriptors.
 
-## Usage pages
+### Report protocol
 
-In the above example the `hid/page/` files aren't supplied by this library. They are in fact generated code,
-using the [hid-usage-tables] project.
+The `hid::report_protocol` builds on top of the descriptor parser, and extracts information from the report descriptor
+that is relevant for the various transport layers of the HID device. It collects the maximum length of reports,
+and the maximum used report ID as well (of each type of report).
 
 [USB-HID]: https://www.usb.org/sites/default/files/hid1_11.pdf
 [hid-usage-tables]: https://github.com/IntergatedCircuits/hid-usage-tables
