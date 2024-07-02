@@ -12,6 +12,7 @@
 #define __HID_USAGE_HPP_
 
 #include <cstdint>
+#include <compare>
 #include <limits>
 
 namespace hid
@@ -68,7 +69,7 @@ class usage_t
     constexpr page_id_t page_id() const { return value_ >> 16; }
     constexpr usage_id_t id() const { return value_ & std::numeric_limits<usage_id_t>::max(); }
 
-    constexpr bool operator<=>(const usage_t&) const = default;
+    constexpr auto operator<=>(const usage_t&) const = default;
 
   private:
     type value_;
