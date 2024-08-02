@@ -177,10 +177,9 @@ struct report_protocol_properties
         }
 
       private:
-        constexpr control parse_report_data_field(const item_type& main_item,
-                                                  const rdf::global_item_store& global_state,
-                                                  const items_view_type& main_section,
-                                                  unsigned tlc_count) override
+        constexpr control parse_report_data_field(
+            const item_type& main_item, const rdf::global_item_store& global_state,
+            [[maybe_unused]] const items_view_type& main_section, unsigned tlc_count) override
         {
             using namespace hid::rdf;
             report::type rtype = main::tag_to_report_type(main_item.main_tag());

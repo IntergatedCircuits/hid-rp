@@ -128,10 +128,11 @@ class parser
     /// before this method is called)
     /// @return CONTINUE to continue the parsing until the next main item,
     ///         or BREAK to terminate it early
-    constexpr virtual control parse_collection_begin(main::collection_type collection,
-                                                     const global_item_store& global_state,
-                                                     const items_view_type& main_section,
-                                                     unsigned tlc_number)
+    constexpr virtual control
+    parse_collection_begin([[maybe_unused]] main::collection_type collection,
+                           [[maybe_unused]] const global_item_store& global_state,
+                           [[maybe_unused]] const items_view_type& main_section,
+                           [[maybe_unused]] unsigned tlc_number)
     {
         return control::CONTINUE;
     }
@@ -144,9 +145,10 @@ class parser
     /// @param  tlc_number: the Top Level Collection index, where this item is found
     /// @return CONTINUE to continue the parsing until the next main item,
     ///         or BREAK to terminate it early
-    constexpr virtual control parse_collection_end(const global_item_store& global_state,
-                                                   const items_view_type& main_section,
-                                                   unsigned tlc_number)
+    constexpr virtual control
+    parse_collection_end([[maybe_unused]] const global_item_store& global_state,
+                         [[maybe_unused]] const items_view_type& main_section,
+                         [[maybe_unused]] unsigned tlc_number)
     {
         return control::CONTINUE;
     }
@@ -160,10 +162,11 @@ class parser
     /// @param  tlc_number: the Top Level Collection index, where this item is found
     /// @return CONTINUE to continue the parsing until the next main item,
     ///         or BREAK to terminate it early
-    constexpr virtual control parse_report_data_field(const item_type& main_item,
-                                                      const global_item_store& global_state,
-                                                      const items_view_type& main_section,
-                                                      unsigned tlc_number)
+    constexpr virtual control
+    parse_report_data_field([[maybe_unused]] const item_type& main_item,
+                            [[maybe_unused]] const global_item_store& global_state,
+                            [[maybe_unused]] const items_view_type& main_section,
+                            [[maybe_unused]] unsigned tlc_number)
     {
         return control::CONTINUE;
     }
