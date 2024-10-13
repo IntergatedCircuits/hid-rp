@@ -81,6 +81,7 @@ class selector
 struct id_base
 {
     report::id id;
+    bool operator==(const id_base& other) const = default;
 };
 
 /// @brief Base type for report storage structures.
@@ -106,6 +107,7 @@ struct base : public std::conditional_t<REPORT_ID != 0, id_base, std::monostate>
     constexpr base()
         requires(not has_id())
     {}
+    bool operator==(const base& other) const = default;
 };
 static_assert(base<type::INPUT, 0>().selector() == selector(0x100));
 static_assert(base<type::OUTPUT, 0x42>().selector() == selector(0x242));
