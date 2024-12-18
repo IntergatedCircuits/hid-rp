@@ -173,12 +173,14 @@ class parser
 
     constexpr static std::size_t global_stack_depth(descriptor_view_type desc_view)
     {
+        std::size_t max_depth = 0;
         std::size_t depth = 0;
         for (const item_type& item : desc_view)
         {
             if (item.has_tag(global::tag::PUSH))
             {
                 depth++;
+                max_depth = std::max(max_depth, depth);
             }
             else if (item.has_tag(global::tag::POP))
             {
@@ -186,7 +188,7 @@ class parser
                 depth--;
             }
         }
-        return depth;
+        return max_depth;
     }
 
     constexpr control parse_items(descriptor_view_type desc_view)
@@ -386,6 +388,7 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
     HID_RDF_ASSERT(usage != nullusage, ex_collection_missing);
     return usage;
 }
+
 } // namespace hid::rdf
 
 #endif // __HID_RDF_PARSER_HPP_

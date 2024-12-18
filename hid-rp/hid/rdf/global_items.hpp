@@ -36,8 +36,7 @@ constexpr auto logical_limits(TMin min, TMax max)
     return logical_min<DATA_SIZE>(min), logical_max<DATA_SIZE>(max);
 }
 
-template <byte_type DATA_MIN_SIZE, byte_type DATA_MAX_SIZE = DATA_MIN_SIZE, typename TMin,
-          typename TMax>
+template <byte_type DATA_MIN_SIZE, byte_type DATA_MAX_SIZE, typename TMin, typename TMax>
 constexpr auto logical_limits(TMin min, TMax max)
 {
     return logical_min<DATA_MIN_SIZE>(min), logical_max<DATA_MAX_SIZE>(max);
@@ -61,8 +60,7 @@ constexpr auto physical_limits(TMin min, TMax max)
     return physical_min<DATA_SIZE>(min), physical_max<DATA_SIZE>(max);
 }
 
-template <byte_type DATA_MIN_SIZE, byte_type DATA_MAX_SIZE = DATA_MIN_SIZE, typename TMin,
-          typename TMax>
+template <byte_type DATA_MIN_SIZE, byte_type DATA_MAX_SIZE, typename TMin, typename TMax>
 constexpr auto physical_limits(TMin min, TMax max)
 {
     return physical_min<DATA_MIN_SIZE>(min), physical_max<DATA_MAX_SIZE>(max);
@@ -116,12 +114,12 @@ constexpr auto usage_page()
 
 constexpr auto push_globals()
 {
-    return short_item<1>(global::tag::PUSH);
+    return short_item<0>(global::tag::PUSH);
 }
 
 constexpr auto pop_globals()
 {
-    return short_item<1>(global::tag::POP);
+    return short_item<0>(global::tag::POP);
 }
 
 } // namespace hid::rdf
