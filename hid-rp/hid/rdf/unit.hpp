@@ -103,6 +103,15 @@ class unit_item : public short_item<DATA_SIZE>
     constexpr unit_item(std::uint32_t flags)
         : base_t(global::tag::UNIT, flags)
     {}
+    constexpr unit_item(code code) requires(DATA_SIZE == 1)
+        : base_t(global::tag::UNIT, static_cast<std::uint8_t>(code))
+    {}
+    constexpr unit_item(code code) requires(DATA_SIZE == 2)
+        : base_t(global::tag::UNIT, static_cast<std::uint16_t>(code))
+    {}
+    constexpr unit_item(code code) requires(DATA_SIZE == 4)
+        : base_t(global::tag::UNIT, static_cast<std::uint32_t>(code))
+    {}
 };
 
 class exponent_item : public short_item<1>
@@ -123,13 +132,15 @@ class base : public array<1 +
                           ((static_cast<std::uint32_t>(CODE_) > 0xffff)
                                ? 4
                                : ((static_cast<std::uint32_t>(CODE_) > 0xff) ? 2 : 1)) +
-                          sizeof(exponent_item)>
+                          ((BASE_EXP_ != 0) ? sizeof(exponent_item) : 0)>
 {
     static constexpr std::size_t UNIT_CODE_SIZE =
         ((static_cast<std::uint32_t>(CODE_) > 0xffff)
              ? 4
              : ((static_cast<std::uint32_t>(CODE_) > 0xff) ? 2 : 1));
-    static constexpr std::size_t SIZE = 1 + UNIT_CODE_SIZE + sizeof(exponent_item);
+    static constexpr std::size_t EXPONENT_SIZE =
+        ((BASE_EXP_ != 0) ? sizeof(exponent_item) : 0);
+    static constexpr std::size_t SIZE = 1 + UNIT_CODE_SIZE + EXPONENT_SIZE;
 
     using base_t = array<SIZE>;
 
@@ -139,9 +150,14 @@ class base : public array<1 +
 
     /// @brief Create items defining an exact unit.
     /// @param relative_exponent: relative ten's exponent to be used for the variable field
-    constexpr base(std::int8_t relative_exponent = 0)
+    constexpr base(std::int8_t relative_exponent = 0) requires(BASE_EXPONENT != 0)
         : base_t((unit_item<UNIT_CODE_SIZE>(static_cast<std::uint32_t>(CODE)),
                   exponent_item(BASE_EXPONENT + relative_exponent)))
+    {}
+
+    /// @brief Create items defining an exact unit. Does not provide an exponent item.
+    constexpr base() requires(BASE_EXPONENT == 0)
+        : base_t((unit_item<UNIT_CODE_SIZE>(static_cast<std::uint32_t>(CODE))))
     {}
 };
 
