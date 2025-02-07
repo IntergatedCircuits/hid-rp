@@ -12,10 +12,9 @@
 #define __HID_RDF_UNIT_HPP_
 
 #include "hid/rdf/short_item.hpp"
+#include "sized_unsigned.hpp"
 
-namespace hid::rdf
-{
-namespace unit
+namespace hid::rdf::unit
 {
 using system = global::unit_system;
 
@@ -65,19 +64,18 @@ enum class code : std::uint32_t
     WEBER = 0x00F0E121,
 };
 
-constexpr std::uint32_t calculate_code(system sys = system::NONE, int length_count = 0,
-                                       int mass_count = 0, int time_count = 0,
-                                       int temperature_count = 0, int current_count = 0,
-                                       int luminous_int_count = 0)
+constexpr code calculate_code(system sys = system::NONE, int length_count = 0, int mass_count = 0,
+                              int time_count = 0, int temperature_count = 0, int current_count = 0,
+                              int luminous_int_count = 0)
 {
-    return static_cast<std::uint32_t>(static_cast<std::uint32_t>(sys)
-                                      << (global::unit_nibble_index::SYSTEM * 4)) |
-           ((length_count & 0xf) << (global::unit_nibble_index::LENGTH * 4)) |
-           ((mass_count & 0xf) << (global::unit_nibble_index::MASS * 4)) |
-           ((time_count & 0xf) << (global::unit_nibble_index::TIME * 4)) |
-           ((temperature_count & 0xf) << (global::unit_nibble_index::TEMPERATURE * 4)) |
-           ((current_count & 0xf) << (global::unit_nibble_index::CURRENT * 4)) |
-           ((luminous_int_count & 0xf) << (global::unit_nibble_index::LUMINOUS_INTENSITY * 4));
+    return static_cast<code>(
+        (static_cast<std::uint32_t>(sys) << (global::unit_nibble_index::SYSTEM * 4)) |
+        ((length_count & 0xf) << (global::unit_nibble_index::LENGTH * 4)) |
+        ((mass_count & 0xf) << (global::unit_nibble_index::MASS * 4)) |
+        ((time_count & 0xf) << (global::unit_nibble_index::TIME * 4)) |
+        ((temperature_count & 0xf) << (global::unit_nibble_index::TEMPERATURE * 4)) |
+        ((current_count & 0xf) << (global::unit_nibble_index::CURRENT * 4)) |
+        ((luminous_int_count & 0xf) << (global::unit_nibble_index::LUMINOUS_INTENSITY * 4)));
 }
 
 template <typename TItem>
@@ -94,21 +92,22 @@ constexpr std::int32_t get_exponent(const TItem& exp)
     return value;
 }
 
-template <byte_type DATA_SIZE>
-class unit_item : public short_item<DATA_SIZE>
+template <code CODE>
+constexpr inline auto unit()
 {
-    using base_t = short_item<DATA_SIZE>;
+    return short_item<value_size(CODE)>(global::tag::UNIT, static_cast<std::uint32_t>(CODE));
+}
 
-  public:
-    constexpr unit_item(std::uint32_t flags)
-        : base_t(global::tag::UNIT, flags)
-    {}
-};
+template <std::size_t DATA_SIZE>
+constexpr inline auto unit(code flags)
+{
+    return short_item<DATA_SIZE>(global::tag::UNIT, static_cast<std::uint32_t>(flags));
+}
 
-class exponent_item : public short_item<1>
+class exponent : public short_item<1>
 {
   public:
-    constexpr exponent_item(int exp = 0)
+    constexpr exponent(std::int8_t exp = 0)
         : short_item(global::tag::UNIT_EXPONENT, static_cast<byte_type>(exp & 0xf))
     {}
 };
@@ -119,29 +118,29 @@ class exponent_item : public short_item<1>
 /// @tparam CODE_: The unit's code
 /// @tparam BASE_EXP_: The unit's base exponent
 template <code CODE_, std::int8_t BASE_EXP_ = 0>
-class base : public array<1 +
-                          ((static_cast<std::uint32_t>(CODE_) > 0xffff)
-                               ? 4
-                               : ((static_cast<std::uint32_t>(CODE_) > 0xff) ? 2 : 1)) +
-                          sizeof(exponent_item)>
+class base : public array<1 + value_size(CODE_) + sizeof(exponent)>
 {
-    static constexpr std::size_t UNIT_CODE_SIZE =
-        ((static_cast<std::uint32_t>(CODE_) > 0xffff)
-             ? 4
-             : ((static_cast<std::uint32_t>(CODE_) > 0xff) ? 2 : 1));
-    static constexpr std::size_t SIZE = 1 + UNIT_CODE_SIZE + sizeof(exponent_item);
+    static constexpr std::size_t UNIT_CODE_SIZE = value_size(CODE_);
+    static constexpr std::size_t EXPONENT_SIZE = sizeof(exponent);
+    static constexpr std::size_t SIZE = (1 + UNIT_CODE_SIZE) + EXPONENT_SIZE;
 
     using base_t = array<SIZE>;
 
   public:
     static constexpr code CODE = CODE_;
-    static constexpr int BASE_EXPONENT = BASE_EXP_;
+    static constexpr std::int8_t BASE_EXPONENT = BASE_EXP_;
+
+    static constexpr auto unit_item() { return unit::unit<CODE>(); }
+
+    static constexpr auto exponent_item(std::int8_t relative_exponent = 0)
+    {
+        return unit::exponent(BASE_EXPONENT + relative_exponent);
+    }
 
     /// @brief Create items defining an exact unit.
     /// @param relative_exponent: relative ten's exponent to be used for the variable field
     constexpr base(std::int8_t relative_exponent = 0)
-        : base_t((unit_item<UNIT_CODE_SIZE>(static_cast<std::uint32_t>(CODE)),
-                  exponent_item(BASE_EXPONENT + relative_exponent)))
+        : base_t((unit_item(), exponent_item(BASE_EXPONENT + relative_exponent)))
     {}
 };
 
@@ -179,8 +178,7 @@ using siemens = base<code::SIEMENS, -3 - 2 * 2>;
 using tesla = base<code::TESLA, 3>;
 using volt = base<code::VOLT, 3 + 2 * 2>;
 using weber = base<code::WEBER, 3 + 2 * 2>;
-} // namespace unit
 
-} // namespace hid::rdf
+} // namespace hid::rdf::unit
 
 #endif // __HID_RDF_UNIT_HPP_

@@ -46,4 +46,13 @@ using sized_unsigned_t = typename sized_unsigned<SIZE>::type;
 template <typename T>
 concept IntegerConvertable = std::is_convertible_v<T, sized_unsigned_t<sizeof(T)>>;
 
+template <typename T>
+constexpr inline std::size_t value_size(T c)
+{
+    auto x = static_cast<std::uint32_t>(c);
+    return (x > std::numeric_limits<std::uint16_t>::max())  ? 4
+           : (x > std::numeric_limits<std::uint8_t>::max()) ? 2
+                                                            : 1;
+}
+
 #endif // __SIZED_UNSIGNED_HPP_
