@@ -55,37 +55,6 @@ class alignas(1) item_header
         return (match_type<TTag>() == type()) and (static_cast<TTag>(short_tag()) == tag);
     }
 
-  protected:
-    template <typename TTag>
-    constexpr bool is_correct_type() const
-    {
-        return match_type<TTag>() == type();
-    }
-
-    constexpr byte_type short_tag() const { return static_cast<byte_type>(prefix_ >> 4); }
-
-    constexpr byte_type short_data_size() const
-    {
-        auto size = prefix_ & 3;
-        if (size == 3)
-        {
-            size = 4;
-        }
-        return size;
-    }
-
-    constexpr bool equals(const item_header& other) const { return prefix_ == other.prefix_; }
-
-    constexpr const byte_type& header() const { return prefix_; }
-
-    constexpr item_header(byte_type prefix)
-        : prefix_(prefix)
-    {}
-    /// @brief Default constructing creates an unknown MAIN item with no data
-    constexpr item_header()
-        : item_header(0)
-    {}
-
     constexpr static std::uint32_t get_unsigned_value(const item_header* header,
                                                       const byte_type* ptr)
     {
@@ -122,6 +91,37 @@ class alignas(1) item_header
     {
         return (sval & (1 << (8 * sizeof(sval) - 1))) != 0;
     }
+
+  protected:
+    template <typename TTag>
+    constexpr bool is_correct_type() const
+    {
+        return match_type<TTag>() == type();
+    }
+
+    constexpr byte_type short_tag() const { return static_cast<byte_type>(prefix_ >> 4); }
+
+    constexpr byte_type short_data_size() const
+    {
+        auto size = prefix_ & 3;
+        if (size == 3)
+        {
+            size = 4;
+        }
+        return size;
+    }
+
+    constexpr bool equals(const item_header& other) const { return prefix_ == other.prefix_; }
+
+    constexpr const byte_type& header() const { return prefix_; }
+
+    constexpr item_header(byte_type prefix)
+        : prefix_(prefix)
+    {}
+    /// @brief Default constructing creates an unknown MAIN item with no data
+    constexpr item_header()
+        : item_header(0)
+    {}
 
   private:
     template <byte_type DATA_SIZE>

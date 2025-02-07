@@ -43,6 +43,7 @@ class short_item : public array<1 + DATA_SIZE>
     static_assert((DATA_SIZE <= 4) and (DATA_SIZE != 3));
 
     using base_t = array<1 + DATA_SIZE>;
+    using base_t::data;
 
   public:
     template <typename TTag>
@@ -87,18 +88,7 @@ class short_item : public array<1 + DATA_SIZE>
         }
         else
         {
-#if __cplusplus > 201703L
             return std::equal(this->begin() + 1, this->end(), rhs.data());
-#else
-            for (std::size_t i = 0; i < this->data_size(); ++i)
-            {
-                if ((*this)[1 + i] != rhs.data()[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-#endif
         }
     }
 
@@ -106,6 +96,18 @@ class short_item : public array<1 + DATA_SIZE>
     constexpr bool operator!=(const short_item_buffer& rhs)
     {
         return !(*this == rhs);
+    }
+
+    constexpr std::uint32_t value_unsigned() const
+    {
+        auto h = std::bit_cast<item_header>(*data());
+        return item_header::get_unsigned_value(&h, data() + 1);
+    }
+
+    constexpr std::int32_t value_signed() const
+    {
+        auto h = std::bit_cast<item_header>(*data());
+        return get_signed_value(&h, data() + 1);
     }
 };
 
