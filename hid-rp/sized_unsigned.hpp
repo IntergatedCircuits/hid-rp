@@ -12,6 +12,7 @@
 #define __SIZED_UNSIGNED_HPP_
 
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 
 /// @brief  Lookup unsigned integer of matching size

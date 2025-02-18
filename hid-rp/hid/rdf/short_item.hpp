@@ -11,6 +11,7 @@
 #ifndef __HID_RDF_SHORT_ITEM_HPP_
 #define __HID_RDF_SHORT_ITEM_HPP_
 
+#include <bit>
 #include "hid/rdf/item.hpp"
 
 namespace hid::rdf
