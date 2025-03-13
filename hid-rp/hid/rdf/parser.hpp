@@ -99,6 +99,8 @@ class parser
         BREAK = 1,    ///< stop further parsing
     };
 
+    constexpr virtual ~parser() = default;
+
     /// @brief  Extracts the complete usage ID using the relevant parsing context.
     /// @param  usage_item: the USAGE / USAGE_MINIMUM / USAGE_MAXIMUM type local item
     /// @param  global_state: the global items state at the current main item
