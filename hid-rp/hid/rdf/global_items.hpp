@@ -109,7 +109,7 @@ template <UsageType T>
 constexpr auto usage_page()
 {
     constexpr std::size_t PAGE_ID_SIZE = global::usage_page_size<T>();
-    return short_item<PAGE_ID_SIZE>(global::tag::USAGE_PAGE, page::info<T>::page_id);
+    return short_item<PAGE_ID_SIZE>(global::tag::USAGE_PAGE, page::get_info<T>().page_id);
 }
 
 constexpr auto push_globals()
