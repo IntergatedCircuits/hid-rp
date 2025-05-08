@@ -1,7 +1,7 @@
 /// @file
 ///
 /// @author Benedek Kupper
-/// @date   2022
+/// @date   2025
 ///
 /// @copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
@@ -11,8 +11,8 @@
 #ifndef __HID_USAGE_HPP_
 #define __HID_USAGE_HPP_
 
-#include <cstdint>
 #include <compare>
+#include <cstdint>
 #include <limits>
 
 namespace hid
@@ -22,28 +22,56 @@ using usage_id_t = std::uint16_t;
 
 namespace page
 {
-/// @brief Each usage page type needs the specialization of this template class
-///        for this library to function correctly.
-template <typename T>
 struct info
 {
-    constexpr static page_id_t page_id = 0;
-    constexpr static usage_id_t max_usage_id = 0;
-    constexpr static const char* name = "invalid";
+  private:
+    const char* (*const get_usage_name_)(hid::usage_id_t id);
+
+  public:
+    const char* const page_name;
+    const page_id_t page_id;
+    const usage_id_t max_usage_id;
+
+    constexpr info(page_id_t page, usage_id_t max, const char* name,
+                   const char* (*get_name)(hid::usage_id_t id) = nullptr)
+        : page_name(name), get_usage_name_(get_name), page_id(page), max_usage_id(max)
+    {}
+
+    const char* get_usage_name(usage_id_t id) const
+    {
+        if (get_usage_name_)
+        {
+            return get_usage_name_(id);
+        }
+        return nullptr;
+    }
+
+    constexpr bool operator==(const info& other) const { return page_id == other.page_id; }
+    constexpr bool operator!=(const info& other) const = default;
+    constexpr bool valid_page() const { return page_id != 0; }
 };
+
+/// @brief Each usage page type needs the specialization of this template method
+///        for this library to function correctly.
+template <typename T>
+constexpr inline auto get_info()
+{
+    return info(0, 0, "unknown");
+}
+
 } // namespace page
 
 /// @brief This concept matches types with valid page information,
 ///        which is necessary for determining the full usage value.
 template <typename T>
-concept UsageType = (sizeof(T) <= sizeof(usage_id_t)) and (page::info<T>::page_id > 0);
+concept UsageType = (sizeof(T) <= sizeof(usage_id_t)) and (page::get_info<T>().page_id > 0);
 
 namespace rdf::global
 {
 template <UsageType T>
 constexpr std::size_t usage_page_size()
 {
-    return page::info<T>::page_id > std::numeric_limits<std::uint8_t>::max() ? 2 : 1;
+    return page::get_info<T>().page_id > std::numeric_limits<std::uint8_t>::max() ? 2 : 1;
 }
 } // namespace rdf::global
 
@@ -62,7 +90,7 @@ class usage_t
     {}
     template <UsageType T>
     constexpr usage_t(T u)
-        : value_((page::info<T>::page_id << 16) | static_cast<type>(u))
+        : value_((page::get_info<T>().page_id << 16) | static_cast<type>(u))
     {}
     constexpr operator type&() { return value_; }
     constexpr operator type() const { return value_; }
