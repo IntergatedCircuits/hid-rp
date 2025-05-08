@@ -43,18 +43,16 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-# generate a source file and build it to verify syntax
-file(GLOB_RECURSE HEADER_FILES "${INCLUDES}/*.hpp")
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp" "")
-foreach(HEADER_FILE ${HEADER_FILES})
-    file(RELATIVE_PATH FILE_RELATIVE_PATH
-        ${INCLUDES} ${HEADER_FILE}
-    )
-    file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp"
-        "#include \"${FILE_RELATIVE_PATH}\"\n"
-    )
-endforeach()
-add_library(${PROJECT_NAME}-verify EXCLUDE_FROM_ALL
-    ${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp
-)
-target_link_libraries(${PROJECT_NAME}-verify ${PROJECT_NAME})
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    set(IS_TOPLEVEL_PROJECT TRUE)
+else()
+    set(IS_TOPLEVEL_PROJECT FALSE)
+endif()
+
+option(HID_RP_TESTS "Enable unit testing" ${IS_TOPLEVEL_PROJECT})
+if(HID_RP_TESTS)
+    enable_testing()
+    add_subdirectory(test)
+endif()

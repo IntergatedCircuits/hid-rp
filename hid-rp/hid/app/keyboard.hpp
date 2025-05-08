@@ -85,8 +85,6 @@ struct keys_input_report : public hid::report::base<hid::report::type::INPUT, RE
         return false;
     }
 };
-static_assert(sizeof(keys_input_report<0>) == 8);
-static_assert(sizeof(keys_input_report<1>) == 9);
 
 template <uint8_t REPORT_ID>
 static constexpr auto leds_output_report_descriptor()

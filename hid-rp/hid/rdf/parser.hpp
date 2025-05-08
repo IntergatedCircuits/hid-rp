@@ -309,8 +309,9 @@ class parser
                     break;
 
                 default:
-                    // HID_RDF_ASSERT(this_item.tag<global::tag>() <= global::tag::REPORT_COUNT,
-                    // ex_item_unknown);
+                    HID_RDF_ASSERT(this_item.template tag<global::tag>() <=
+                                       global::tag::REPORT_COUNT,
+                                   ex_item_unknown);
                     global_stack[global_stack_depth].add_item(this_item);
                     break;
                 }

@@ -48,8 +48,8 @@ class reinterpret_iterator
     }
     reference operator*() { return *ptr(); }
     pointer operator->() { return ptr(); }
-    constexpr bool operator==(const reinterpret_iterator& rhs) const { return ptr_ == rhs.ptr_; }
-    constexpr bool operator!=(const reinterpret_iterator& rhs) const { return !(*this == rhs); }
+    constexpr bool operator==(const reinterpret_iterator& rhs) const = default;
+    constexpr bool operator!=(const reinterpret_iterator& rhs) const = default;
 
   private:
     pointer ptr() { return reinterpret_cast<pointer>(ptr_); }
@@ -131,7 +131,7 @@ class items_view_base
     constexpr iterator end() { return end_; }
     constexpr const_iterator end() const { return end_; }
 
-    operator std::span<const uint8_t>() const { return {data(), size()}; }
+    constexpr auto to_span() const { return std::span<const byte_type>(data(), size()); }
 
     /// @brief  Verifies that the view has correct bounds, all items are intact and complete.
     ///         This is the first check that needs to be done on a new HID report descriptor
@@ -147,66 +147,6 @@ class items_view_base
             }
         }
         return true;
-    }
-
-    /// @brief  Counts the occurrences of a certain tag in the descriptor.
-    /// @tparam TTag: tag type
-    /// @param  tag: the tag to count
-    /// @return number of items having the specified tag
-    template <typename TTag>
-    constexpr std::size_t tag_count(TTag tag) const
-    {
-        std::size_t hits = 0;
-        for (const value_type& item : (*this))
-        {
-            if (item.has_tag(tag))
-            {
-                hits++;
-            }
-        }
-        return hits;
-    }
-
-    template <typename TTag, class Compare>
-    constexpr iterator tag_value_unsigned_most(TTag tag, Compare comp) const
-    {
-        iterator result = this->end();
-        std::uint32_t most = 0;
-        for (iterator it = this->begin(); it != this->end(); ++it)
-        {
-            const value_type& item = *it;
-            if (item.has_tag(tag))
-            {
-                auto value = item.value_unsigned();
-                if ((result == this->end()) or comp(most, value))
-                {
-                    result = it;
-                    most = value;
-                }
-            }
-        }
-        return result;
-    }
-
-    template <typename TTag, class Compare>
-    constexpr iterator tag_value_signed_most(TTag tag, Compare comp) const
-    {
-        iterator result = this->end();
-        std::int32_t most = 0;
-        for (iterator it = this->begin(); it != this->end(); ++it)
-        {
-            const value_type& item = *it;
-            if (item.has_tag(tag))
-            {
-                auto value = item.value_signed();
-                if ((result == this->end()) or comp(most, value))
-                {
-                    result = it;
-                    most = value;
-                }
-            }
-        }
-        return result;
     }
 
     constexpr items_view_base(const iterator& begin, const iterator& end)
@@ -246,21 +186,15 @@ class descriptor_view_base : public items_view_base<TIterator>
         : base()
     {}
     constexpr descriptor_view_base(const byte_type* data, std::size_t size)
-        : descriptor_view_base(data, data + size)
+        : base(data, data + size)
     {}
     template <typename TArray>
     constexpr descriptor_view_base(const TArray& arr)
-        : descriptor_view_base(arr.data(), arr.data() + arr.size())
+        : base(arr.data(), arr.data() + arr.size())
     {}
     template <typename TIter>
     constexpr descriptor_view_base(const TIter begin, const TIter end)
-        : descriptor_view_base(std::addressof(*begin),
-                               std::addressof(*begin) + std::distance(begin, end))
-    {}
-
-  private:
-    constexpr descriptor_view_base(const byte_type* begin, const byte_type* end)
-        : base(begin, end)
+        : base(std::addressof(*begin), std::addressof(*begin) + std::distance(begin, end))
     {}
 };
 

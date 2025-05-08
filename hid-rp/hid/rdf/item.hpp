@@ -269,6 +269,13 @@ class alignas(1) short_item_buffer : public item_header
 #endif
     }
 
+    template <typename TTag>
+    constexpr TTag tag() const
+    {
+        HID_RDF_ASSERT(is_correct_type<TTag>(), ex_item_invalid_tag_type);
+        return static_cast<TTag>(short_tag());
+    }
+
     constexpr byte_type data_size() const { return short_data_size(); }
 
     constexpr std::size_t size() const { return sizeof(item_header) + short_data_size(); }
