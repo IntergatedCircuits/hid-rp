@@ -24,6 +24,7 @@ target_sources(${PROJECT_NAME}-test
         descriptor_view.cpp
         formatter.cpp
         keyboard.cpp
+        mouse.cpp
 )
 target_link_libraries(${PROJECT_NAME}-test
     PRIVATE

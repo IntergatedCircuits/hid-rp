@@ -15,16 +15,16 @@
 
 #ifndef HID_RDF_ASSERT
 #if defined(__EXCEPTIONS) // TODO: add other toolchains
-#define HID_RDF_ASSERT(CONDITION, EXCEPTION)                                                       \
+#define HID_RDF_ASSERT(CONDITION, EXCEPTION, ...)                                                  \
     {                                                                                              \
         if (!(CONDITION))                                                                          \
         {                                                                                          \
             using namespace hid::rdf;                                                              \
-            throw(EXCEPTION());                                                                    \
+            throw(EXCEPTION(__VA_ARGS__));                                                         \
         }                                                                                          \
     }
 #else
-#define HID_RDF_ASSERT(CONDITION, EXCEPTION) (void)sizeof(CONDITION)
+#define HID_RDF_ASSERT(CONDITION, EXCEPTION, ...) (void)sizeof(CONDITION)
 #endif
 #endif
 
@@ -239,6 +239,22 @@ struct ex_logical_limits_crossed : public parser_exception
     {}
 };
 
+struct ex_physical_limit_missing : public parser_exception
+{
+    constexpr ex_physical_limit_missing()
+        : parser_exception("physical min and max must either be both defined or both missing",
+                           global::tag::PHYSICAL_MAXIMUM, 1)
+    {}
+};
+
+struct ex_physical_limits_crossed : public parser_exception
+{
+    constexpr ex_physical_limits_crossed()
+        : parser_exception("physical min must be less than or equal to max",
+                           global::tag::PHYSICAL_MAXIMUM, 1)
+    {}
+};
+
 struct ex_usage_page_zero : public parser_exception
 {
     constexpr ex_usage_page_zero()
@@ -265,6 +281,89 @@ struct ex_usage_missing : public parser_exception
 {
     constexpr ex_usage_missing()
         : parser_exception("usage must be defined before any main items", local::tag::USAGE, 2)
+    {}
+};
+
+struct ex_usage_min_duplicate : public parser_exception
+{
+    constexpr ex_usage_min_duplicate()
+        : parser_exception("usage min must be unique within a main section",
+                           local::tag::USAGE_MINIMUM, 3)
+    {}
+};
+
+struct ex_usage_max_duplicate : public parser_exception
+{
+    constexpr ex_usage_max_duplicate()
+        : parser_exception("usage max must be unique within a main section",
+                           local::tag::USAGE_MAXIMUM, 3)
+    {}
+};
+
+struct ex_usage_limit_missing : public parser_exception
+{
+    constexpr ex_usage_limit_missing()
+        : parser_exception("usage min and max must be both defined", local::tag::USAGE_MAXIMUM, 0)
+    {}
+};
+
+struct ex_usage_limits_crossed : public parser_exception
+{
+    constexpr ex_usage_limits_crossed()
+        : parser_exception("usage min must be less than or equal to max", local::tag::USAGE_MAXIMUM,
+                           1)
+    {}
+};
+
+struct ex_usage_limits_size_mismatch : public parser_exception
+{
+    constexpr ex_usage_limits_size_mismatch()
+        : parser_exception("usage min and max must be both extended", local::tag::USAGE_MAXIMUM, 4)
+    {}
+};
+
+struct ex_usage_limits_page_mismatch : public parser_exception
+{
+    constexpr ex_usage_limits_page_mismatch()
+        : parser_exception("extended usage min and max pages aren't matching",
+                           local::tag::USAGE_MAXIMUM, 2)
+    {}
+};
+
+struct ex_delimiter_invalid : public parser_exception
+{
+    constexpr ex_delimiter_invalid()
+        : parser_exception("delimiter must be open(0) or close(1)", local::tag::DELIMITER, 0)
+    {}
+};
+
+struct ex_delimiter_nesting : public parser_exception
+{
+    constexpr ex_delimiter_nesting()
+        : parser_exception("delimiters must not be nested", local::tag::DELIMITER, 1)
+    {}
+};
+
+struct ex_delimiter_unmatched : public parser_exception
+{
+    constexpr ex_delimiter_unmatched()
+        : parser_exception("open delimiters must be closed", local::tag::DELIMITER, 2)
+    {}
+};
+
+struct ex_delimiter_invalid_content : public parser_exception
+{
+    constexpr ex_delimiter_invalid_content()
+        : parser_exception("delimiters must only contain usage local items", local::tag::DELIMITER,
+                           3)
+    {}
+};
+
+struct ex_delimiter_invalid_location : public parser_exception
+{
+    constexpr ex_delimiter_invalid_location()
+        : parser_exception("delimiters must not be in top level collection or end collection",
+                           local::tag::DELIMITER, 4)
     {}
 };
 

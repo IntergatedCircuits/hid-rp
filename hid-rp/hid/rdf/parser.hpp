@@ -11,6 +11,7 @@
 #ifndef __HID_RDF_PARSER_HPP_
 #define __HID_RDF_PARSER_HPP_
 
+#include <optional>
 #include "hid/rdf/descriptor_view.hpp"
 #include "hid/usage.hpp"
 
@@ -99,26 +100,21 @@ class parser
         BREAK = 1,    ///< stop further parsing
     };
 
-    constexpr virtual ~parser() = default;
-
-    /// @brief  Extracts the complete usage ID using the relevant parsing context.
-    /// @param  usage_item: the USAGE / USAGE_MINIMUM / USAGE_MAXIMUM type local item
-    /// @param  global_state: the global items state at the current main item
-    /// @return The complete usage ID
-    constexpr static usage_t get_usage(const item_type& usage_item,
-                                       const global_item_store& global_state)
+    struct report_data_field_params
     {
-        if (usage_item.data_size() == sizeof(usage_t))
-        {
-            return usage_t(usage_item.value_unsigned());
-        }
-        else
-        {
-            const auto* page = global_state.get_item(global::tag::USAGE_PAGE);
-            HID_RDF_ASSERT(page != nullptr, ex_usage_page_missing);
-            return usage_t(page->value_unsigned(), usage_item.value_unsigned());
-        }
-    }
+        report::id id{0};
+        std::size_t size{};
+        std::size_t count{};
+    };
+
+    template <typename T>
+    struct limits
+    {
+        T min;
+        T max;
+    };
+
+    constexpr virtual ~parser() = default;
 
     /// @brief  The override of this method is meant to handle the collection begins of the
     /// descriptor.
@@ -128,13 +124,15 @@ class parser
     /// items parsing
     /// @param  tlc_number: the Top Level Collection index, where this item is found (incremented
     /// before this method is called)
+    /// @param  collection_depth: the depth of the collection, starting from 0
     /// @return CONTINUE to continue the parsing until the next main item,
     ///         or BREAK to terminate it early
     constexpr virtual control
     parse_collection_begin([[maybe_unused]] main::collection_type collection,
                            [[maybe_unused]] const global_item_store& global_state,
                            [[maybe_unused]] const items_view_type& main_section,
-                           [[maybe_unused]] unsigned tlc_number)
+                           [[maybe_unused]] unsigned tlc_number,
+                           [[maybe_unused]] unsigned collection_depth)
     {
         return control::CONTINUE;
     }
@@ -145,12 +143,14 @@ class parser
     /// @param  main_section: the span of items between the previous and this main item, for local
     /// items parsing
     /// @param  tlc_number: the Top Level Collection index, where this item is found
+    /// @param  collection_depth: the depth of the collection, starting from 0
     /// @return CONTINUE to continue the parsing until the next main item,
     ///         or BREAK to terminate it early
     constexpr virtual control
     parse_collection_end([[maybe_unused]] const global_item_store& global_state,
                          [[maybe_unused]] const items_view_type& main_section,
-                         [[maybe_unused]] unsigned tlc_number)
+                         [[maybe_unused]] unsigned tlc_number,
+                         [[maybe_unused]] unsigned collection_depth)
     {
         return control::CONTINUE;
     }
@@ -173,6 +173,120 @@ class parser
         return control::CONTINUE;
     }
 
+    /// @brief  Extracts the complete usage ID using the relevant parsing context.
+    /// @param  usage_item: the USAGE / USAGE_MINIMUM / USAGE_MAXIMUM type local item
+    /// @param  global_state: the global items state at the current main item
+    /// @return The complete usage ID
+    constexpr static usage_t get_usage(const item_type& usage_item,
+                                       const global_item_store& global_state)
+    {
+        if (usage_item.data_size() == sizeof(usage_t))
+        {
+            return usage_t(usage_item.value_unsigned());
+        }
+        else
+        {
+            const auto* page = global_state.get_item(global::tag::USAGE_PAGE);
+            HID_RDF_ASSERT(page != nullptr, ex_usage_page_missing);
+            auto page_id = page->value_unsigned();
+            HID_RDF_ASSERT(page_id > 0, ex_usage_page_zero);
+            HID_RDF_ASSERT(page_id <= std::numeric_limits<page_id_t>::max(), ex_usage_page_oor);
+            return usage_t(page_id, usage_item.value_unsigned());
+        }
+    }
+
+    /// @brief Verifies the correctness of the delimiters in a section.
+    /// @param main_section: the span of items between the previous and this main item
+    /// @return true if delimiters were found, false otherwise
+    constexpr static bool check_delimiters(const items_view_type& main_section)
+    {
+        bool open = false;
+        bool found = false;
+        for (const item_type& item : main_section)
+        {
+            if (item.type() != rdf::item_type::LOCAL)
+            {
+                continue;
+            }
+            if (item.has_tag(local::tag::DELIMITER))
+            {
+                auto delimiter = item.value_unsigned();
+                HID_RDF_ASSERT(delimiter <= 1, ex_delimiter_invalid);
+                HID_RDF_ASSERT(open != (delimiter == 0), ex_delimiter_nesting);
+                open = delimiter == 0;
+                found = true;
+                continue;
+            }
+            if (open and !item.has_tag(local::tag::USAGE) and
+                !item.has_tag(local::tag::USAGE_MINIMUM) and
+                !item.has_tag(local::tag::USAGE_MAXIMUM))
+            {
+                HID_RDF_ASSERT(false, ex_delimiter_invalid_content);
+            }
+        }
+        HID_RDF_ASSERT(open == false, ex_delimiter_unmatched);
+        return found;
+    }
+
+    constexpr static auto get_report_data_field_params(const global_item_store& global_state)
+    {
+        report_data_field_params params{};
+        const auto* report_id_item = global_state.get_item(global::tag::REPORT_ID);
+        if (report_id_item != nullptr)
+        {
+            params.id = report_id_item->value_unsigned();
+            HID_RDF_ASSERT(params.id >= report::id::min(), ex_report_id_zero);
+            HID_RDF_ASSERT(params.id <= report::id::max(), ex_report_id_excess);
+        }
+        const auto* report_size_item = global_state.get_item(global::tag::REPORT_SIZE);
+        HID_RDF_ASSERT(report_size_item != nullptr, ex_report_size_missing);
+        params.size = report_size_item->value_unsigned();
+        HID_RDF_ASSERT(params.size > 0, ex_report_size_zero);
+
+        const auto* report_count_item = global_state.get_item(global::tag::REPORT_COUNT);
+        HID_RDF_ASSERT(report_count_item != nullptr, ex_report_count_missing);
+        params.count = report_count_item->value_unsigned();
+        HID_RDF_ASSERT(params.count > 0, ex_report_count_zero);
+        return params;
+    }
+
+    constexpr static auto get_logical_limits_signed(const global_item_store& global_state)
+    {
+        const auto* min_item = global_state.get_item(global::tag::LOGICAL_MINIMUM);
+        HID_RDF_ASSERT(min_item != nullptr, ex_logical_min_missing);
+        const auto* max_item = global_state.get_item(global::tag::LOGICAL_MAXIMUM);
+        HID_RDF_ASSERT(max_item != nullptr, ex_logical_max_missing);
+        auto l = limits<std::int32_t>{min_item->value_signed(), max_item->value_signed()};
+        HID_RDF_ASSERT(l.min <= l.max, ex_logical_max_oob);
+        return l;
+    }
+
+    constexpr static auto get_logical_limits_unsigned(const global_item_store& global_state)
+    {
+        const auto* min_item = global_state.get_item(global::tag::LOGICAL_MINIMUM);
+        HID_RDF_ASSERT(min_item != nullptr, ex_logical_min_missing);
+        const auto* max_item = global_state.get_item(global::tag::LOGICAL_MAXIMUM);
+        HID_RDF_ASSERT(max_item != nullptr, ex_logical_max_missing);
+        auto l = limits<std::uint32_t>{min_item->value_unsigned(), max_item->value_unsigned()};
+        HID_RDF_ASSERT(l.min <= l.max, ex_logical_limits_crossed);
+        return l;
+    }
+
+    constexpr static std::optional<limits<std::int32_t>>
+    get_physical_limits(const global_item_store& global_state)
+    {
+        const auto* min_item = global_state.get_item(global::tag::PHYSICAL_MINIMUM);
+        const auto* max_item = global_state.get_item(global::tag::PHYSICAL_MAXIMUM);
+        if (min_item and max_item)
+        {
+            auto l = limits<std::int32_t>{min_item->value_signed(), max_item->value_signed()};
+            HID_RDF_ASSERT(l.min <= l.max, ex_physical_limits_crossed);
+            return l;
+        }
+        HID_RDF_ASSERT((min_item == nullptr) and (max_item == nullptr), ex_physical_limit_missing);
+        return std::nullopt;
+    }
+
     constexpr static std::size_t global_stack_depth(descriptor_view_type desc_view)
     {
         std::size_t max_depth = 0;
@@ -193,29 +307,30 @@ class parser
         return max_depth;
     }
 
-    constexpr control parse_items(descriptor_view_type desc_view)
+    constexpr TIterator parse_items(descriptor_view_type desc_view,
+                                    std::size_t max_global_stack_depth = 4)
     {
-        const auto global_stack_size = 1 + global_stack_depth(desc_view);
+        HID_RDF_ASSERT(desc_view.has_valid_bounds(), ex_invalid_bounds);
 
-        // using this global stack logic is hardly justifiable at all
-        HID_RDF_ASSERT(global_stack_size <= 4, ex_global_stack_overflow);
+        HID_RDF_ASSERT(global_stack_depth(desc_view) < max_global_stack_depth,
+                       ex_global_stack_overflow);
 
-#ifdef _MSC_BUILD
-        global_item_store global_stack[4];
-        return fixed_stack_parse(desc_view, std::span(global_stack));
-#else
-        global_item_store global_stack[global_stack_size];
-        return fixed_stack_parse(desc_view, std::span(global_stack, global_stack_size));
-#endif
+        global_item_store global_stack[max_global_stack_depth];
+        return fixed_stack_parse(desc_view, std::span(global_stack, max_global_stack_depth));
     }
 
-    template <std::size_t _Extent>
-    constexpr control fixed_stack_parse(const descriptor_view_type& desc_view,
-                                        std::span<global_item_store, _Extent> global_stack)
+    /// @brief This method parses the HID report descriptor, using a fixed-size stack for global
+    /// items.
+    /// @param desc_view: the HID report descriptor's view
+    /// @param global_stack: the stack for global items, which must be large enough to hold the
+    /// maximum depth
+    /// @return the iterator to the first item that was not processed
+    constexpr TIterator fixed_stack_parse(const descriptor_view_type& desc_view,
+                                          std::span<global_item_store> global_stack)
     {
         std::size_t global_stack_depth = 0;
         auto last_section_begin = desc_view.end();
-        int collection_balance = 0;
+        unsigned collection_depth = 0;
         unsigned tlc_number = 0;
 
         for (auto item_iter = desc_view.begin(); item_iter != desc_view.end(); ++item_iter)
@@ -242,7 +357,7 @@ class parser
                 case main::tag::INPUT:
                 case main::tag::OUTPUT:
                 case main::tag::FEATURE:
-                    HID_RDF_ASSERT(collection_balance > 0, ex_collection_missing);
+                    HID_RDF_ASSERT(collection_depth > 0, ex_collection_missing);
                     ctrl = parse_report_data_field(this_item, global_stack[global_stack_depth],
                                                    last_section, tlc_number);
                     break;
@@ -250,8 +365,8 @@ class parser
                 case main::tag::COLLECTION:
                 {
                     auto coll_type = static_cast<main::collection_type>(this_item.value_unsigned());
-                    collection_balance++;
-                    if (collection_balance == 1)
+                    collection_depth++;
+                    if (collection_depth == 1)
                     {
                         tlc_number++;
                     }
@@ -261,15 +376,15 @@ class parser
                                        ex_collection_nested_application);
                     }
                     ctrl = parse_collection_begin(coll_type, global_stack[global_stack_depth],
-                                                  last_section, tlc_number);
+                                                  last_section, tlc_number, collection_depth - 1);
                     break;
                 }
 
                 case main::tag::END_COLLECTION:
-                    collection_balance--;
-                    HID_RDF_ASSERT(not(collection_balance < 0), ex_collection_end_unmatched);
+                    HID_RDF_ASSERT(collection_depth > 0, ex_collection_end_unmatched);
+                    collection_depth--;
                     ctrl = parse_collection_end(global_stack[global_stack_depth], last_section,
-                                                tlc_number);
+                                                tlc_number, collection_depth);
                     break;
 
                 default:
@@ -278,7 +393,7 @@ class parser
                 }
                 if (ctrl != control::CONTINUE)
                 {
-                    return ctrl;
+                    return ++item_iter;
                 }
 
                 // when this section is processed, mark the section begin marker as invalid
@@ -287,7 +402,6 @@ class parser
             }
 
             case rdf::item_type::GLOBAL:
-            {
                 switch (this_item.global_tag())
                 {
                 case global::tag::PUSH:
@@ -301,8 +415,8 @@ class parser
                     break;
 
                 case global::tag::POP:
-                    HID_RDF_ASSERT(global_stack_depth > 0, ex_pop_unmatched);
                     HID_RDF_ASSERT(not this_item.has_data(), ex_pop_nonempty);
+                    HID_RDF_ASSERT(global_stack_depth > 0, ex_pop_unmatched);
 
                     // the last backup is restored
                     global_stack_depth--;
@@ -316,31 +430,26 @@ class parser
                     break;
                 }
                 break;
-            }
 
             case rdf::item_type::LOCAL:
-            {
                 // processed by higher level
                 break;
-            }
 
             default:
-            {
                 HID_RDF_ASSERT(this_item.is_short() == false, ex_item_unknown);
                 HID_RDF_ASSERT(this_item.is_short() == true, ex_item_long);
                 break;
             }
-            }
         }
 
         HID_RDF_ASSERT(global_stack_depth == 0, ex_push_unmatched);
-        HID_RDF_ASSERT(not(collection_balance > 0), ex_collection_begin_unmatched);
+        HID_RDF_ASSERT(collection_depth == 0, ex_collection_begin_unmatched);
 
-        return control::CONTINUE;
+        return desc_view.end();
     }
 
   protected:
-    constexpr parser() {}
+    constexpr parser() = default;
 };
 
 /// @brief  This function performs the minimal useful HID report descriptor parsing task:
@@ -369,8 +478,13 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
         constexpr control parse_collection_begin(main::collection_type collection,
                                                  const global_item_store& global_state,
                                                  const items_view_type& main_section,
-                                                 unsigned tlc_count) override
+                                                 unsigned tlc_count,
+                                                 unsigned collection_depth) override
         {
+            if (collection_depth != 0)
+            {
+                return control::CONTINUE;
+            }
             for (auto& it : main_section)
             {
                 if (it.has_tag(local::tag::USAGE))
@@ -380,7 +494,19 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
                 }
             }
             HID_RDF_ASSERT(false, ex_usage_missing);
-            return control::BREAK;
+            return control::CONTINUE;
+        }
+        constexpr control
+        parse_collection_end([[maybe_unused]] const global_item_store& global_state,
+                             [[maybe_unused]] const items_view_type& main_section,
+                             [[maybe_unused]] unsigned tlc_number,
+                             unsigned collection_depth) override
+        {
+            if (collection_depth == 0)
+            {
+                return control::BREAK;
+            }
+            return control::CONTINUE;
         }
 
         usage_t usage_{0};

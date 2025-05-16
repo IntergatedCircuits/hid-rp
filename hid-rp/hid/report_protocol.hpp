@@ -177,6 +177,29 @@ struct report_protocol_properties
         }
 
       private:
+        constexpr virtual control
+        parse_collection_begin([[maybe_unused]] rdf::main::collection_type collection,
+                               [[maybe_unused]] const rdf::global_item_store& global_state,
+                               const items_view_type& main_section,
+                               [[maybe_unused]] unsigned tlc_number,
+                               [[maybe_unused]] unsigned collection_depth) override
+        {
+            // only for descriptor verification purpose
+            check_delimiters(main_section);
+            return control::CONTINUE;
+        }
+
+        constexpr control
+        parse_collection_end([[maybe_unused]] const rdf::global_item_store& global_state,
+                             const items_view_type& main_section,
+                             [[maybe_unused]] unsigned tlc_number,
+                             [[maybe_unused]] unsigned collection_depth) override
+        {
+            // only for descriptor verification purpose
+            HID_RDF_ASSERT(!check_delimiters(main_section), ex_delimiter_invalid_location);
+            return control::CONTINUE;
+        }
+
         constexpr control parse_report_data_field(
             const item_type& main_item, const rdf::global_item_store& global_state,
             [[maybe_unused]] const items_view_type& main_section, unsigned tlc_count) override
@@ -184,43 +207,26 @@ struct report_protocol_properties
             using namespace hid::rdf;
             report::type rtype = main::tag_to_report_type(main_item.main_tag());
 
-            // get report ID (or use 0 if not present)
-            report::id::type report_id = 0;
-            const auto* report_id_item = global_state.get_item(global::tag::REPORT_ID);
-            if (report_id_item != nullptr)
+            auto report_params = get_report_data_field_params(global_state);
+            if (report_params.id)
             {
-                report_id = report_id_item->value_unsigned();
+                // check that there is no report field with missing ID
+                HID_RDF_ASSERT(std::find_if(report_bit_sizes_.begin(), report_bit_sizes_.end(),
+                                            [](auto sizes)
+                                            { return sizes[0] > 0; }) == report_bit_sizes_.end(),
+                               ex_report_id_missing);
 
-                // report ID verification
-                HID_RDF_ASSERT(report_id >= report::id::min(), ex_report_id_zero);
-                HID_RDF_ASSERT(report_id <= report::id::max(), ex_report_id_excess);
-                if (!uses_report_ids())
-                {
-                    for (auto& sizes : report_bit_sizes_)
-                    {
-                        HID_RDF_ASSERT(sizes[0] == 0, ex_report_id_missing);
-                    }
-                }
+                // track max report ID
                 auto& rid = max_report_ids_[static_cast<size_t>(rtype) - 1];
-                rid = std::max(rid, report_id);
+                rid = std::max(rid, (report::id::type)report_params.id);
             }
 
-            // get the items defining the size of this/these report data elements
-            const auto* report_size_item = global_state.get_item(global::tag::REPORT_SIZE);
-            HID_RDF_ASSERT(report_size_item != nullptr, ex_report_size_missing);
-            auto report_size = report_size_item->value_unsigned();
-            HID_RDF_ASSERT(report_size > 0, ex_report_size_zero);
-
-            const auto* report_count_item = global_state.get_item(global::tag::REPORT_COUNT);
-            HID_RDF_ASSERT(report_count_item != nullptr, ex_report_count_missing);
-            auto report_count = report_count_item->value_unsigned();
-            HID_RDF_ASSERT(report_count > 0, ex_report_count_zero);
-
             // increase size of this report
-            bit_size(rtype, report_id) += report_size * report_count;
+            bit_size(rtype, report_params.id) += report_params.size * report_params.count;
 
+            // the following are only compile-time checks:
             // verify that the report doesn't cross TLC boundary
-            auto& report_tlc_index = tlc_index(rtype, report_id);
+            auto& report_tlc_index = tlc_index(rtype, report_params.id);
             if (report_tlc_index == 0)
             {
                 // first piece of the report, assign to TLC now
@@ -230,6 +236,62 @@ struct report_protocol_properties
             {
                 HID_RDF_ASSERT(report_tlc_index == tlc_count, ex_report_crossing_tlc_bounds);
             }
+
+            // logical limits verification
+            if (main_item.value_unsigned() & main::data_field_flag::VARIABLE)
+            {
+                auto logical_limits = get_logical_limits_signed(global_state);
+                HID_RDF_ASSERT(logical_limits.min >= -(1 << std::int32_t(report_params.size - 1)),
+                               ex_logical_min_oob);
+                HID_RDF_ASSERT(logical_limits.max <= (1 << std::int32_t(report_params.size - 1)),
+                               ex_logical_max_oob);
+            }
+            else
+            {
+                auto logical_limits = get_logical_limits_unsigned(global_state);
+                HID_RDF_ASSERT(logical_limits.min <= 1, ex_logical_min_oob);
+                HID_RDF_ASSERT(logical_limits.max <= (std::uint32_t(1) << report_params.size),
+                               ex_logical_max_oob);
+            }
+
+            get_physical_limits(global_state);
+
+            check_delimiters(main_section);
+
+            // usage limits verification
+            const item_type* usage_min_item{};
+            const item_type* usage_max_item{};
+            for (const item_type& item : main_section)
+            {
+                if (item.has_tag(local::tag::USAGE_MINIMUM))
+                {
+                    HID_RDF_ASSERT(usage_min_item == nullptr, ex_usage_min_duplicate);
+                    usage_min_item = &item;
+                }
+                else if (item.has_tag(local::tag::USAGE_MAXIMUM))
+                {
+                    HID_RDF_ASSERT(usage_max_item == nullptr, ex_usage_max_duplicate);
+                    usage_max_item = &item;
+                }
+            }
+            if (usage_min_item and usage_max_item)
+            {
+                if ((usage_min_item->data_size() == 4) or (usage_max_item->data_size() == 4))
+                {
+                    HID_RDF_ASSERT(usage_min_item->data_size() == usage_max_item->data_size(),
+                                   ex_usage_limits_size_mismatch);
+                }
+                auto usage_min = usage_min_item->value_unsigned();
+                auto usage_max = usage_max_item->value_unsigned();
+                HID_RDF_ASSERT((usage_min >> 16) == (usage_max >> 16),
+                               ex_usage_limits_page_mismatch);
+                HID_RDF_ASSERT(usage_min <= usage_max, ex_usage_limits_crossed);
+            }
+            else
+            {
+                HID_RDF_ASSERT(usage_min_item == usage_max_item, ex_usage_limit_missing);
+            }
+
             return control::CONTINUE;
         }
 
