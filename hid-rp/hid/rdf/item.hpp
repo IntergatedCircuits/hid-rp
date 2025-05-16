@@ -33,19 +33,19 @@ class alignas(1) item_header
 
     constexpr global::tag global_tag() const
     {
-        HID_RP_ASSERT(is_correct_type<global::tag>(), ex_item_invalid_tag_type);
+        HID_RP_ASSERT(type() == item_type::GLOBAL, ex_item_invalid_tag_type);
         return static_cast<global::tag>(short_tag());
     }
 
     constexpr local::tag local_tag() const
     {
-        HID_RP_ASSERT(is_correct_type<local::tag>(), ex_item_invalid_tag_type);
+        HID_RP_ASSERT(type() == item_type::LOCAL, ex_item_invalid_tag_type);
         return static_cast<local::tag>(short_tag());
     }
 
     constexpr main::tag main_tag() const
     {
-        HID_RP_ASSERT(is_correct_type<main::tag>(), ex_item_invalid_tag_type);
+        HID_RP_ASSERT(type() == item_type::MAIN, ex_item_invalid_tag_type);
         return static_cast<main::tag>(short_tag());
     }
 
@@ -91,6 +91,8 @@ class alignas(1) item_header
     {
         return (sval & (1 << (8 * sizeof(sval) - 1))) != 0;
     }
+
+    constexpr operator bool() const { return prefix_ != 0; }
 
   protected:
     template <typename TTag>
@@ -296,25 +298,8 @@ class alignas(1) short_item_buffer : public item_header
 
     constexpr bool operator==(const short_item_buffer& rhs)
     {
-        if (!this->equals(rhs))
-        {
-            return false;
-        }
-        else
-        {
-#if __cplusplus > 201703L
-            return std::equal(data_buffer_.begin(), data_buffer_.end(), rhs.data_buffer_.begin());
-#else
-            for (std::size_t i = 0; i < data_size(); ++i)
-            {
-                if (data_buffer_[i] != rhs.data_buffer_[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-#endif
-        }
+        return this->equals(rhs) and
+               std::equal(data_buffer_.begin(), data_buffer_.end(), rhs.data_buffer_.begin());
     }
 
     constexpr bool operator!=(const short_item_buffer& rhs) { return !(*this == rhs); }

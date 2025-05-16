@@ -307,11 +307,11 @@ class parser
         return max_depth;
     }
 
-    constexpr TIterator parse_items(descriptor_view_type desc_view,
-                                    std::size_t max_global_stack_depth = 4)
+    constexpr TIterator parse_items(descriptor_view_type desc_view)
     {
         HID_RP_ASSERT(desc_view.has_valid_bounds(), ex_invalid_bounds);
 
+        constexpr std::size_t max_global_stack_depth = 5;
         HID_RP_ASSERT(global_stack_depth(desc_view) < max_global_stack_depth,
                       ex_global_stack_overflow);
 

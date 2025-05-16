@@ -15,7 +15,7 @@
 #include "hid/rdf/constants.hpp"
 
 #ifndef HID_RP_ASSERT
-#if defined(__EXCEPTIONS) // TODO: add other toolchains
+#if defined(__EXCEPTIONS) or defined(_CPPUNWIND)
 #define HID_RP_ASSERT(CONDITION, EXCEPTION, ...)                                                   \
     {                                                                                              \
         if (!(CONDITION))                                                                          \

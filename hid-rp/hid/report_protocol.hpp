@@ -177,7 +177,14 @@ struct report_protocol_properties
         }
 
       private:
-        constexpr virtual control
+        using base::check_delimiters;
+        using base::get_logical_limits_signed;
+        using base::get_logical_limits_unsigned;
+        using base::get_physical_limits;
+        using base::get_report_data_field_params;
+        using base::parse_items;
+
+        constexpr control
         parse_collection_begin([[maybe_unused]] rdf::main::collection_type collection,
                                [[maybe_unused]] const rdf::global_item_store& global_state,
                                const items_view_type& main_section,
@@ -259,30 +266,30 @@ struct report_protocol_properties
             check_delimiters(main_section);
 
             // usage limits verification
-            const item_type* usage_min_item{};
-            const item_type* usage_max_item{};
+            short_item_buffer usage_min_item{};
+            short_item_buffer usage_max_item{};
             for (const item_type& item : main_section)
             {
                 if (item.has_tag(local::tag::USAGE_MINIMUM))
                 {
-                    HID_RP_ASSERT(usage_min_item == nullptr, ex_usage_min_duplicate);
-                    usage_min_item = &item;
+                    HID_RP_ASSERT(!usage_min_item, ex_usage_min_duplicate);
+                    usage_min_item = item;
                 }
                 else if (item.has_tag(local::tag::USAGE_MAXIMUM))
                 {
-                    HID_RP_ASSERT(usage_max_item == nullptr, ex_usage_max_duplicate);
-                    usage_max_item = &item;
+                    HID_RP_ASSERT(!usage_max_item, ex_usage_max_duplicate);
+                    usage_max_item = item;
                 }
             }
             if (usage_min_item and usage_max_item)
             {
-                if ((usage_min_item->data_size() == 4) or (usage_max_item->data_size() == 4))
+                if ((usage_min_item.data_size() == 4) or (usage_max_item.data_size() == 4))
                 {
-                    HID_RP_ASSERT(usage_min_item->data_size() == usage_max_item->data_size(),
+                    HID_RP_ASSERT(usage_min_item.data_size() == usage_max_item.data_size(),
                                   ex_usage_limits_size_mismatch);
                 }
-                auto usage_min = usage_min_item->value_unsigned();
-                auto usage_max = usage_max_item->value_unsigned();
+                auto usage_min = usage_min_item.value_unsigned();
+                auto usage_max = usage_max_item.value_unsigned();
                 HID_RP_ASSERT((usage_min >> 16) == (usage_max >> 16),
                               ex_usage_limits_page_mismatch);
                 HID_RP_ASSERT(usage_min <= usage_max, ex_usage_limits_crossed);
