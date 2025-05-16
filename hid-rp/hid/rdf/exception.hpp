@@ -11,11 +11,12 @@
 #ifndef __HID_RDF_EXCEPTION_HPP_
 #define __HID_RDF_EXCEPTION_HPP_
 
+#include <cassert>
 #include "hid/rdf/constants.hpp"
 
-#ifndef HID_RDF_ASSERT
+#ifndef HID_RP_ASSERT
 #if defined(__EXCEPTIONS) // TODO: add other toolchains
-#define HID_RDF_ASSERT(CONDITION, EXCEPTION, ...)                                                  \
+#define HID_RP_ASSERT(CONDITION, EXCEPTION, ...)                                                   \
     {                                                                                              \
         if (!(CONDITION))                                                                          \
         {                                                                                          \
@@ -23,8 +24,10 @@
             throw(EXCEPTION(__VA_ARGS__));                                                         \
         }                                                                                          \
     }
+#elif NDEBUG
+#define HID_RP_ASSERT(CONDITION, EXCEPTION, ...) (void)sizeof(CONDITION)
 #else
-#define HID_RDF_ASSERT(CONDITION, EXCEPTION, ...) (void)sizeof(CONDITION)
+#define HID_RP_ASSERT(CONDITION, EXCEPTION, ...) assert(CONDITION)
 #endif
 #endif
 

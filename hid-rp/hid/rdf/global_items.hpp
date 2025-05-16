@@ -77,7 +77,7 @@ class report_id : public short_item<1>
     constexpr report_id(std::uint8_t value)
         : short_item(global::tag::REPORT_ID, value)
     {
-        HID_RDF_ASSERT((value > 0), ex_report_id_zero);
+        HID_RP_ASSERT((value > 0), ex_report_id_zero);
     }
 };
 

@@ -137,7 +137,7 @@ struct report_protocol_properties
             {
                 for (const auto& size : sizes)
                 {
-                    HID_RDF_ASSERT(size % 8 == 0, ex_report_total_size_invalid);
+                    HID_RP_ASSERT(size % 8 == 0, ex_report_total_size_invalid);
                 }
             }
         }
@@ -196,7 +196,7 @@ struct report_protocol_properties
                              [[maybe_unused]] unsigned collection_depth) override
         {
             // only for descriptor verification purpose
-            HID_RDF_ASSERT(!check_delimiters(main_section), ex_delimiter_invalid_location);
+            HID_RP_ASSERT(!check_delimiters(main_section), ex_delimiter_invalid_location);
             return control::CONTINUE;
         }
 
@@ -211,10 +211,10 @@ struct report_protocol_properties
             if (report_params.id)
             {
                 // check that there is no report field with missing ID
-                HID_RDF_ASSERT(std::find_if(report_bit_sizes_.begin(), report_bit_sizes_.end(),
-                                            [](auto sizes)
-                                            { return sizes[0] > 0; }) == report_bit_sizes_.end(),
-                               ex_report_id_missing);
+                HID_RP_ASSERT(std::find_if(report_bit_sizes_.begin(), report_bit_sizes_.end(),
+                                           [](auto sizes)
+                                           { return sizes[0] > 0; }) == report_bit_sizes_.end(),
+                              ex_report_id_missing);
 
                 // track max report ID
                 auto& rid = max_report_ids_[static_cast<size_t>(rtype) - 1];
@@ -234,24 +234,24 @@ struct report_protocol_properties
             }
             else
             {
-                HID_RDF_ASSERT(report_tlc_index == tlc_count, ex_report_crossing_tlc_bounds);
+                HID_RP_ASSERT(report_tlc_index == tlc_count, ex_report_crossing_tlc_bounds);
             }
 
             // logical limits verification
             if (main_item.value_unsigned() & main::data_field_flag::VARIABLE)
             {
                 auto logical_limits = get_logical_limits_signed(global_state);
-                HID_RDF_ASSERT(logical_limits.min >= -(1 << std::int32_t(report_params.size - 1)),
-                               ex_logical_min_oob);
-                HID_RDF_ASSERT(logical_limits.max <= (1 << std::int32_t(report_params.size - 1)),
-                               ex_logical_max_oob);
+                HID_RP_ASSERT(logical_limits.min >= -(1 << std::int32_t(report_params.size - 1)),
+                              ex_logical_min_oob);
+                HID_RP_ASSERT(logical_limits.max <= (1 << std::int32_t(report_params.size - 1)),
+                              ex_logical_max_oob);
             }
             else
             {
                 auto logical_limits = get_logical_limits_unsigned(global_state);
-                HID_RDF_ASSERT(logical_limits.min <= 1, ex_logical_min_oob);
-                HID_RDF_ASSERT(logical_limits.max <= (std::uint32_t(1) << report_params.size),
-                               ex_logical_max_oob);
+                HID_RP_ASSERT(logical_limits.min <= 1, ex_logical_min_oob);
+                HID_RP_ASSERT(logical_limits.max <= (std::uint32_t(1) << report_params.size),
+                              ex_logical_max_oob);
             }
 
             get_physical_limits(global_state);
@@ -265,12 +265,12 @@ struct report_protocol_properties
             {
                 if (item.has_tag(local::tag::USAGE_MINIMUM))
                 {
-                    HID_RDF_ASSERT(usage_min_item == nullptr, ex_usage_min_duplicate);
+                    HID_RP_ASSERT(usage_min_item == nullptr, ex_usage_min_duplicate);
                     usage_min_item = &item;
                 }
                 else if (item.has_tag(local::tag::USAGE_MAXIMUM))
                 {
-                    HID_RDF_ASSERT(usage_max_item == nullptr, ex_usage_max_duplicate);
+                    HID_RP_ASSERT(usage_max_item == nullptr, ex_usage_max_duplicate);
                     usage_max_item = &item;
                 }
             }
@@ -278,18 +278,18 @@ struct report_protocol_properties
             {
                 if ((usage_min_item->data_size() == 4) or (usage_max_item->data_size() == 4))
                 {
-                    HID_RDF_ASSERT(usage_min_item->data_size() == usage_max_item->data_size(),
-                                   ex_usage_limits_size_mismatch);
+                    HID_RP_ASSERT(usage_min_item->data_size() == usage_max_item->data_size(),
+                                  ex_usage_limits_size_mismatch);
                 }
                 auto usage_min = usage_min_item->value_unsigned();
                 auto usage_max = usage_max_item->value_unsigned();
-                HID_RDF_ASSERT((usage_min >> 16) == (usage_max >> 16),
-                               ex_usage_limits_page_mismatch);
-                HID_RDF_ASSERT(usage_min <= usage_max, ex_usage_limits_crossed);
+                HID_RP_ASSERT((usage_min >> 16) == (usage_max >> 16),
+                              ex_usage_limits_page_mismatch);
+                HID_RP_ASSERT(usage_min <= usage_max, ex_usage_limits_crossed);
             }
             else
             {
-                HID_RDF_ASSERT(usage_min_item == usage_max_item, ex_usage_limit_missing);
+                HID_RP_ASSERT(usage_min_item == usage_max_item, ex_usage_limit_missing);
             }
 
             return control::CONTINUE;

@@ -33,19 +33,19 @@ class alignas(1) item_header
 
     constexpr global::tag global_tag() const
     {
-        HID_RDF_ASSERT(is_correct_type<global::tag>(), ex_item_invalid_tag_type);
+        HID_RP_ASSERT(is_correct_type<global::tag>(), ex_item_invalid_tag_type);
         return static_cast<global::tag>(short_tag());
     }
 
     constexpr local::tag local_tag() const
     {
-        HID_RDF_ASSERT(is_correct_type<local::tag>(), ex_item_invalid_tag_type);
+        HID_RP_ASSERT(is_correct_type<local::tag>(), ex_item_invalid_tag_type);
         return static_cast<local::tag>(short_tag());
     }
 
     constexpr main::tag main_tag() const
     {
-        HID_RDF_ASSERT(is_correct_type<main::tag>(), ex_item_invalid_tag_type);
+        HID_RP_ASSERT(is_correct_type<main::tag>(), ex_item_invalid_tag_type);
         return static_cast<main::tag>(short_tag());
     }
 
@@ -58,7 +58,7 @@ class alignas(1) item_header
     constexpr static std::uint32_t get_unsigned_value(const item_header* header,
                                                       const byte_type* ptr)
     {
-        HID_RDF_ASSERT(!header->is_long(), ex_item_long);
+        HID_RP_ASSERT(!header->is_long(), ex_item_long);
 
         std::uint32_t value = 0;
         for (byte_type i = header->short_data_size(); i > 0;)
@@ -152,7 +152,7 @@ class alignas(1) item : public item_header
     template <typename TTag>
     TTag tag() const
     {
-        HID_RDF_ASSERT(is_correct_type<TTag>(), ex_item_invalid_tag_type);
+        HID_RP_ASSERT(is_correct_type<TTag>(), ex_item_invalid_tag_type);
         if (is_short())
         {
             return static_cast<TTag>(short_tag());
@@ -203,13 +203,13 @@ class alignas(1) item : public item_header
 
     std::uint32_t value_unsigned() const
     {
-        HID_RDF_ASSERT(is_short(), ex_item_long);
+        HID_RP_ASSERT(is_short(), ex_item_long);
         return get_unsigned_value(this, data_);
     }
 
     std::int32_t value_signed() const
     {
-        HID_RDF_ASSERT(is_short(), ex_item_long);
+        HID_RP_ASSERT(is_short(), ex_item_long);
         return get_signed_value(this, data_);
     }
 
@@ -252,13 +252,13 @@ class alignas(1) short_item_buffer : public item_header
     constexpr short_item_buffer()
         : item_header(), data_buffer_()
     {
-        HID_RDF_ASSERT(is_short(), ex_item_long);
+        HID_RP_ASSERT(is_short(), ex_item_long);
     }
 
     constexpr short_item_buffer(const byte_type* data)
         : item_header(data[0]), data_buffer_()
     {
-        HID_RDF_ASSERT(is_short(), ex_item_long);
+        HID_RP_ASSERT(is_short(), ex_item_long);
 #if __cplusplus > 201703L
         std::copy(data + 1, data + 1 + data_size(), data_buffer_.begin());
 #else
@@ -272,7 +272,7 @@ class alignas(1) short_item_buffer : public item_header
     template <typename TTag>
     constexpr TTag tag() const
     {
-        HID_RDF_ASSERT(is_correct_type<TTag>(), ex_item_invalid_tag_type);
+        HID_RP_ASSERT(is_correct_type<TTag>(), ex_item_invalid_tag_type);
         return static_cast<TTag>(short_tag());
     }
 

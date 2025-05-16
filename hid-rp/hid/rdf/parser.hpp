@@ -28,14 +28,14 @@ class global_item_store
     constexpr void add_item(const short_item_buffer& new_item)
     {
         auto tag = new_item.global_tag();
-        HID_RDF_ASSERT(is_tag_stored(tag), ex_item_unknown);
+        HID_RP_ASSERT(is_tag_stored(tag), ex_item_unknown);
         item_by_tag(tag) = new_item;
     }
 
     void add_item(const item& new_item)
     {
         auto tag = new_item.global_tag();
-        HID_RDF_ASSERT(is_tag_stored(tag), ex_item_unknown);
+        HID_RP_ASSERT(is_tag_stored(tag), ex_item_unknown);
         item_by_tag(tag) = new_item;
     }
 
@@ -187,10 +187,10 @@ class parser
         else
         {
             const auto* page = global_state.get_item(global::tag::USAGE_PAGE);
-            HID_RDF_ASSERT(page != nullptr, ex_usage_page_missing);
+            HID_RP_ASSERT(page != nullptr, ex_usage_page_missing);
             auto page_id = page->value_unsigned();
-            HID_RDF_ASSERT(page_id > 0, ex_usage_page_zero);
-            HID_RDF_ASSERT(page_id <= std::numeric_limits<page_id_t>::max(), ex_usage_page_oor);
+            HID_RP_ASSERT(page_id > 0, ex_usage_page_zero);
+            HID_RP_ASSERT(page_id <= std::numeric_limits<page_id_t>::max(), ex_usage_page_oor);
             return usage_t(page_id, usage_item.value_unsigned());
         }
     }
@@ -211,8 +211,8 @@ class parser
             if (item.has_tag(local::tag::DELIMITER))
             {
                 auto delimiter = item.value_unsigned();
-                HID_RDF_ASSERT(delimiter <= 1, ex_delimiter_invalid);
-                HID_RDF_ASSERT(open != (delimiter == 0), ex_delimiter_nesting);
+                HID_RP_ASSERT(delimiter <= 1, ex_delimiter_invalid);
+                HID_RP_ASSERT(open != (delimiter == 0), ex_delimiter_nesting);
                 open = delimiter == 0;
                 found = true;
                 continue;
@@ -221,10 +221,10 @@ class parser
                 !item.has_tag(local::tag::USAGE_MINIMUM) and
                 !item.has_tag(local::tag::USAGE_MAXIMUM))
             {
-                HID_RDF_ASSERT(false, ex_delimiter_invalid_content);
+                HID_RP_ASSERT(false, ex_delimiter_invalid_content);
             }
         }
-        HID_RDF_ASSERT(open == false, ex_delimiter_unmatched);
+        HID_RP_ASSERT(open == false, ex_delimiter_unmatched);
         return found;
     }
 
@@ -235,40 +235,40 @@ class parser
         if (report_id_item != nullptr)
         {
             params.id = report_id_item->value_unsigned();
-            HID_RDF_ASSERT(params.id >= report::id::min(), ex_report_id_zero);
-            HID_RDF_ASSERT(params.id <= report::id::max(), ex_report_id_excess);
+            HID_RP_ASSERT(params.id >= report::id::min(), ex_report_id_zero);
+            HID_RP_ASSERT(params.id <= report::id::max(), ex_report_id_excess);
         }
         const auto* report_size_item = global_state.get_item(global::tag::REPORT_SIZE);
-        HID_RDF_ASSERT(report_size_item != nullptr, ex_report_size_missing);
+        HID_RP_ASSERT(report_size_item != nullptr, ex_report_size_missing);
         params.size = report_size_item->value_unsigned();
-        HID_RDF_ASSERT(params.size > 0, ex_report_size_zero);
+        HID_RP_ASSERT(params.size > 0, ex_report_size_zero);
 
         const auto* report_count_item = global_state.get_item(global::tag::REPORT_COUNT);
-        HID_RDF_ASSERT(report_count_item != nullptr, ex_report_count_missing);
+        HID_RP_ASSERT(report_count_item != nullptr, ex_report_count_missing);
         params.count = report_count_item->value_unsigned();
-        HID_RDF_ASSERT(params.count > 0, ex_report_count_zero);
+        HID_RP_ASSERT(params.count > 0, ex_report_count_zero);
         return params;
     }
 
     constexpr static auto get_logical_limits_signed(const global_item_store& global_state)
     {
         const auto* min_item = global_state.get_item(global::tag::LOGICAL_MINIMUM);
-        HID_RDF_ASSERT(min_item != nullptr, ex_logical_min_missing);
+        HID_RP_ASSERT(min_item != nullptr, ex_logical_min_missing);
         const auto* max_item = global_state.get_item(global::tag::LOGICAL_MAXIMUM);
-        HID_RDF_ASSERT(max_item != nullptr, ex_logical_max_missing);
+        HID_RP_ASSERT(max_item != nullptr, ex_logical_max_missing);
         auto l = limits<std::int32_t>{min_item->value_signed(), max_item->value_signed()};
-        HID_RDF_ASSERT(l.min <= l.max, ex_logical_max_oob);
+        HID_RP_ASSERT(l.min <= l.max, ex_logical_max_oob);
         return l;
     }
 
     constexpr static auto get_logical_limits_unsigned(const global_item_store& global_state)
     {
         const auto* min_item = global_state.get_item(global::tag::LOGICAL_MINIMUM);
-        HID_RDF_ASSERT(min_item != nullptr, ex_logical_min_missing);
+        HID_RP_ASSERT(min_item != nullptr, ex_logical_min_missing);
         const auto* max_item = global_state.get_item(global::tag::LOGICAL_MAXIMUM);
-        HID_RDF_ASSERT(max_item != nullptr, ex_logical_max_missing);
+        HID_RP_ASSERT(max_item != nullptr, ex_logical_max_missing);
         auto l = limits<std::uint32_t>{min_item->value_unsigned(), max_item->value_unsigned()};
-        HID_RDF_ASSERT(l.min <= l.max, ex_logical_limits_crossed);
+        HID_RP_ASSERT(l.min <= l.max, ex_logical_limits_crossed);
         return l;
     }
 
@@ -280,10 +280,10 @@ class parser
         if (min_item and max_item)
         {
             auto l = limits<std::int32_t>{min_item->value_signed(), max_item->value_signed()};
-            HID_RDF_ASSERT(l.min <= l.max, ex_physical_limits_crossed);
+            HID_RP_ASSERT(l.min <= l.max, ex_physical_limits_crossed);
             return l;
         }
-        HID_RDF_ASSERT((min_item == nullptr) and (max_item == nullptr), ex_physical_limit_missing);
+        HID_RP_ASSERT((min_item == nullptr) and (max_item == nullptr), ex_physical_limit_missing);
         return std::nullopt;
     }
 
@@ -300,7 +300,7 @@ class parser
             }
             else if (item.has_tag(global::tag::POP))
             {
-                HID_RDF_ASSERT(depth > 0, ex_pop_unmatched);
+                HID_RP_ASSERT(depth > 0, ex_pop_unmatched);
                 depth--;
             }
         }
@@ -310,10 +310,10 @@ class parser
     constexpr TIterator parse_items(descriptor_view_type desc_view,
                                     std::size_t max_global_stack_depth = 4)
     {
-        HID_RDF_ASSERT(desc_view.has_valid_bounds(), ex_invalid_bounds);
+        HID_RP_ASSERT(desc_view.has_valid_bounds(), ex_invalid_bounds);
 
-        HID_RDF_ASSERT(global_stack_depth(desc_view) < max_global_stack_depth,
-                       ex_global_stack_overflow);
+        HID_RP_ASSERT(global_stack_depth(desc_view) < max_global_stack_depth,
+                      ex_global_stack_overflow);
 
         global_item_store global_stack[max_global_stack_depth];
         return fixed_stack_parse(desc_view, std::span(global_stack, max_global_stack_depth));
@@ -357,7 +357,7 @@ class parser
                 case main::tag::INPUT:
                 case main::tag::OUTPUT:
                 case main::tag::FEATURE:
-                    HID_RDF_ASSERT(collection_depth > 0, ex_collection_missing);
+                    HID_RP_ASSERT(collection_depth > 0, ex_collection_missing);
                     ctrl = parse_report_data_field(this_item, global_stack[global_stack_depth],
                                                    last_section, tlc_number);
                     break;
@@ -372,8 +372,8 @@ class parser
                     }
                     else
                     {
-                        HID_RDF_ASSERT(coll_type != main::collection_type::APPLICATION,
-                                       ex_collection_nested_application);
+                        HID_RP_ASSERT(coll_type != main::collection_type::APPLICATION,
+                                      ex_collection_nested_application);
                     }
                     ctrl = parse_collection_begin(coll_type, global_stack[global_stack_depth],
                                                   last_section, tlc_number, collection_depth - 1);
@@ -381,14 +381,14 @@ class parser
                 }
 
                 case main::tag::END_COLLECTION:
-                    HID_RDF_ASSERT(collection_depth > 0, ex_collection_end_unmatched);
+                    HID_RP_ASSERT(collection_depth > 0, ex_collection_end_unmatched);
                     collection_depth--;
                     ctrl = parse_collection_end(global_stack[global_stack_depth], last_section,
                                                 tlc_number, collection_depth);
                     break;
 
                 default:
-                    HID_RDF_ASSERT(false, ex_item_unknown);
+                    HID_RP_ASSERT(false, ex_item_unknown);
                     break;
                 }
                 if (ctrl != control::CONTINUE)
@@ -405,9 +405,9 @@ class parser
                 switch (this_item.global_tag())
                 {
                 case global::tag::PUSH:
-                    HID_RDF_ASSERT(not this_item.has_data(), ex_push_nonempty);
-                    HID_RDF_ASSERT((global_stack_depth + 1) < global_stack.size(),
-                                   ex_global_stack_overflow);
+                    HID_RP_ASSERT(not this_item.has_data(), ex_push_nonempty);
+                    HID_RP_ASSERT((global_stack_depth + 1) < global_stack.size(),
+                                  ex_global_stack_overflow);
 
                     // the current state is kept, backed up on the stack
                     global_stack[global_stack_depth + 1] = global_stack[global_stack_depth];
@@ -415,17 +415,17 @@ class parser
                     break;
 
                 case global::tag::POP:
-                    HID_RDF_ASSERT(not this_item.has_data(), ex_pop_nonempty);
-                    HID_RDF_ASSERT(global_stack_depth > 0, ex_pop_unmatched);
+                    HID_RP_ASSERT(not this_item.has_data(), ex_pop_nonempty);
+                    HID_RP_ASSERT(global_stack_depth > 0, ex_pop_unmatched);
 
                     // the last backup is restored
                     global_stack_depth--;
                     break;
 
                 default:
-                    HID_RDF_ASSERT(this_item.template tag<global::tag>() <=
-                                       global::tag::REPORT_COUNT,
-                                   ex_item_unknown);
+                    HID_RP_ASSERT(this_item.template tag<global::tag>() <=
+                                      global::tag::REPORT_COUNT,
+                                  ex_item_unknown);
                     global_stack[global_stack_depth].add_item(this_item);
                     break;
                 }
@@ -436,14 +436,14 @@ class parser
                 break;
 
             default:
-                HID_RDF_ASSERT(this_item.is_short() == false, ex_item_unknown);
-                HID_RDF_ASSERT(this_item.is_short() == true, ex_item_long);
+                HID_RP_ASSERT(this_item.is_short() == false, ex_item_unknown);
+                HID_RP_ASSERT(this_item.is_short() == true, ex_item_long);
                 break;
             }
         }
 
-        HID_RDF_ASSERT(global_stack_depth == 0, ex_push_unmatched);
-        HID_RDF_ASSERT(collection_depth == 0, ex_collection_begin_unmatched);
+        HID_RP_ASSERT(global_stack_depth == 0, ex_push_unmatched);
+        HID_RP_ASSERT(collection_depth == 0, ex_collection_begin_unmatched);
 
         return desc_view.end();
     }
@@ -493,7 +493,7 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
                     return control::BREAK;
                 }
             }
-            HID_RDF_ASSERT(false, ex_usage_missing);
+            HID_RP_ASSERT(false, ex_usage_missing);
             return control::CONTINUE;
         }
         constexpr control
@@ -514,7 +514,7 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
 
     auto usage = application_usage_id_parser(desc_view).usage_;
     // this assert could hit due to either no collection, or the usage value being actually 0
-    HID_RDF_ASSERT(usage != nullusage, ex_collection_missing);
+    HID_RP_ASSERT(usage != nullusage, ex_collection_missing);
     return usage;
 }
 
