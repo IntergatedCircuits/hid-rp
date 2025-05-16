@@ -20,10 +20,10 @@
 
 namespace hid::app::mouse
 {
-template <uint8_t REPORT_ID = 0>
+template <uint8_t REPORT_ID = 0, std::size_t BUTTONS_COUNT = 3>
 struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
 {
-    hid::report_bitset<page::button, page::button(1), page::button(3)> buttons;
+    hid::report_bitset<page::button, page::button(1), page::button(BUTTONS_COUNT)> buttons;
     std::int8_t x{};
     std::int8_t y{};
 
@@ -34,7 +34,7 @@ struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
     }
 };
 
-template <uint8_t REPORT_ID = 0>
+template <uint8_t REPORT_ID = 0, std::size_t BUTTONS_COUNT = 3>
 static constexpr auto app_report_descriptor()
 {
     using namespace hid::page;
@@ -49,14 +49,16 @@ static constexpr auto app_report_descriptor()
             collection::physical(
                 conditional_report_id<REPORT_ID>(),
                 // buttons
-                usage_extended_limits(button(1), button(3)),
+                usage_page<button>(),
+                usage_limits(button(1), button(BUTTONS_COUNT)),
                 logical_limits<1, 1>(0, 1),
-                report_count(3),
+                report_count(BUTTONS_COUNT),
                 report_size(1),
                 input::absolute_variable(),
-                input::padding(5),
+                input::byte_padding<BUTTONS_COUNT>(),
 
                 // relative directions
+                usage_page<generic_desktop>(),
                 usage(generic_desktop::X),
                 usage(generic_desktop::Y),
                 logical_limits<1, 1>(-127, 127),
