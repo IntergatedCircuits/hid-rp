@@ -31,10 +31,16 @@ struct info
     const char* const page_name;
     const page_id_t page_id;
     const usage_id_t max_usage_id;
+    const usage_id_t ius_mask;
 
     constexpr info(page_id_t page, usage_id_t max, const char* name,
-                   const char* (*get_name)(hid::usage_id_t id) = nullptr)
-        : page_name(name), get_usage_name_(get_name), page_id(page), max_usage_id(max)
+                   const char* (*get_name)(hid::usage_id_t id) = nullptr,
+                   usage_id_t inline_usage_switch_mask = 0)
+        : page_name(name),
+          get_usage_name_(get_name),
+          page_id(page),
+          max_usage_id(max),
+          ius_mask(inline_usage_switch_mask)
     {}
 
     const char* get_usage_name(usage_id_t id) const
@@ -65,6 +71,32 @@ constexpr inline auto get_info()
 ///        which is necessary for determining the full usage value.
 template <typename T>
 concept UsageType = (sizeof(T) <= sizeof(usage_id_t)) and (page::get_info<T>().page_id > 0);
+
+/// @brief This concept matches usage pages that support inline usage switch purpose IDs.
+///        Only the sensor page is known to be affected.
+template <typename T>
+concept InlineSwitchableUsageType = UsageType<T> and (page::get_info<T>().ius_mask > 0);
+
+namespace page
+{
+template <InlineSwitchableUsageType T>
+constexpr inline auto operator|(T lhs, T rhs)
+{
+    return static_cast<T>(static_cast<std::underlying_type_t<T>>(lhs) |
+                          static_cast<std::underlying_type_t<T>>(rhs));
+}
+template <InlineSwitchableUsageType T>
+constexpr inline auto get_base_usage(T u)
+{
+    return static_cast<T>(static_cast<std::underlying_type_t<T>>(u) &
+                          ~page::get_info<T>().ius_mask);
+}
+template <InlineSwitchableUsageType T>
+constexpr inline auto get_inline_switch(T u)
+{
+    return static_cast<T>(static_cast<std::underlying_type_t<T>>(u) & page::get_info<T>().ius_mask);
+}
+} // namespace page
 
 namespace rdf::global
 {

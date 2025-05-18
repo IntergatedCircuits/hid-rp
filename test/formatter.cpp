@@ -26,6 +26,9 @@ TEST_CASE("usage concept type formatter")
 
     out = std::format("{:p#06x}", ordinal(16));
     CHECK(out == "Ordinal / 0x0010");
+
+    out = std::format("{}", sensor::ELECTRICAL_CURRENT | sensor::MAXIMUM);
+    CHECK(out == "Electrical: Current Maximum");
 }
 
 TEST_CASE("usage value formatter")
@@ -53,4 +56,7 @@ TEST_CASE("usage value formatter")
 
     out = std::format("{:p#06x}", hid::usage_t(0xfedc, 0x1234));
     CHECK(out == "unknown(0xfedc) / 0x1234");
+
+    out = std::format("{}", hid::usage_t(sensor::ELECTRICAL_CURRENT | sensor::MAXIMUM));
+    CHECK(out == "Electrical: Current Maximum");
 }

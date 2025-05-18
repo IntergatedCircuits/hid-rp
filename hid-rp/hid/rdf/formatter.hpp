@@ -42,6 +42,7 @@ struct std::formatter<hid::usage_t>
     FormatContext::iterator format(const hid::usage_t& usage, FormatContext& ctx) const
     {
         auto info = hid::page::get_page_info(usage.page_id());
+        // first the page is printed, if requested
         if (add_page_)
         {
             if (info.valid_page())
@@ -53,11 +54,22 @@ struct std::formatter<hid::usage_t>
                 format_to(ctx.out(), "{}({:#06x}) / ", info.page_name, usage.page_id());
             }
         }
-        if (const char* name = info.get_usage_name(usage.id()); name)
+        // second the base usage is printed
+        auto value = usage.id() & ~info.ius_mask;
+        if (const char* name = info.get_usage_name(value); name)
         {
-            return format_to(ctx.out(), "{}", name);
+            format_to(ctx.out(), "{}", name);
         }
-        return numeric_.format(usage.id(), ctx);
+        else
+        {
+            numeric_.format(value, ctx);
+        }
+        // finally the inline usage switch is printed, if any
+        if (const char* name = info.get_usage_name(usage.id() & info.ius_mask); name)
+        {
+            format_to(ctx.out(), " {}", name);
+        }
+        return ctx.out();
     }
 };
 
