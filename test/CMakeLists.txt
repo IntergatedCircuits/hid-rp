@@ -23,6 +23,7 @@ target_sources(${PROJECT_NAME}-test
         ${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp
         descriptor_view.cpp
         formatter.cpp
+        imported_descriptor.cpp
         keyboard.cpp
         mouse.cpp
 )
