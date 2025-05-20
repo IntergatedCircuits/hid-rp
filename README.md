@@ -1,6 +1,6 @@
 # HID report descriptor format library
 
-This project utilizes C++20 language features (notably `constexpr`) to implement a unified standalone library
+This project utilizes C++20 language features (notably `constexpr`) to implement a unified standalone, header-only library
 for creating and parsing HID report descriptors. It's designed to ease the HID report protocol handling
 on both the HID device and host side.
 
@@ -9,9 +9,9 @@ on both the HID device and host side.
 * Easy to use C++ syntax (no macros) to define and reuse HID report descriptors and reports (or their building blocks)
 * [HID usage tables code generator][hid-usage-tables] support, with extension possibilities
 * Base `hid::rdf::parser` design for implementing any custom descriptor parsing logic, for both compile and runtime
-* HID report descriptors are validated for common errors at compile time by `hid::report_protocol` [^1]
-
-[^1]: This feature requires C++ exceptions to be enabled, therefore in embedded software you need a separate compilation step with added exception support flag.
+* HID report descriptors are validated for common errors at compile time by `hid::report_protocol`
+* HID report descriptor printing support - including all defined usage names - by
+`std::formatter<hid::rdf::descriptor_view_base<TIterator>>`
 
 ## Getting started
 
@@ -21,9 +21,18 @@ The [hid-rp/hid/app](hid-rp/hid/app) folder contains definitions for the most co
 They take an optional report ID template parameter, so they can either be standalone, or easily combined into
 a multiple TLC protocol.
 
+### HID report descriptor validation
+
+Your own report descriptor can be copy-pasted into `test/imported_descriptor.cpp`, and a local or CI build
+will give you feedback on whether any errors are present in the descriptor.
+
+### [c2usb-zephyr-examples][c2usb-zephyr-examples]
+
+A collection of USB and BLE HID device example applications running on Zephyr RTOS.
+
 ### [stm32-i2c-hid][stm32-i2c-hid]
 
-HID over I2C demonstration using a generic STM32 devkit, tested with Raspberry Pi as the host.
+HID over I2C device demonstration using a generic STM32 devkit, tested with Raspberry Pi as the host.
 
 ## Motivation
 
@@ -145,3 +154,4 @@ and the maximum used report ID as well (of each type of report).
 [USB-HID]: https://www.usb.org/sites/default/files/hid1_11.pdf
 [hid-usage-tables]: https://github.com/IntergatedCircuits/hid-usage-tables
 [stm32-i2c-hid]: https://github.com/benedekkupper/stm32-i2c-hid
+[c2usb-zephyr-examples]: https://github.com/IntergatedCircuits/c2usb-zephyr-examples

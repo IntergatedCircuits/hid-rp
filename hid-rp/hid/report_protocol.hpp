@@ -188,8 +188,7 @@ struct report_protocol_properties
         parse_collection_begin([[maybe_unused]] rdf::main::collection_type collection,
                                [[maybe_unused]] const rdf::global_item_store& global_state,
                                const items_view_type& main_section,
-                               [[maybe_unused]] unsigned tlc_number,
-                               [[maybe_unused]] unsigned collection_depth) override
+                               [[maybe_unused]] unsigned tlc_number) override
         {
             // only for descriptor verification purpose
             check_delimiters(main_section);
@@ -199,8 +198,7 @@ struct report_protocol_properties
         constexpr control
         parse_collection_end([[maybe_unused]] const rdf::global_item_store& global_state,
                              const items_view_type& main_section,
-                             [[maybe_unused]] unsigned tlc_number,
-                             [[maybe_unused]] unsigned collection_depth) override
+                             [[maybe_unused]] unsigned tlc_number) override
         {
             // only for descriptor verification purpose
             HID_RP_ASSERT(!check_delimiters(main_section), ex_delimiter_invalid_location);

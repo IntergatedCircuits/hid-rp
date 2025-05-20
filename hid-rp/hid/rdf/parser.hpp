@@ -84,7 +84,7 @@ class global_item_store
 
 /// @brief Base class for parsing HID report descriptors. Derived classes can define
 ///        the output data of the parsing as member variables, assigning them during parsing.
-template <typename TIterator, typename TItem = TIterator::value_type>
+template <typename TIterator, typename TItem = typename TIterator::value_type>
 class parser
 {
   public:
@@ -124,15 +124,13 @@ class parser
     /// items parsing
     /// @param  tlc_number: the Top Level Collection index, where this item is found (incremented
     /// before this method is called)
-    /// @param  collection_depth: the depth of the collection, starting from 0
     /// @return CONTINUE to continue the parsing until the next main item,
     ///         or BREAK to terminate it early
     constexpr virtual control
     parse_collection_begin([[maybe_unused]] main::collection_type collection,
                            [[maybe_unused]] const global_item_store& global_state,
                            [[maybe_unused]] const items_view_type& main_section,
-                           [[maybe_unused]] unsigned tlc_number,
-                           [[maybe_unused]] unsigned collection_depth)
+                           [[maybe_unused]] unsigned tlc_number)
     {
         return control::CONTINUE;
     }
@@ -143,14 +141,12 @@ class parser
     /// @param  main_section: the span of items between the previous and this main item, for local
     /// items parsing
     /// @param  tlc_number: the Top Level Collection index, where this item is found
-    /// @param  collection_depth: the depth of the collection, starting from 0
     /// @return CONTINUE to continue the parsing until the next main item,
     ///         or BREAK to terminate it early
     constexpr virtual control
     parse_collection_end([[maybe_unused]] const global_item_store& global_state,
                          [[maybe_unused]] const items_view_type& main_section,
-                         [[maybe_unused]] unsigned tlc_number,
-                         [[maybe_unused]] unsigned collection_depth)
+                         [[maybe_unused]] unsigned tlc_number)
     {
         return control::CONTINUE;
     }
@@ -332,6 +328,7 @@ class parser
         auto last_section_begin = desc_view.end();
         unsigned collection_depth = 0;
         unsigned tlc_number = 0;
+        auto last_main_item = desc_view.begin();
 
         for (auto item_iter = desc_view.begin(); item_iter != desc_view.end(); ++item_iter)
         {
@@ -349,6 +346,7 @@ class parser
             {
                 items_view_type last_section{last_section_begin, item_iter};
                 control ctrl = control::BREAK;
+                last_main_item = item_iter;
 
                 // main items is where the magic happens, this is application specific
                 // the local item processing is left for this external parser
@@ -376,7 +374,7 @@ class parser
                                       ex_collection_nested_application);
                     }
                     ctrl = parse_collection_begin(coll_type, global_stack[global_stack_depth],
-                                                  last_section, tlc_number, collection_depth - 1);
+                                                  last_section, tlc_number);
                     break;
                 }
 
@@ -384,7 +382,7 @@ class parser
                     HID_RP_ASSERT(collection_depth > 0, ex_collection_end_unmatched);
                     collection_depth--;
                     ctrl = parse_collection_end(global_stack[global_stack_depth], last_section,
-                                                tlc_number, collection_depth);
+                                                tlc_number);
                     break;
 
                 default:
@@ -445,7 +443,7 @@ class parser
         HID_RP_ASSERT(global_stack_depth == 0, ex_push_unmatched);
         HID_RP_ASSERT(collection_depth == 0, ex_collection_begin_unmatched);
 
-        return desc_view.end();
+        return ++last_main_item;
     }
 
   protected:
@@ -478,10 +476,10 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
         constexpr control parse_collection_begin(main::collection_type collection,
                                                  const global_item_store& global_state,
                                                  const items_view_type& main_section,
-                                                 unsigned tlc_count,
-                                                 unsigned collection_depth) override
+                                                 unsigned tlc_number) override
         {
-            if (collection_depth != 0)
+            collection_depth_++;
+            if (collection_depth_ != 1)
             {
                 return control::CONTINUE;
             }
@@ -499,10 +497,10 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
         constexpr control
         parse_collection_end([[maybe_unused]] const global_item_store& global_state,
                              [[maybe_unused]] const items_view_type& main_section,
-                             [[maybe_unused]] unsigned tlc_number,
-                             unsigned collection_depth) override
+                             [[maybe_unused]] unsigned tlc_number) override
         {
-            if (collection_depth == 0)
+            collection_depth_--;
+            if (collection_depth_ == 0)
             {
                 return control::BREAK;
             }
@@ -510,6 +508,7 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
         }
 
         usage_t usage_{0};
+        unsigned collection_depth_{0};
     };
 
     auto usage = application_usage_id_parser(desc_view).usage_;
