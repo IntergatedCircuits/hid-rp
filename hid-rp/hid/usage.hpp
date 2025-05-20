@@ -131,6 +131,17 @@ class usage_t
 
     constexpr auto operator<=>(const usage_t&) const = default;
 
+    template <UsageType T>
+    constexpr bool has_page() const
+    {
+        return page_id() == page::get_info<T>().page_id;
+    }
+    template <UsageType T>
+    constexpr bool operator==(T u) const
+    {
+        return has_page<T>() and (id() == static_cast<usage_id_t>(u));
+    }
+
   private:
     type value_;
 };
