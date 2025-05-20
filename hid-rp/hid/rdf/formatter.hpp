@@ -58,7 +58,7 @@ struct std::formatter<hid::usage_t>
         auto value = usage.id() & ~info.ius_mask;
         if (const char* name = info.get_usage_name(value); name)
         {
-            format_to(ctx.out(), "{}", name);
+            vformat_to(ctx.out(), name, make_format_args(value));
         }
         else
         {

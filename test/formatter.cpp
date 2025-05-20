@@ -19,13 +19,13 @@ TEST_CASE("usage concept type formatter")
     CHECK(out == "0xfffe");
 
     out = std::format("{}", button(4));
-    CHECK(out == "4");
+    CHECK(out == "Button 4");
 
     out = std::format("{:p}", button(4));
-    CHECK(out == "Button / 4");
+    CHECK(out == "Button / Button 4");
 
     out = std::format("{:p#06x}", ordinal(16));
-    CHECK(out == "Ordinal / 0x0010");
+    CHECK(out == "Ordinal / Instance 16");
 
     out = std::format("{}", sensor::ELECTRICAL_CURRENT | sensor::MAXIMUM);
     CHECK(out == "Electrical: Current Maximum");
@@ -46,13 +46,13 @@ TEST_CASE("usage value formatter")
     CHECK(out == "0xfffe");
 
     out = std::format("{}", hid::usage_t(button(4)));
-    CHECK(out == "4");
+    CHECK(out == "Button 4");
 
     out = std::format("{:p}", hid::usage_t(button(4)));
-    CHECK(out == "Button / 4");
+    CHECK(out == "Button / Button 4");
 
     out = std::format("{:p#06x}", hid::usage_t(ordinal(16)));
-    CHECK(out == "Ordinal / 0x0010");
+    CHECK(out == "Ordinal / Instance 16");
 
     out = std::format("{:p#06x}", hid::usage_t(0xfedc, 0x1234));
     CHECK(out == "unknown(0xfedc) / 0x1234");
