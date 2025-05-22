@@ -99,6 +99,8 @@ static constexpr auto resolution_multiplier()
     // clang-format on
 }
 
+// Use a report ID for Linux compatibility
+// until https://bugzilla.kernel.org/show_bug.cgi?id=220144 is resolved
 template <uint8_t MULTIPLIER_MAX, uint8_t REPORT_ID = 0>
 struct resolution_multiplier_report
     : public hid::report::base<hid::report::type::FEATURE, REPORT_ID>
