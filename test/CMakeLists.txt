@@ -26,6 +26,7 @@ target_sources(${PROJECT_NAME}-test
         imported_descriptor.cpp
         keyboard.cpp
         mouse.cpp
+        opaque.cpp
 )
 target_link_libraries(${PROJECT_NAME}-test
     PRIVATE

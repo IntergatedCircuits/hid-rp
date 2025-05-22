@@ -408,6 +408,13 @@ struct ex_report_total_size_invalid : public parser_exception
     {}
 };
 
+struct ex_buffered_bytes_misaligned : public parser_exception
+{
+    constexpr ex_buffered_bytes_misaligned(main::tag tag)
+        : parser_exception("buffered bytes field is not aligned on a byte boundary", tag, 0)
+    {}
+};
+
 } // namespace hid::rdf
 
 #endif // __HID_RDF_EXCEPTION_HPP_

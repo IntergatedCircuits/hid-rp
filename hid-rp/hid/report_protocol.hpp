@@ -226,6 +226,13 @@ struct report_protocol_properties
                 rid = std::max(rid, (report::id::type)report_params.id);
             }
 
+            if (main_item.value_unsigned() & main::data_field_flag::BUFFERED_BYTES)
+            {
+                HID_RP_ASSERT((report_params.size % 8 == 0) and
+                                  (bit_size(rtype, report_params.id) % 8 == 0),
+                              ex_buffered_bytes_misaligned, main_item.main_tag());
+            }
+
             // increase size of this report
             bit_size(rtype, report_params.id) += report_params.size * report_params.count;
 
@@ -243,7 +250,9 @@ struct report_protocol_properties
             }
 
             // logical limits verification
-            if (main_item.value_unsigned() & main::data_field_flag::VARIABLE)
+            if ((main_item.value_unsigned() &
+                 (main::data_field_flag::VARIABLE | main::data_field_flag::BUFFERED_BYTES)) ==
+                main::data_field_flag::VARIABLE)
             {
                 auto logical_limits = get_logical_limits_signed(global_state);
                 HID_RP_ASSERT(logical_limits.min >= -(1 << std::int32_t(report_params.size - 1)),
