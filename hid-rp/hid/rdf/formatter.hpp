@@ -359,164 +359,115 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
                               const global_item_store& global_state = {},
                               std::uint16_t main_data_field = 0)
             {
-                auto fs_ = string("{}({})\n");
-                fs_.insert(0, std::string(width_ * collection_depth_, ' '));
-
                 for (const auto& item : main_section)
                 {
                     auto value_signed = item.value_signed();
                     auto value_unsigned = item.value_unsigned();
-                    hid::usage_t usage = hid::nullusage;
-                    const char* value_fs{};
-                    format_args args = make_format_args("Unknown", value_unsigned);
                     auto* tag_name = item.tag_name();
-                    const char* value_name{};
 
-                    switch (item.type())
+                    format_to(ctx_.out(), "{}", std::string(width_ * collection_depth_, ' '));
+                    switch (item.unified_tag())
                     {
-                    case hid::rdf::item_type::MAIN:
-                        switch (item.main_tag())
+                    case tag::INPUT:
+                    case tag::OUTPUT:
+                    case tag::FEATURE:
+                        format_to(ctx_.out(), "{}({})\n", tag_name,
+                                  *((hid::rdf::main::field_type*)&main_data_field));
+                        break;
+                    case tag::COLLECTION:
+                        format_to(ctx_.out(), "{}({})\n", tag_name,
+                                  *((hid::rdf::main::collection_type*)&value_unsigned));
+                        break;
+                    case tag::USAGE_PAGE:
+                        if (auto info = hid::page::get_page_info(value_unsigned); info.valid_page())
                         {
-                        case main::tag::INPUT:
-                        case main::tag::OUTPUT:
-                        case main::tag::FEATURE:
-                            args = make_format_args(
-                                tag_name, *((hid::rdf::main::field_type*)&main_data_field));
-                            break;
-                        case main::tag::COLLECTION:
-                            args = make_format_args(
-                                tag_name, *((hid::rdf::main::collection_type*)&value_unsigned));
-                            break;
-                        case main::tag::END_COLLECTION:
-                            args = make_format_args(tag_name, "");
-                            break;
-                        default:
-                            value_unsigned = std::bit_cast<uint8_t>((item_header)item);
-                            value_fs = ":#04x";
-                            break;
+                            format_to(ctx_.out(), "{}({})\n", tag_name, info.page_name);
+                        }
+                        else
+                        {
+                            format_to(ctx_.out(), "{}({:#06x})\n", tag_name, value_unsigned);
                         }
                         break;
-                    case hid::rdf::item_type::GLOBAL:
-                        switch (item.global_tag())
-                        {
-                        case global::tag::USAGE_PAGE:
-                        {
-                            auto info = hid::page::get_page_info(value_unsigned);
-                            if (info.valid_page())
-                            {
-                                args = make_format_args(tag_name, info.page_name);
-                            }
-                            else
-                            {
-                                value_fs = ":#06x";
-                                args = make_format_args(tag_name, value_unsigned);
-                            }
-                            break;
-                        }
-                        case global::tag::LOGICAL_MAXIMUM:
-                            if (main_data_field & main::data_field_flag::VARIABLE)
-                            {
-                                args = make_format_args(tag_name, value_signed);
-                            }
-                            else
-                            {
-                                args = make_format_args(tag_name, value_unsigned);
-                            }
-                            break;
-                        case global::tag::UNIT_EXPONENT:
-                            value_signed = unit::get_exponent(item);
-                            [[fallthrough]];
-                        case global::tag::LOGICAL_MINIMUM:
-                        case global::tag::PHYSICAL_MINIMUM:
-                        case global::tag::PHYSICAL_MAXIMUM:
-                            args = make_format_args(tag_name, value_signed);
-                            break;
-                        case global::tag::UNIT:
-                            args = make_format_args(tag_name,
-                                                    *((hid::rdf::unit::code*)&value_unsigned));
-                            break;
-                        case global::tag::REPORT_SIZE:
-                        case global::tag::REPORT_ID:
-                        case global::tag::REPORT_COUNT:
-                            args = make_format_args(tag_name, value_unsigned);
-                            break;
-                        case global::tag::PUSH:
-                        case global::tag::POP:
-                            args = make_format_args(tag_name, "");
-                            break;
-                        default:
-                            value_unsigned = std::bit_cast<uint8_t>((item_header)item);
-                            value_fs = ":#04x";
-                            break;
-                        }
+                    case tag::UNIT:
+                        format_to(ctx_.out(), "{}({})\n", tag_name,
+                                  *((hid::rdf::unit::code*)&value_unsigned));
                         break;
-                    case hid::rdf::item_type::LOCAL:
-                        switch (item.local_tag())
+                    case tag::UNIT_EXPONENT:
+                        value_signed = unit::get_exponent(item);
+                        [[fallthrough]];
+                    case tag::LOGICAL_MINIMUM:
+                    case tag::PHYSICAL_MINIMUM:
+                    case tag::PHYSICAL_MAXIMUM:
+                        format_to(ctx_.out(), "{}({})\n", tag_name, value_signed);
+                        break;
+                    case tag::LOGICAL_MAXIMUM:
+                        if (main_data_field & main::data_field_flag::VARIABLE)
                         {
-                        case local::tag::USAGE:
-                        case local::tag::USAGE_MINIMUM:
-                        case local::tag::USAGE_MAXIMUM:
+                            format_to(ctx_.out(), "{}({})\n", tag_name, value_signed);
+                            break;
+                        }
+                        [[fallthrough]];
+                    case tag::REPORT_SIZE:
+                    case tag::REPORT_ID:
+                    case tag::REPORT_COUNT:
+                    case tag::DESIGNATOR_INDEX:
+                    case tag::DESIGNATOR_MINIMUM:
+                    case tag::DESIGNATOR_MAXIMUM:
+                    case tag::STRING_INDEX:
+                    case tag::STRING_MINIMUM:
+                    case tag::STRING_MAXIMUM:
+                        format_to(ctx_.out(), "{}({})\n", tag_name, value_unsigned);
+                        break;
+                    case tag::END_COLLECTION:
+                    case tag::PUSH:
+                    case tag::POP:
+                        format_to(ctx_.out(), "{}()\n", tag_name);
+                        break;
+                    case tag::USAGE:
+                    case tag::USAGE_MINIMUM:
+                    case tag::USAGE_MAXIMUM:
 #if defined(__EXCEPTIONS) or defined(_CPPUNWIND)
-                            try
+                        try
 #endif
-                            {
-                                usage = get_usage(item, global_state);
-                            }
-#if defined(__EXCEPTIONS) or defined(_CPPUNWIND)
-                            catch (const hid::rdf::exception& e)
-                            {
-                                format_to(ctx_.out(), "{} error: {} ({})", tag_name, e.what(),
-                                          value_unsigned);
-                                continue;
-                            }
-#endif
-                            args = make_format_args(tag_name, usage);
+                        {
+                            auto usage = get_usage(item, global_state);
                             if (item.data_size() == 4)
                             {
-                                value_fs = ":p";
-                            }
-                            break;
-                        case local::tag::DESIGNATOR_INDEX:
-                        case local::tag::DESIGNATOR_MINIMUM:
-                        case local::tag::DESIGNATOR_MAXIMUM:
-                        case local::tag::STRING_INDEX:
-                        case local::tag::STRING_MINIMUM:
-                        case local::tag::STRING_MAXIMUM:
-                            args = make_format_args(tag_name, value_unsigned);
-                            break;
-                        case local::tag::DELIMITER:
-                            if (value_unsigned == 0)
-                            {
-                                args = make_format_args("Delimiter", "Open");
-                            }
-                            else if (value_unsigned == 1)
-                            {
-                                args = make_format_args("Delimiter", "Close");
+                                format_to(ctx_.out(), "{}({:p})\n", tag_name, usage);
                             }
                             else
                             {
-                                args = make_format_args("Delimiter", value_unsigned);
+                                format_to(ctx_.out(), "{}({})\n", tag_name, usage);
                             }
-                            break;
-                        default:
-                            value_unsigned = std::bit_cast<uint8_t>((item_header)item);
-                            value_fs = ":#04x";
-                            break;
+                        }
+#if defined(__EXCEPTIONS) or defined(_CPPUNWIND)
+                        catch (const hid::rdf::exception& e)
+                        {
+                            format_to(ctx_.out(), "{} error: {} ({})\n", tag_name, e.what(),
+                                      value_unsigned);
+                            continue;
+                        }
+#endif
+                        break;
+                    case tag::DELIMITER:
+                        if (value_unsigned == 0)
+                        {
+                            format_to(ctx_.out(), "Delimiter(Open)\n");
+                        }
+                        else if (value_unsigned == 1)
+                        {
+                            format_to(ctx_.out(), "Delimiter(Close)\n");
+                        }
+                        else
+                        {
+                            format_to(ctx_.out(), "Delimiter({})\n", value_unsigned);
                         }
                         break;
                     default:
-                        value_unsigned = std::bit_cast<uint8_t>((item_header)item);
-                        value_fs = ":#04x";
+                        format_to(ctx_.out(), "Unknown({:#04x})\n",
+                                  std::bit_cast<uint8_t>((item_header)item));
                         break;
                     }
-                    auto* fs = &fs_;
-                    if (value_fs)
-                    {
-                        auto fs2 = fs_;
-                        fs = &fs2;
-                        fs2.insert(fs2.find_last_of('{') + 1, value_fs);
-                    }
-                    vformat_to(ctx_.out(), *fs, args);
                 }
             }
 

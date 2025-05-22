@@ -166,6 +166,40 @@ enum class tag : byte_type
 };
 }
 
+/// @brief A single tag type that encodes the item type information as well.
+enum class tag : byte_type
+{
+    INPUT = 0x8 << 2,
+    OUTPUT = 0x9 << 2,
+    FEATURE = 0xb << 2,
+    COLLECTION = 0xa << 2,
+    END_COLLECTION = 0xc << 2,
+
+    USAGE_PAGE = 0x0 << 2 | 1,
+    LOGICAL_MINIMUM = 0x1 << 2 | 1,
+    LOGICAL_MAXIMUM = 0x2 << 2 | 1,
+    PHYSICAL_MINIMUM = 0x3 << 2 | 1,
+    PHYSICAL_MAXIMUM = 0x4 << 2 | 1,
+    UNIT_EXPONENT = 0x5 << 2 | 1,
+    UNIT = 0x6 << 2 | 1,
+    REPORT_SIZE = 0x7 << 2 | 1,
+    REPORT_ID = 0x8 << 2 | 1,
+    REPORT_COUNT = 0x9 << 2 | 1,
+    PUSH = 0xa << 2 | 1,
+    POP = 0xb << 2 | 1,
+
+    USAGE = 0x0 << 2 | 2,
+    USAGE_MINIMUM = 0x1 << 2 | 2,
+    USAGE_MAXIMUM = 0x2 << 2 | 2,
+    DESIGNATOR_INDEX = 0x3 << 2 | 2,
+    DESIGNATOR_MINIMUM = 0x4 << 2 | 2,
+    DESIGNATOR_MAXIMUM = 0x5 << 2 | 2,
+    STRING_INDEX = 0x7 << 2 | 2,
+    STRING_MINIMUM = 0x8 << 2 | 2,
+    STRING_MAXIMUM = 0x9 << 2 | 2,
+    DELIMITER = 0xa << 2 | 2,
+};
+
 /// @brief  Matches the tag type information to type code.
 /// @tparam TTag: HID item tag type
 /// @return HID item tag type translated to type code

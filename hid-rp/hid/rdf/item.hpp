@@ -55,6 +55,12 @@ class alignas(1) item_header
         return (match_type<TTag>() == type()) and (static_cast<TTag>(short_tag()) == tag);
     }
 
+    constexpr tag unified_tag() const
+    {
+        HID_RP_ASSERT(is_short(), ex_item_invalid_tag_type);
+        return static_cast<tag>(prefix_ >> 2);
+    }
+
     constexpr static std::uint32_t get_unsigned_value(const item_header* header,
                                                       const byte_type* ptr)
     {
@@ -94,81 +100,62 @@ class alignas(1) item_header
 
     constexpr const char* tag_name() const
     {
-        switch (type())
+        switch (unified_tag())
         {
-        case item_type::MAIN:
-            switch (main_tag())
-            {
-            case main::tag::INPUT:
-                return "Input";
-            case main::tag::OUTPUT:
-                return "Output";
-            case main::tag::FEATURE:
-                return "Feature";
-            case main::tag::COLLECTION:
-                return "Collection";
-                break;
-            case main::tag::END_COLLECTION:
-                return "End Collection";
-            default:
-                return nullptr;
-            }
-        case item_type::GLOBAL:
-            switch (global_tag())
-            {
-            case global::tag::USAGE_PAGE:
-                return "Usage Page";
-            case global::tag::LOGICAL_MINIMUM:
-                return "Logical Minimum";
-            case global::tag::LOGICAL_MAXIMUM:
-                return "Logical Maximum";
-            case global::tag::PHYSICAL_MINIMUM:
-                return "Physical Minimum";
-            case global::tag::PHYSICAL_MAXIMUM:
-                return "Physical Maximum";
-            case global::tag::UNIT_EXPONENT:
-                return "Unit Exponent";
-            case global::tag::UNIT:
-                return "Unit";
-            case global::tag::REPORT_SIZE:
-                return "Report Size";
-            case global::tag::REPORT_ID:
-                return "Report ID";
-            case global::tag::REPORT_COUNT:
-                return "Report Count";
-            case global::tag::PUSH:
-                return "Push";
-            case global::tag::POP:
-                return "Pop";
-            default:
-                return nullptr;
-            }
-        case item_type::LOCAL:
-            switch (local_tag())
-            {
-            case local::tag::USAGE:
-                return "Usage";
-            case local::tag::USAGE_MINIMUM:
-                return "Usage Minimum";
-            case local::tag::USAGE_MAXIMUM:
-                return "Usage Maximum";
-            case local::tag::DESIGNATOR_INDEX:
-                return "Designator Index";
-            case local::tag::DESIGNATOR_MINIMUM:
-                return "Designator Minimum";
-            case local::tag::DESIGNATOR_MAXIMUM:
-                return "Designator Maximum";
-            case local::tag::STRING_INDEX:
-                return "String Index";
-            case local::tag::STRING_MINIMUM:
-                return "String Minimum";
-            case local::tag::STRING_MAXIMUM:
-                return "String Maximum";
-            case local::tag::DELIMITER:
-                return "Delimiter";
-            default:
-                return nullptr;
-            }
+        case tag::INPUT:
+            return "Input";
+        case tag::OUTPUT:
+            return "Output";
+        case tag::FEATURE:
+            return "Feature";
+        case tag::COLLECTION:
+            return "Collection";
+        case tag::END_COLLECTION:
+            return "End Collection";
+        case tag::USAGE_PAGE:
+            return "Usage Page";
+        case tag::LOGICAL_MINIMUM:
+            return "Logical Minimum";
+        case tag::LOGICAL_MAXIMUM:
+            return "Logical Maximum";
+        case tag::PHYSICAL_MINIMUM:
+            return "Physical Minimum";
+        case tag::PHYSICAL_MAXIMUM:
+            return "Physical Maximum";
+        case tag::UNIT_EXPONENT:
+            return "Unit Exponent";
+        case tag::UNIT:
+            return "Unit";
+        case tag::REPORT_SIZE:
+            return "Report Size";
+        case tag::REPORT_ID:
+            return "Report ID";
+        case tag::REPORT_COUNT:
+            return "Report Count";
+        case tag::PUSH:
+            return "Push";
+        case tag::POP:
+            return "Pop";
+        case tag::USAGE:
+            return "Usage";
+        case tag::USAGE_MINIMUM:
+            return "Usage Minimum";
+        case tag::USAGE_MAXIMUM:
+            return "Usage Maximum";
+        case tag::DESIGNATOR_INDEX:
+            return "Designator Index";
+        case tag::DESIGNATOR_MINIMUM:
+            return "Designator Minimum";
+        case tag::DESIGNATOR_MAXIMUM:
+            return "Designator Maximum";
+        case tag::STRING_INDEX:
+            return "String Index";
+        case tag::STRING_MINIMUM:
+            return "String Minimum";
+        case tag::STRING_MAXIMUM:
+            return "String Maximum";
+        case tag::DELIMITER:
+            return "Delimiter";
         default:
             return nullptr;
         }
