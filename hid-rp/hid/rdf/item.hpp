@@ -92,6 +92,87 @@ class alignas(1) item_header
         return (sval & (1 << (8 * sizeof(sval) - 1))) != 0;
     }
 
+    constexpr const char* tag_name() const
+    {
+        switch (type())
+        {
+        case item_type::MAIN:
+            switch (main_tag())
+            {
+            case main::tag::INPUT:
+                return "Input";
+            case main::tag::OUTPUT:
+                return "Output";
+            case main::tag::FEATURE:
+                return "Feature";
+            case main::tag::COLLECTION:
+                return "Collection";
+                break;
+            case main::tag::END_COLLECTION:
+                return "End Collection";
+            default:
+                return nullptr;
+            }
+        case item_type::GLOBAL:
+            switch (global_tag())
+            {
+            case global::tag::USAGE_PAGE:
+                return "Usage Page";
+            case global::tag::LOGICAL_MINIMUM:
+                return "Logical Minimum";
+            case global::tag::LOGICAL_MAXIMUM:
+                return "Logical Maximum";
+            case global::tag::PHYSICAL_MINIMUM:
+                return "Physical Minimum";
+            case global::tag::PHYSICAL_MAXIMUM:
+                return "Physical Maximum";
+            case global::tag::UNIT_EXPONENT:
+                return "Unit Exponent";
+            case global::tag::UNIT:
+                return "Unit";
+            case global::tag::REPORT_SIZE:
+                return "Report Size";
+            case global::tag::REPORT_ID:
+                return "Report ID";
+            case global::tag::REPORT_COUNT:
+                return "Report Count";
+            case global::tag::PUSH:
+                return "Push";
+            case global::tag::POP:
+                return "Pop";
+            default:
+                return nullptr;
+            }
+        case item_type::LOCAL:
+            switch (local_tag())
+            {
+            case local::tag::USAGE:
+                return "Usage";
+            case local::tag::USAGE_MINIMUM:
+                return "Usage Minimum";
+            case local::tag::USAGE_MAXIMUM:
+                return "Usage Maximum";
+            case local::tag::DESIGNATOR_INDEX:
+                return "Designator Index";
+            case local::tag::DESIGNATOR_MINIMUM:
+                return "Designator Minimum";
+            case local::tag::DESIGNATOR_MAXIMUM:
+                return "Designator Maximum";
+            case local::tag::STRING_INDEX:
+                return "String Index";
+            case local::tag::STRING_MINIMUM:
+                return "String Minimum";
+            case local::tag::STRING_MAXIMUM:
+                return "String Maximum";
+            case local::tag::DELIMITER:
+                return "Delimiter";
+            default:
+                return nullptr;
+            }
+        default:
+            return nullptr;
+        }
+    }
     constexpr operator bool() const { return prefix_ != 0; }
 
   protected:

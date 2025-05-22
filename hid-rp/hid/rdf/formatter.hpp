@@ -169,17 +169,138 @@ struct std::formatter<hid::rdf::main::collection_type> : public std::formatter<s
     }
 };
 
+/// @brief  Formatter specialization for HID unit codes.
+template <>
+struct std::formatter<hid::rdf::unit::code> : public std::formatter<string_view>
+{
+  public:
+    template <typename FormatContext>
+    FormatContext::iterator format(const hid::rdf::unit::code& unit_code, FormatContext& ctx) const
+    {
+        using namespace hid::rdf::unit;
+        const char* name = nullptr;
+
+        switch (unit_code)
+        {
+        case code::CENTIMETER:
+            name = "(centi)meter";
+            break;
+        case code::RADIAN:
+            name = "radian";
+            break;
+        case code::INCH:
+            name = "inch";
+            break;
+        case code::DEGREE:
+            name = "degree";
+            break;
+        case code::GRAM:
+            name = "gram";
+            break;
+        case code::SLUG:
+            name = "slug";
+            break;
+        case code::SECOND:
+            name = "second";
+            break;
+        case code::KELVIN:
+            name = "kelvin";
+            break;
+        case code::FAHRENHEIT:
+            name = "fahrenheit";
+            break;
+        case code::AMPERE:
+            name = "ampere";
+            break;
+        case code::CANDELA:
+            name = "candela";
+            break;
+        case code::NEWTON:
+            name = "newton";
+            break;
+        case code::METER_PER_SECOND:
+            name = "meter per second";
+            break;
+        case code::METER_PER_SECOND2:
+            name = "meter per second squared";
+            break;
+        case code::PASCAL:
+            name = "pascal";
+            break;
+        case code::JOULE:
+            name = "joule";
+            break;
+        case code::HERTZ:
+            name = "hertz";
+            break;
+        case code::DEGREE_PER_SECOND:
+            name = "degree per second";
+            break;
+        case code::DEGREE_PER_SECOND2:
+            name = "degree per second squared";
+            break;
+        case code::RADIAN_PER_SECOND:
+            name = "radian per second";
+            break;
+        case code::RADIAN_PER_SECOND2:
+            name = "radian per second squared";
+            break;
+        case code::WATT:
+            name = "watt";
+            break;
+        case code::AMPERE_PER_SECOND:
+            name = "ampere per second";
+            break;
+        case code::COULOMB:
+            name = "coulomb";
+            break;
+        case code::FARAD:
+            name = "farad";
+            break;
+        case code::HENRY:
+            name = "henry";
+            break;
+        case code::LUX:
+            name = "lux";
+            break;
+        case code::OHM:
+            name = "ohm";
+            break;
+        case code::SIEMENS:
+            name = "siemens";
+            break;
+        case code::TESLA:
+            name = "tesla";
+            break;
+        case code::VOLT:
+            name = "volt";
+            break;
+        case code::WEBER:
+            name = "weber";
+            break;
+        default:
+            break;
+        }
+        if (name)
+        {
+            return std::formatter<string_view>::format(name, ctx);
+        }
+        return format_to(ctx.out(), "unknown({:#x})",
+                         static_cast<std::underlying_type_t<hid::rdf::unit::code>>(unit_code));
+    }
+};
+
 /// @brief Formatter specialization for HID report descriptors.
 /// @tparam TIterator: descriptor view iterator type (@ref reinterpret_iterator or @ref
 /// copy_iterator)
-template <typename TDescIterator>
-struct std::formatter<hid::rdf::descriptor_view_base<TDescIterator>>
+template <typename TIterator>
+struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
 {
   private:
     unsigned width_{4};
 
   public:
-    using descriptor_view_type = hid::rdf::descriptor_view_base<TDescIterator>;
+    using descriptor_view_type = hid::rdf::descriptor_view_base<TIterator>;
 
     constexpr auto parse(std::format_parse_context& ctx)
     {
@@ -197,9 +318,9 @@ struct std::formatter<hid::rdf::descriptor_view_base<TDescIterator>>
     FormatContext::iterator format(const descriptor_view_type& desc, FormatContext& ctx) const
     {
         using namespace hid::rdf;
-        struct parsing_formatter : public hid::rdf::parser<TDescIterator>
+        struct parsing_formatter : public hid::rdf::parser<TIterator>
         {
-            using base = hid::rdf::parser<TDescIterator>;
+            using base = hid::rdf::parser<TIterator>;
             using item_type = base::item_type;
             using items_view_type = base::items_view_type;
             using control = base::control;
@@ -208,13 +329,30 @@ struct std::formatter<hid::rdf::descriptor_view_base<TDescIterator>>
             FormatContext& ctx_;
             unsigned width_;
             unsigned collection_depth_{};
+            TIterator it_;
 
             parsing_formatter(const descriptor_view_type& desc_view, FormatContext& ctx,
                               unsigned width)
-                : base(), ctx_(ctx), width_(width)
+                : base(), ctx_(ctx), width_(width), it_(desc_view.begin())
             {
-                auto it = base::parse_items(desc_view);
-                format_items(items_view_type{it, desc_view.end()});
+                // if bounds are invalid, exit early
+                HID_RP_ASSERT(desc_view.has_valid_bounds(), ex_invalid_bounds);
+#if defined(__EXCEPTIONS) or defined(_CPPUNWIND)
+                try
+#endif
+                {
+                    it_ = base::parse_items(desc_view);
+                }
+#if defined(__EXCEPTIONS) or defined(_CPPUNWIND)
+                catch (const hid::rdf::exception& e)
+                {
+                    format_to(ctx_.out(), "Structural error: {}", e.what());
+                }
+#endif
+                // the remaining part (i.e. after final EndCollection or after error)
+                // is printed without usage page tracking and proper indentation
+                collection_depth_ = 0;
+                format_items(items_view_type{it_, desc_view.end()});
             }
 
             void format_items(const items_view_type& main_section,
@@ -231,6 +369,8 @@ struct std::formatter<hid::rdf::descriptor_view_base<TDescIterator>>
                     hid::usage_t usage = hid::nullusage;
                     const char* value_fs{};
                     format_args args = make_format_args("Unknown", value_unsigned);
+                    auto* tag_name = item.tag_name();
+                    const char* value_name{};
 
                     switch (item.type())
                     {
@@ -238,23 +378,17 @@ struct std::formatter<hid::rdf::descriptor_view_base<TDescIterator>>
                         switch (item.main_tag())
                         {
                         case main::tag::INPUT:
-                            args = make_format_args(
-                                "Input", *((hid::rdf::main::field_type*)&main_data_field));
-                            break;
                         case main::tag::OUTPUT:
-                            args = make_format_args(
-                                "Output", *((hid::rdf::main::field_type*)&main_data_field));
-                            break;
                         case main::tag::FEATURE:
                             args = make_format_args(
-                                "Feature", *((hid::rdf::main::field_type*)&main_data_field));
+                                tag_name, *((hid::rdf::main::field_type*)&main_data_field));
                             break;
                         case main::tag::COLLECTION:
                             args = make_format_args(
-                                "Collection", *((hid::rdf::main::collection_type*)&value_unsigned));
+                                tag_name, *((hid::rdf::main::collection_type*)&value_unsigned));
                             break;
                         case main::tag::END_COLLECTION:
-                            args = make_format_args("End Collection", "");
+                            args = make_format_args(tag_name, "");
                             break;
                         default:
                             value_unsigned = std::bit_cast<uint8_t>((item_header)item);
@@ -270,56 +404,45 @@ struct std::formatter<hid::rdf::descriptor_view_base<TDescIterator>>
                             auto info = hid::page::get_page_info(value_unsigned);
                             if (info.valid_page())
                             {
-                                args = make_format_args("Usage Page", info.page_name);
+                                args = make_format_args(tag_name, info.page_name);
                             }
                             else
                             {
                                 value_fs = ":#06x";
-                                args = make_format_args("Usage Page", value_unsigned);
+                                args = make_format_args(tag_name, value_unsigned);
                             }
                             break;
                         }
-                        case global::tag::LOGICAL_MINIMUM:
-                            args = make_format_args("Logical Minimum", value_signed);
-                            break;
                         case global::tag::LOGICAL_MAXIMUM:
                             if (main_data_field & main::data_field_flag::VARIABLE)
                             {
-                                args = make_format_args("Logical Maximum", value_signed);
+                                args = make_format_args(tag_name, value_signed);
                             }
                             else
                             {
-                                args = make_format_args("Logical Maximum", value_unsigned);
+                                args = make_format_args(tag_name, value_unsigned);
                             }
-                            break;
-                        case global::tag::PHYSICAL_MINIMUM:
-                            args = make_format_args("Physical Minimum", value_signed);
-                            break;
-                        case global::tag::PHYSICAL_MAXIMUM:
-                            args = make_format_args("Physical Maximum", value_signed);
                             break;
                         case global::tag::UNIT_EXPONENT:
                             value_signed = unit::get_exponent(item);
-                            args = make_format_args("Unit Exponent", value_signed);
+                            [[fallthrough]];
+                        case global::tag::LOGICAL_MINIMUM:
+                        case global::tag::PHYSICAL_MINIMUM:
+                        case global::tag::PHYSICAL_MAXIMUM:
+                            args = make_format_args(tag_name, value_signed);
                             break;
                         case global::tag::UNIT:
-                            value_fs = ":#010x";
-                            args = make_format_args("Unit", value_unsigned); // TODO
+                            args = make_format_args(tag_name,
+                                                    *((hid::rdf::unit::code*)&value_unsigned));
                             break;
                         case global::tag::REPORT_SIZE:
-                            args = make_format_args("Report Size", value_unsigned);
-                            break;
                         case global::tag::REPORT_ID:
-                            args = make_format_args("Report ID", value_unsigned);
-                            break;
                         case global::tag::REPORT_COUNT:
-                            args = make_format_args("Report Count", value_unsigned);
+                            args = make_format_args(tag_name, value_unsigned);
                             break;
                         case global::tag::PUSH:
-                            args = make_format_args("Push", "");
-                            break;
                         case global::tag::POP:
-                            args = make_format_args("Pop", "");
+                            args = make_format_args(tag_name, "");
                             break;
                         default:
                             value_unsigned = std::bit_cast<uint8_t>((item_header)item);
@@ -331,46 +454,35 @@ struct std::formatter<hid::rdf::descriptor_view_base<TDescIterator>>
                         switch (item.local_tag())
                         {
                         case local::tag::USAGE:
-                            usage = get_usage(item, global_state);
-                            args = make_format_args("Usage", usage);
-                            if (item.data_size() == 4)
-                            {
-                                value_fs = ":p";
-                            }
-                            break;
                         case local::tag::USAGE_MINIMUM:
-                            usage = get_usage(item, global_state);
-                            args = make_format_args("Usage Minimum", usage);
-                            if (item.data_size() == 4)
-                            {
-                                value_fs = ":p";
-                            }
-                            break;
                         case local::tag::USAGE_MAXIMUM:
-                            usage = get_usage(item, global_state);
-                            args = make_format_args("Usage Maximum", usage);
+#if defined(__EXCEPTIONS) or defined(_CPPUNWIND)
+                            try
+#endif
+                            {
+                                usage = get_usage(item, global_state);
+                            }
+#if defined(__EXCEPTIONS) or defined(_CPPUNWIND)
+                            catch (const hid::rdf::exception& e)
+                            {
+                                format_to(ctx_.out(), "{} error: {} ({})", tag_name, e.what(),
+                                          value_unsigned);
+                                continue;
+                            }
+#endif
+                            args = make_format_args(tag_name, usage);
                             if (item.data_size() == 4)
                             {
                                 value_fs = ":p";
                             }
                             break;
                         case local::tag::DESIGNATOR_INDEX:
-                            args = make_format_args("Designator Index", value_unsigned);
-                            break;
                         case local::tag::DESIGNATOR_MINIMUM:
-                            args = make_format_args("Designator Minimum", value_unsigned);
-                            break;
                         case local::tag::DESIGNATOR_MAXIMUM:
-                            args = make_format_args("Designator Maximum", value_unsigned);
-                            break;
                         case local::tag::STRING_INDEX:
-                            args = make_format_args("String Index", value_unsigned);
-                            break;
                         case local::tag::STRING_MINIMUM:
-                            args = make_format_args("String Minimum", value_unsigned);
-                            break;
                         case local::tag::STRING_MAXIMUM:
-                            args = make_format_args("String Maximum", value_unsigned);
+                            args = make_format_args(tag_name, value_unsigned);
                             break;
                         case local::tag::DELIMITER:
                             if (value_unsigned == 0)
@@ -414,7 +526,8 @@ struct std::formatter<hid::rdf::descriptor_view_base<TDescIterator>>
                                            [[maybe_unused]] unsigned tlc_count) override
             {
                 // include the main item in the section as well
-                const items_view_type section{main_section.begin(), ++main_section.end()};
+                it_ = ++main_section.end();
+                const items_view_type section{main_section.begin(), it_};
                 format_items(section, global_state);
                 collection_depth_++;
                 return control::CONTINUE;
@@ -425,7 +538,8 @@ struct std::formatter<hid::rdf::descriptor_view_base<TDescIterator>>
             {
                 collection_depth_--;
                 // include the main item in the section as well
-                const items_view_type section{main_section.begin(), ++main_section.end()};
+                it_ = ++main_section.end();
+                const items_view_type section{main_section.begin(), it_};
                 format_items(section, global_state);
                 return control::CONTINUE;
             }
@@ -435,7 +549,8 @@ struct std::formatter<hid::rdf::descriptor_view_base<TDescIterator>>
                                             [[maybe_unused]] unsigned tlc_count) override
             {
                 // include the main item in the section as well
-                const items_view_type section{main_section.begin(), ++main_section.end()};
+                it_ = ++main_section.end();
+                const items_view_type section{main_section.begin(), it_};
                 format_items(section, global_state, main_item.value_unsigned());
                 return control::CONTINUE;
             }

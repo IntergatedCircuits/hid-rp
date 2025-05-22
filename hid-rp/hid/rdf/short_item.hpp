@@ -108,7 +108,7 @@ class short_item : public array<1 + DATA_SIZE>
     constexpr std::int32_t value_signed() const
     {
         auto h = std::bit_cast<item_header>(*data());
-        return get_signed_value(&h, data() + 1);
+        return item_header::get_signed_value(&h, data() + 1);
     }
 };
 
