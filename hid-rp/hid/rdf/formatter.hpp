@@ -22,11 +22,6 @@
 template <>
 struct std::formatter<hid::usage_t>
 {
-  private:
-    std::formatter<hid::usage_id_t> numeric_{};
-    bool add_page_{};
-
-  public:
     constexpr auto parse(std::format_parse_context& ctx)
     {
         auto pos = ctx.begin();
@@ -73,19 +68,23 @@ struct std::formatter<hid::usage_t>
         }
         return ctx.out();
     }
+
+  private:
+    std::formatter<hid::usage_id_t> numeric_{};
+    bool add_page_{};
 };
 
 /// @brief  Formatter specialization for compile-time usage types.
 /// @tparam T: usage concept type
 template <hid::UsageType T>
-struct std::formatter<T> : public std::formatter<hid::usage_t>
+struct std::formatter<T> : std::formatter<hid::usage_t>
 {};
 
 /// @brief  Formatter specialization for HID main item field types.
 template <>
-struct std::formatter<hid::rdf::main::field_type> : public std::formatter<string_view>
+struct std::formatter<hid::rdf::main::field_type>
 {
-  public:
+    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
     template <typename FormatContext>
     FormatContext::iterator format(const hid::rdf::main::field_type& field,
                                    FormatContext& ctx) const
@@ -97,27 +96,27 @@ struct std::formatter<hid::rdf::main::field_type> : public std::formatter<string
                   (field & main::data_field_flag::RELATIVE ? "Relative" : "Absolute"));
         if (field & main::data_field_flag::WRAP)
         {
-            std::formatter<string_view>::format(",Wrap", ctx);
+            format_to(ctx.out(), ",Wrap");
         }
         if (field & main::data_field_flag::NONLINEAR)
         {
-            std::formatter<string_view>::format(",Nonlinear", ctx);
+            format_to(ctx.out(), ",Nonlinear");
         }
         if (field & main::data_field_flag::NO_PREFERRED)
         {
-            std::formatter<string_view>::format(",NoPreferred", ctx);
+            format_to(ctx.out(), ",NoPreferred");
         }
         if (field & main::data_field_flag::NULL_STATE)
         {
-            std::formatter<string_view>::format(",NullState", ctx);
+            format_to(ctx.out(), ",NullState");
         }
         if (field & main::data_field_flag::VOLATILE)
         {
-            std::formatter<string_view>::format(",Volatile", ctx);
+            format_to(ctx.out(), ",Volatile");
         }
         if (field & main::data_field_flag::BUFFERED_BYTES)
         {
-            std::formatter<string_view>::format(",BufferedBytes", ctx);
+            format_to(ctx.out(), ",BufferedBytes");
         }
         return ctx.out();
     }
@@ -125,9 +124,8 @@ struct std::formatter<hid::rdf::main::field_type> : public std::formatter<string
 
 /// @brief  Formatter specialization for HID collection types.
 template <>
-struct std::formatter<hid::rdf::main::collection_type> : public std::formatter<string_view>
+struct std::formatter<hid::rdf::main::collection_type> : std::formatter<string_view>
 {
-  public:
     template <typename FormatContext>
     FormatContext::iterator format(const hid::rdf::main::collection_type& collection,
                                    FormatContext& ctx) const
@@ -171,15 +169,13 @@ struct std::formatter<hid::rdf::main::collection_type> : public std::formatter<s
 
 /// @brief  Formatter specialization for HID unit codes.
 template <>
-struct std::formatter<hid::rdf::unit::code> : public std::formatter<string_view>
+struct std::formatter<hid::rdf::unit::code> : std::formatter<string_view>
 {
-  public:
     template <typename FormatContext>
     FormatContext::iterator format(const hid::rdf::unit::code& unit_code, FormatContext& ctx) const
     {
         using namespace hid::rdf::unit;
         const char* name = nullptr;
-
         switch (unit_code)
         {
         case code::CENTIMETER:
@@ -291,15 +287,11 @@ struct std::formatter<hid::rdf::unit::code> : public std::formatter<string_view>
 };
 
 /// @brief Formatter specialization for HID report descriptors.
-/// @tparam TIterator: descriptor view iterator type (@ref reinterpret_iterator or @ref
-/// copy_iterator)
+/// @tparam TIterator: descriptor view iterator type
+/// ( @ref hid::rdf::reinterpret_iterator or @ref hid::rdf::copy_iterator)
 template <typename TIterator>
 struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
 {
-  private:
-    unsigned width_{4};
-
-  public:
     using descriptor_view_type = hid::rdf::descriptor_view_base<TIterator>;
 
     constexpr auto parse(std::format_parse_context& ctx)
@@ -318,6 +310,9 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
     FormatContext::iterator format(const descriptor_view_type& desc, FormatContext& ctx) const
     {
         using namespace hid::rdf;
+        // A parsing formatter is used to manage the descriptor collection indentation,
+        // and the proper usage page tracking. When parsing fails,
+        // the remaining items are printed without indentation and without usage page info.
         struct parsing_formatter : public hid::rdf::parser<TIterator>
         {
             using base = hid::rdf::parser<TIterator>;
@@ -476,10 +471,8 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
                                            const items_view_type& main_section,
                                            [[maybe_unused]] unsigned tlc_count) override
             {
-                // include the main item in the section as well
-                it_ = ++main_section.end();
-                const items_view_type section{main_section.begin(), it_};
-                format_items(section, global_state);
+                it_ = ++main_section.end(); // include the main item in the section as well
+                format_items({main_section.begin(), it_}, global_state);
                 collection_depth_++;
                 return control::CONTINUE;
             }
@@ -488,10 +481,8 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
                                          [[maybe_unused]] unsigned tlc_number) override
             {
                 collection_depth_--;
-                // include the main item in the section as well
-                it_ = ++main_section.end();
-                const items_view_type section{main_section.begin(), it_};
-                format_items(section, global_state);
+                it_ = ++main_section.end(); // include the main item in the section as well
+                format_items({main_section.begin(), it_}, global_state);
                 return control::CONTINUE;
             }
             control parse_report_data_field([[maybe_unused]] const item_type& main_item,
@@ -499,10 +490,8 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
                                             const items_view_type& main_section,
                                             [[maybe_unused]] unsigned tlc_count) override
             {
-                // include the main item in the section as well
-                it_ = ++main_section.end();
-                const items_view_type section{main_section.begin(), it_};
-                format_items(section, global_state, main_item.value_unsigned());
+                it_ = ++main_section.end(); // include the main item in the section as well
+                format_items({main_section.begin(), it_}, global_state, main_item.value_unsigned());
                 return control::CONTINUE;
             }
         };
@@ -510,6 +499,9 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
         parsing_formatter formatter{desc, ctx, width_};
         return ctx.out();
     }
+
+  private:
+    unsigned width_{4};
 };
 
 #endif // __HID_RDF_FORMATTER_HPP_

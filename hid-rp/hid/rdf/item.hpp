@@ -36,29 +36,32 @@ class alignas(1) item_header
         HID_RP_ASSERT(type() == item_type::GLOBAL, ex_item_invalid_tag_type);
         return static_cast<global::tag>(short_tag());
     }
-
     constexpr local::tag local_tag() const
     {
         HID_RP_ASSERT(type() == item_type::LOCAL, ex_item_invalid_tag_type);
         return static_cast<local::tag>(short_tag());
     }
-
     constexpr main::tag main_tag() const
     {
         HID_RP_ASSERT(type() == item_type::MAIN, ex_item_invalid_tag_type);
         return static_cast<main::tag>(short_tag());
     }
-
-    template <typename TTag>
-    constexpr bool has_tag(TTag tag) const
-    {
-        return (match_type<TTag>() == type()) and (static_cast<TTag>(short_tag()) == tag);
-    }
-
     constexpr tag unified_tag() const
     {
         HID_RP_ASSERT(is_short(), ex_item_invalid_tag_type);
         return static_cast<tag>(prefix_ >> 2);
+    }
+    template <typename TTag>
+    constexpr bool has_tag(TTag tag) const
+    {
+        if constexpr (std::is_same_v<TTag, hid::rdf::tag>)
+        {
+            return unified_tag() == tag;
+        }
+        else
+        {
+            return (match_type<TTag>() == type()) and (static_cast<TTag>(short_tag()) == tag);
+        }
     }
 
     constexpr static std::uint32_t get_unsigned_value(const item_header* header,
@@ -223,7 +226,7 @@ class alignas(1) item : public item_header
     TTag tag() const
     {
         HID_RP_ASSERT(is_correct_type<TTag>(), ex_item_invalid_tag_type);
-        if (is_short())
+        if (is_short()) [[likely]]
         {
             return static_cast<TTag>(short_tag());
         }
@@ -235,7 +238,7 @@ class alignas(1) item : public item_header
 
     constexpr byte_type data_size() const
     {
-        if (is_short())
+        if (is_short()) [[likely]]
         {
             return short_data_size();
         }
@@ -247,7 +250,7 @@ class alignas(1) item : public item_header
 
     constexpr std::size_t size() const
     {
-        if (is_short())
+        if (is_short()) [[likely]]
         {
             return sizeof(item_header) + short_data_size();
         }
@@ -261,7 +264,7 @@ class alignas(1) item : public item_header
 
     constexpr const byte_type* data() const
     {
-        if (is_short())
+        if (is_short()) [[likely]]
         {
             return data_;
         }
@@ -329,14 +332,7 @@ class alignas(1) short_item_buffer : public item_header
         : item_header(data[0]), data_buffer_()
     {
         HID_RP_ASSERT(is_short(), ex_item_long);
-#if __cplusplus > 201703L
         std::copy(data + 1, data + 1 + data_size(), data_buffer_.begin());
-#else
-        for (std::size_t i = 0; i < data_size(); i++)
-        {
-            data_buffer_[i] = data[1 + i];
-        }
-#endif
     }
 
     template <typename TTag>

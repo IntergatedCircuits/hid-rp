@@ -1,7 +1,7 @@
 /// @file
 ///
 /// @author Benedek Kupper
-/// @date   2022
+/// @date   2025
 ///
 /// @copyright
 ///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
@@ -46,14 +46,7 @@ class global_item_store
 
     constexpr const short_item_buffer* get_item(global::tag tag) const
     {
-        if (!has_item(tag))
-        {
-            return nullptr;
-        }
-        else
-        {
-            return &item_by_tag(tag);
-        }
+        return has_item(tag) ? &item_by_tag(tag) : nullptr;
     }
 
   private:
@@ -67,7 +60,6 @@ class global_item_store
     {
         return (tag <= global::tag::REPORT_COUNT);
     }
-
     constexpr const short_item_buffer& item_by_tag(global::tag tag) const
     {
         return items_[static_cast<byte_type>(tag)];
@@ -78,12 +70,12 @@ class global_item_store
     }
 
     constexpr static byte_type ITEMS_COUNT = static_cast<byte_type>(global::tag::REPORT_COUNT) + 1;
-
     std::array<short_item_buffer, ITEMS_COUNT> items_;
 };
 
-/// @brief Base class for parsing HID report descriptors. Derived classes can define
-///        the output data of the parsing as member variables, assigning them during parsing.
+/// @brief Base class for parsing HID report descriptors. It manages the global state,
+/// while subclasses must interpret the the items section at each main item, see
+/// @ref parse_collection_begin, @ref parse_collection_end, and @ref parse_report_data_field.
 template <typename TIterator, typename TItem = typename TIterator::value_type>
 class parser
 {
@@ -176,7 +168,7 @@ class parser
     constexpr static usage_t get_usage(const item_type& usage_item,
                                        const global_item_store& global_state)
     {
-        if (usage_item.data_size() == sizeof(usage_t))
+        if (usage_item.data_size() == sizeof(usage_t)) [[unlikely]]
         {
             return usage_t(usage_item.value_unsigned());
         }
@@ -192,6 +184,7 @@ class parser
     }
 
     /// @brief Verifies the correctness of the delimiters in a section.
+    /// Errors are reported using HID_RP_ASSERT.
     /// @param main_section: the span of items between the previous and this main item
     /// @return true if delimiters were found, false otherwise
     constexpr static bool check_delimiters(const items_view_type& main_section)
@@ -204,7 +197,7 @@ class parser
             {
                 continue;
             }
-            if (item.has_tag(local::tag::DELIMITER))
+            if (item.has_tag(tag::DELIMITER))
             {
                 auto delimiter = item.value_unsigned();
                 HID_RP_ASSERT(delimiter <= 1, ex_delimiter_invalid);
@@ -213,9 +206,8 @@ class parser
                 found = true;
                 continue;
             }
-            if (open and !item.has_tag(local::tag::USAGE) and
-                !item.has_tag(local::tag::USAGE_MINIMUM) and
-                !item.has_tag(local::tag::USAGE_MAXIMUM))
+            if (open and !item.has_tag(tag::USAGE) and !item.has_tag(tag::USAGE_MINIMUM) and
+                !item.has_tag(tag::USAGE_MAXIMUM))
             {
                 HID_RP_ASSERT(false, ex_delimiter_invalid_content);
             }
@@ -224,6 +216,9 @@ class parser
         return found;
     }
 
+    /// @brief Extracts the report data field parameters from the global item store.
+    /// @param global_state: the global items state at the current main item
+    /// @return The report data field parameters, including ID, size, and count
     constexpr static auto get_report_data_field_params(const global_item_store& global_state)
     {
         report_data_field_params params{};
@@ -246,6 +241,9 @@ class parser
         return params;
     }
 
+    /// @brief Extracts the logical limits from the global item store.
+    /// @param global_state: the global items state at the current main item
+    /// @return The logical limits as a pair of signed integers
     constexpr static auto get_logical_limits_signed(const global_item_store& global_state)
     {
         const auto* min_item = global_state.get_item(global::tag::LOGICAL_MINIMUM);
@@ -257,6 +255,9 @@ class parser
         return l;
     }
 
+    /// @brief Extracts the logical limits from the global item store for unsigned values.
+    /// @param global_state: the global items state at the current main item
+    /// @return The logical limits as a pair of unsigned integers
     constexpr static auto get_logical_limits_unsigned(const global_item_store& global_state)
     {
         const auto* min_item = global_state.get_item(global::tag::LOGICAL_MINIMUM);
@@ -268,6 +269,9 @@ class parser
         return l;
     }
 
+    /// @brief Extracts the physical limits from the global item store.
+    /// @param global_state: the global items state at the current main item
+    /// @return The physical limits as a pair of signed integers, or std::nullopt if not defined
     constexpr static std::optional<limits<std::int32_t>>
     get_physical_limits(const global_item_store& global_state)
     {
@@ -283,6 +287,9 @@ class parser
         return std::nullopt;
     }
 
+    /// @brief Computes the maximum depth of the global stack in the descriptor view.
+    /// @param desc_view: the HID report descriptor's view
+    /// @return The maximum depth of the global stack
     constexpr static std::size_t global_stack_depth(descriptor_view_type desc_view)
     {
         std::size_t max_depth = 0;
@@ -303,6 +310,10 @@ class parser
         return max_depth;
     }
 
+    /// @brief This method parses the HID report descriptor,
+    /// storing the global items in a fixed-size stack.
+    /// @param desc_view: the HID report descriptor's view
+    /// @return the iterator to the first item that was not processed
     constexpr TIterator parse_items(descriptor_view_type desc_view)
     {
         HID_RP_ASSERT(desc_view.has_valid_bounds(), ex_invalid_bounds);
@@ -479,20 +490,20 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
                                                  unsigned tlc_number) override
         {
             collection_depth_++;
-            if (collection_depth_ != 1)
+            if (collection_depth_ == 1)
             {
-                return control::CONTINUE;
-            }
-            for (auto& it : main_section)
-            {
-                if (it.has_tag(local::tag::USAGE))
+                for (auto& it : main_section)
                 {
-                    usage_ = base::get_usage(it, global_state);
-                    return control::BREAK;
+                    if (it.has_tag(tag::USAGE))
+                    {
+                        // TODO: ensure that this is the only usage in the collection
+                        usage_ = base::get_usage(it, global_state);
+                        break;
+                    }
                 }
+                HID_RP_ASSERT(usage_ != nullusage, ex_usage_missing);
             }
-            HID_RP_ASSERT(false, ex_usage_missing);
-            return control::CONTINUE;
+            return end_collection_ ? control::BREAK : control::CONTINUE;
         }
         constexpr control
         parse_collection_end([[maybe_unused]] const global_item_store& global_state,
@@ -507,8 +518,9 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
             return control::CONTINUE;
         }
 
-        usage_t usage_{0};
-        unsigned collection_depth_{0};
+        usage_t usage_{nullusage};
+        unsigned collection_depth_{};
+        bool end_collection_{};
     };
 
     auto usage = application_usage_id_parser(desc_view).usage_;

@@ -33,6 +33,8 @@
 
 namespace hid::rdf
 {
+/// @brief This is the base class for all exceptions in this library.
+/// It doesn't subclass std::exception as it doesn't have a constexpr constructor.
 class exception
 {
   public:
@@ -56,6 +58,8 @@ struct ex_item_invalid_tag_type : public exception
     {}
 };
 
+/// @brief This class is trying to follow the conventions established by this document:
+/// https://usb.org/sites/default/files/hidpar.pdf
 class parser_exception : public exception
 {
   public:

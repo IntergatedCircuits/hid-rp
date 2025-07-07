@@ -184,8 +184,7 @@ class data_field
     }
 
     /// @brief  Creates not only the data field item, but adds @ref report_count and @ref
-    /// report_size
-    ///         items as well, in order to define a specific bit padding with a single entry.
+    /// report_size items as well, in order to define a specific bit padding with a single entry.
     /// @param  bitsize: the number of bits of padding to add as a new data field
     /// @return Minimal set of items to define a padding.
     constexpr static auto padding(byte_type bitsize)
@@ -194,7 +193,8 @@ class data_field
                data_field_item<1>(TAG, field_type::PADDING);
     }
 
-    /// @brief  Creates optional padding if the report bit size isn't byte aligned.
+    /// @brief  Creates optional padding if the report bit size isn't byte aligned
+    /// @tparam REPORT_CHUNK_BIT_SIZE: the size of the report chunk so far in bits
     /// @return Minimal set of items to define byte padding.
     template <std::size_t REPORT_CHUNK_BIT_SIZE>
     constexpr static auto byte_padding() -> rdf::array<

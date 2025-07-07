@@ -155,3 +155,5 @@ and the maximum used report ID as well (of each type of report).
 [hid-usage-tables]: https://github.com/IntergatedCircuits/hid-usage-tables
 [stm32-i2c-hid]: https://github.com/benedekkupper/stm32-i2c-hid
 [c2usb-zephyr-examples]: https://github.com/IntergatedCircuits/c2usb-zephyr-examples
+[linux-hidintro]: https://docs.kernel.org/hid/hidintro.html
+[windows-hidintro]: https://learn.microsoft.com/en-us/windows-hardware/drivers/hid/

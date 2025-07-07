@@ -85,6 +85,10 @@ struct nibble
     std::int32_t value : 4;
 };
 
+/// @brief Returns the exponent needed to convert the unit to SI base units,
+/// to convert centimeter to meter and gram to kilogram.
+/// @param unit_code: The HID unit code.
+/// @return The exponent needed to use the unit as an SI unit.
 constexpr inline std::int8_t get_si_exponent(code unit_code)
 {
     nibble length{(std::int32_t)unit_code >> (global::unit_nibble_index::LENGTH * 4)};
@@ -97,6 +101,7 @@ constexpr inline std::int8_t get_si_exponent(code unit_code)
 template <typename TItem>
 constexpr std::int32_t get_exponent(const TItem& exp)
 {
+    // TODO: assert that the other data bits are zero
     // stored on 4 bytes
     return nibble{exp.value_signed()}.value;
 }

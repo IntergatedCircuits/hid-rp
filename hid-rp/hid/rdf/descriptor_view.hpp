@@ -27,8 +27,12 @@ class reinterpret_iterator
     using pointer = const value_type*;
     using reference = const value_type&;
 
+    using difference_type = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
 
+    constexpr reinterpret_iterator()
+        : ptr_()
+    {}
     constexpr reinterpret_iterator(const byte_type* data)
         : ptr_(data)
     {}
@@ -72,8 +76,12 @@ class copy_iterator
     using pointer = const value_type*;
     using reference = const value_type&;
 
+    using difference_type = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
 
+    constexpr copy_iterator()
+        : ptr_()
+    {}
     constexpr copy_iterator(const byte_type* data)
         : ptr_(data)
     {}
@@ -200,9 +208,11 @@ class descriptor_view_base : public items_view_base<TIterator>
 
 /// @brief HID report descriptor view, use for runtime descriptor parsing.
 using descriptor_view = descriptor_view_base<reinterpret_iterator>;
+static_assert(std::ranges::range<descriptor_view>);
 
 /// @brief HID report descriptor view, use for compile-time descriptor parsing.
 using ce_descriptor_view = descriptor_view_base<copy_iterator>;
+static_assert(std::ranges::range<ce_descriptor_view>);
 
 } // namespace hid::rdf
 
