@@ -50,7 +50,7 @@ static constexpr auto app_report_descriptor()
                 conditional_report_id<REPORT_ID>(),
                 // buttons
                 usage_page<button>(),
-                usage_limits(button(1), button(BUTTONS_COUNT)),
+                usage_limits<1, 1>(button(1), button(BUTTONS_COUNT)),
                 logical_limits<1, 1>(0, 1),
                 report_count(BUTTONS_COUNT),
                 report_size(1),
