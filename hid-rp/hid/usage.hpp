@@ -36,8 +36,8 @@ struct info
     constexpr info(page_id_t page, usage_id_t max, const char* name,
                    const char* (*get_name)(hid::usage_id_t id) = nullptr,
                    usage_id_t inline_usage_switch_mask = 0)
-        : page_name(name),
-          get_usage_name_(get_name),
+        : get_usage_name_(get_name),
+          page_name(name),
           page_id(page),
           max_usage_id(max),
           ius_mask(inline_usage_switch_mask)

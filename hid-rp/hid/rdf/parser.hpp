@@ -484,10 +484,10 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
             base::parse_items(desc_view);
         }
 
-        constexpr control parse_collection_begin(main::collection_type collection,
+        constexpr control parse_collection_begin([[maybe_unused]] main::collection_type collection,
                                                  const global_item_store& global_state,
                                                  const items_view_type& main_section,
-                                                 unsigned tlc_number) override
+                                                 [[maybe_unused]] unsigned tlc_number) override
         {
             collection_depth_++;
             if (collection_depth_ == 1)
