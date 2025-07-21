@@ -86,11 +86,11 @@ class alignas(1) item_header
         if ((size > 0) and (size < 4))
         {
             // sign extend
-            auto shift = (8 * size) - 1;
+            auto shift = (8u * size) - 1u;
             auto check = uval >> shift;
             if (check > 0)
             {
-                value |= 0xffffffff << shift;
+                value |= static_cast<std::int32_t>(0xffffffffu << shift);
             }
         }
         return value;

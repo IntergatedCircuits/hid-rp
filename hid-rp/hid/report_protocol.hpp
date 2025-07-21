@@ -152,7 +152,7 @@ struct report_protocol_properties
             {
                 auto& report_sizes = bit_sizes_by_type(type);
                 auto begin = report_sizes.begin();
-                auto max_size = *std::max_element(++begin, report_sizes.end()) / 8;
+                auto max_size = *std::max_element(++begin, report_sizes.end()) / 8u;
                 if (max_size > 0)
                 {
                     return sizeof(report::id) + max_size;

@@ -64,7 +64,7 @@ constexpr auto usage_extended_limits(T min, T max)
 }
 
 template <UsageType T>
-constexpr auto usage_extended_limits(nullusage_t min, T max)
+constexpr auto usage_extended_limits(nullusage_t, T max)
 {
     auto ui = usage_t(max);
     return short_item<sizeof(usage_t)>(local::tag::USAGE_MINIMUM, usage_t(ui.page_id(), 0)),

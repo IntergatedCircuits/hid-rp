@@ -34,3 +34,15 @@ target_link_libraries(${PROJECT_NAME}-test
         ${PROJECT_NAME}
 )
 catch_discover_tests(${PROJECT_NAME}-test)
+
+target_compile_options(${PROJECT_NAME}-test
+    PRIVATE
+        $<$<CXX_COMPILER_ID:GNU>:-fconcepts-diagnostics-depth=20>
+        -Wall
+        -Wextra
+        -Werror
+        # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+        # https://embeddedartistry.com/blog/2023/09/20/leveraging-your-toolchain-to-improve-security/
+        $<$<CXX_COMPILER_ID:GNU>:-Wshift-overflow=2>
+        -Wsign-conversion
+)

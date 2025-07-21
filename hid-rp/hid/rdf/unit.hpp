@@ -24,7 +24,7 @@ constexpr std::uint32_t calculate_code(system sys = system::NONE, int length_cou
                                        int luminous_int_count = 0)
 {
     return static_cast<std::uint32_t>(
-        (static_cast<std::uint32_t>(sys) << (global::unit_nibble_index::SYSTEM * 4)) |
+        (static_cast<std::int32_t>(sys) << (global::unit_nibble_index::SYSTEM * 4)) |
         ((length_count & 0xf) << (global::unit_nibble_index::LENGTH * 4)) |
         ((mass_count & 0xf) << (global::unit_nibble_index::MASS * 4)) |
         ((time_count & 0xf) << (global::unit_nibble_index::TIME * 4)) |

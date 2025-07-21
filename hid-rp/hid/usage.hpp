@@ -118,11 +118,11 @@ class usage_t
         : value_(value)
     {}
     constexpr usage_t(page_id_t page, usage_id_t u)
-        : value_((page << 16) | u)
+        : value_((static_cast<type>(page) << 16u) | u)
     {}
     template <UsageType T>
     constexpr usage_t(T u)
-        : value_((page::get_info<T>().page_id << 16) | static_cast<type>(u))
+        : value_((static_cast<type>(page::get_info<T>().page_id) << 16u) | static_cast<type>(u))
     {}
     constexpr operator type&() { return value_; }
     constexpr operator type() const { return value_; }
