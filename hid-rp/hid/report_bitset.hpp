@@ -64,7 +64,7 @@ class report_bitset
     {
         if (in_range(usage))
         {
-            auto n = static_cast<numeric_type>(usage) - static_cast<numeric_type>(min());
+            numeric_type n = static_cast<numeric_type>(usage) - static_cast<numeric_type>(min());
             return bits_[n / 8] & (1 << (n % 8));
         }
         assert(false);
