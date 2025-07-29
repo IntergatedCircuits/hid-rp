@@ -142,6 +142,9 @@ struct report_protocol_properties
             }
         }
 
+        // https://stackoverflow.com/questions/72835571/constexpr-c-error-destructor-used-before-its-definition
+        constexpr ~parser() override {}
+
         constexpr size_type max_report_size(report::type type) const
         {
             if (!uses_report_ids())
