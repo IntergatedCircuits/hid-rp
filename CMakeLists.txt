@@ -54,7 +54,7 @@ else()
     set(IS_TOPLEVEL_PROJECT FALSE)
 endif()
 
-option(HID_RP_TESTS "Enable unit testing" ${IS_TOPLEVEL_PROJECT})
+option(HID_RP_TESTS "hid-rp: enable unit testing" ${IS_TOPLEVEL_PROJECT})
 if(HID_RP_TESTS)
     enable_testing()
     add_subdirectory(test)

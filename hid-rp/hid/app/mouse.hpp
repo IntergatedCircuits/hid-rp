@@ -131,15 +131,14 @@ static constexpr auto high_resolution_scrolling()
 {
     using namespace hid::page;
     using namespace hid::rdf;
-    constexpr uint8_t SCROLL_BYTES = MAX_SCROLL > std::numeric_limits<int8_t>::max() ? 2 : 1;
 
     // clang-format off
     return descriptor(
         collection::logical(
             usage(generic_desktop::WHEEL),
-            logical_limits<SCROLL_BYTES>(-MAX_SCROLL, MAX_SCROLL),
+            logical_limits<value_size(MAX_SCROLL)>(-MAX_SCROLL, MAX_SCROLL),
             report_count(1),
-            report_size(SCROLL_BYTES * 8),
+            report_size(value_size(MAX_SCROLL) * 8),
             input::relative_variable(),
             resolution_multiplier<MULTIPLIER_MAX>()
         ),

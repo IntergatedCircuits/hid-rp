@@ -252,43 +252,29 @@ struct report_protocol_properties
                 HID_RP_ASSERT(report_tlc_index == tlc_count, ex_report_crossing_tlc_bounds);
             }
 
-            // logical limits verification
-            if ((main_item.value_unsigned() &
-                 (main::data_field_flag::VARIABLE | main::data_field_flag::BUFFERED_BYTES)) ==
-                main::data_field_flag::VARIABLE)
-            {
-                auto logical_limits = get_logical_limits_signed(global_state);
-                HID_RP_ASSERT(logical_limits.min >= -(1 << std::int32_t(report_params.size - 1)),
-                              ex_logical_min_oob);
-                HID_RP_ASSERT(logical_limits.max <= (1 << std::int32_t(report_params.size - 1)),
-                              ex_logical_max_oob);
-            }
-            else
-            {
-                auto logical_limits = get_logical_limits_unsigned(global_state);
-                HID_RP_ASSERT(logical_limits.min <= 1, ex_logical_min_oob);
-                HID_RP_ASSERT(logical_limits.max <= (std::uint32_t(1) << report_params.size),
-                              ex_logical_max_oob);
-            }
-
-            get_physical_limits(global_state);
-
             check_delimiters(main_section);
 
             // usage limits verification
             short_item_buffer usage_min_item{};
             short_item_buffer usage_max_item{};
+            bool usage_present = false;
             for (const item_type& item : main_section)
             {
-                if (item.has_tag(local::tag::USAGE_MINIMUM))
+                switch (item.unified_tag())
                 {
+                case tag::USAGE_MINIMUM:
                     HID_RP_ASSERT(!usage_min_item, ex_usage_min_duplicate);
                     usage_min_item = item;
-                }
-                else if (item.has_tag(local::tag::USAGE_MAXIMUM))
-                {
+                    break;
+                case tag::USAGE_MAXIMUM:
                     HID_RP_ASSERT(!usage_max_item, ex_usage_max_duplicate);
                     usage_max_item = item;
+                    break;
+                case tag::USAGE:
+                    usage_present = true;
+                    break;
+                default:
+                    break;
                 }
             }
             if (usage_min_item and usage_max_item)
@@ -303,10 +289,37 @@ struct report_protocol_properties
                 HID_RP_ASSERT((usage_min >> 16) == (usage_max >> 16),
                               ex_usage_limits_page_mismatch);
                 HID_RP_ASSERT(usage_min <= usage_max, ex_usage_limits_crossed);
+                usage_present = true;
             }
             else
             {
                 HID_RP_ASSERT(usage_min_item == usage_max_item, ex_usage_limit_missing);
+            }
+
+            if (!usage_present)
+            {
+                // skip limits verification on padding bits
+            }
+            else if ((main_item.value_unsigned() &
+                      (main::data_field_flag::VARIABLE | main::data_field_flag::BUFFERED_BYTES)) ==
+                     main::data_field_flag::VARIABLE)
+            {
+                auto logical_limits = get_logical_limits_signed(global_state);
+                HID_RP_ASSERT(logical_limits.min >= -(1 << std::int32_t(report_params.size - 1)),
+                              ex_logical_min_oob);
+                HID_RP_ASSERT(logical_limits.max <= (1 << std::int32_t(report_params.size - 1)),
+                              ex_logical_max_oob);
+
+                get_physical_limits(global_state);
+            }
+            else
+            {
+                auto logical_limits = get_logical_limits_unsigned(global_state);
+                HID_RP_ASSERT(logical_limits.min <= 1, ex_logical_min_oob);
+                HID_RP_ASSERT(logical_limits.max <= (std::uint32_t(1) << report_params.size),
+                              ex_logical_max_oob);
+
+                get_physical_limits(global_state);
             }
 
             return control::CONTINUE;
