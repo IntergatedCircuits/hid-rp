@@ -454,7 +454,7 @@ class parser
         HID_RP_ASSERT(global_stack_depth == 0, ex_push_unmatched);
         HID_RP_ASSERT(collection_depth == 0, ex_collection_begin_unmatched);
 
-        return ++last_main_item;
+        return (last_main_item == desc_view.end()) ? desc_view.end() : ++last_main_item;
     }
 
   protected:

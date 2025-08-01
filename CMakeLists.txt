@@ -48,6 +48,8 @@ target_include_directories(${PROJECT_NAME}
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
+add_subdirectory(hid-rd-reader)
+
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(IS_TOPLEVEL_PROJECT TRUE)
 else()
