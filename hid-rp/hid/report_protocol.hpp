@@ -105,29 +105,19 @@ struct report_protocol_properties
           max_feature_id(max_feature_id)
     {}
 
-    /// @brief Define the report protocol properties by parsing the descriptor in compile-time.
-    /// @param desc_view: View of the HID report descriptor
-    consteval report_protocol_properties(const descriptor_view_type& desc_view)
-        : report_protocol_properties(parser(desc_view).max_report_size(report::type::INPUT),
-                                     parser(desc_view).max_report_size(report::type::OUTPUT),
-                                     parser(desc_view).max_report_size(report::type::FEATURE),
-                                     parser(desc_view).max_report_id(report::type::INPUT),
-                                     parser(desc_view).max_report_id(report::type::OUTPUT),
-                                     parser(desc_view).max_report_id(report::type::FEATURE))
-    {}
-
     /// @brief This class parses the HID report descriptor, gathering all report size
     ///        and TLC assignment information, and verifying that the descriptor describes
     ///        a valid HID protocol.
-    class parser : public rdf::parser<descriptor_view_type::iterator>
+    template <typename TIterator = descriptor_view_type::iterator>
+    class parser : public rdf::parser<TIterator>
     {
       public:
-        using base = rdf::parser<descriptor_view_type::iterator>;
+        using base = rdf::parser<TIterator>;
         using item_type = base::item_type;
         using items_view_type = base::items_view_type;
         using control = base::control;
 
-        constexpr parser(const descriptor_view_type& desc_view)
+        constexpr parser(const rdf::descriptor_view_base<TIterator>& desc_view)
             : base()
         {
             base::parse_items(desc_view);
@@ -365,6 +355,17 @@ struct report_protocol_properties
         std::array<std::array<unsigned, report::id::max()>, 3> report_tlc_indexes_{};
         std::array<report::id::type, 3> max_report_ids_{};
     };
+
+    /// @brief Define the report protocol properties by parsing the descriptor in compile-time.
+    /// @param desc_view: View of the HID report descriptor
+    consteval report_protocol_properties(const descriptor_view_type& desc_view)
+        : report_protocol_properties(parser<>(desc_view).max_report_size(report::type::INPUT),
+                                     parser<>(desc_view).max_report_size(report::type::OUTPUT),
+                                     parser<>(desc_view).max_report_size(report::type::FEATURE),
+                                     parser<>(desc_view).max_report_id(report::type::INPUT),
+                                     parser<>(desc_view).max_report_id(report::type::OUTPUT),
+                                     parser<>(desc_view).max_report_id(report::type::FEATURE))
+    {}
 };
 
 /// @brief This class holds the necessary information about the specific HID report protocol

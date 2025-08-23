@@ -22,7 +22,7 @@ using usage_id_t = std::uint16_t;
 
 namespace page
 {
-struct info
+struct [[nodiscard]] info
 {
   private:
     const char* (*const get_usage_name_)(hid::usage_id_t id);

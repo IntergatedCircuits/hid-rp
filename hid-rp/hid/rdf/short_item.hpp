@@ -18,7 +18,7 @@ namespace hid::rdf
 {
 /// @brief A byte array that concatenates with another using the comma operator.
 template <std::size_t SIZE>
-class array : public std::array<byte_type, SIZE>
+class [[nodiscard]] array : public std::array<byte_type, SIZE>
 {
   public:
     template <std::size_t SIZE_2>
