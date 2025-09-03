@@ -360,7 +360,10 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
                     auto value_unsigned = item.value_unsigned();
                     auto* tag_name = item.tag_name();
 
-                    format_to(ctx_.out(), "{}", std::string(width_ * collection_depth_, ' '));
+                    format_to(
+                        ctx_.out(), "{}",
+                        std::string(static_cast<std::string::size_type>(width_) * collection_depth_,
+                                    ' '));
                     switch (item.unified_tag())
                     {
                     case tag::INPUT:
