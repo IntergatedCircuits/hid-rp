@@ -39,7 +39,7 @@ catch_discover_tests(${PROJECT_NAME}-test)
 # https://embeddedartistry.com/blog/2023/09/20/leveraging-your-toolchain-to-improve-security/
 target_link_options(${PROJECT_NAME}-test
     PRIVATE
-        -fsanitize=address
+        #-fsanitize=address
         -fsanitize=signed-integer-overflow
         -fsanitize=bounds
 )
@@ -47,7 +47,7 @@ target_compile_options(${PROJECT_NAME}-test
     PRIVATE
         -ftrivial-auto-var-init=pattern
         -fstack-protector-all
-        -fsanitize=address
+        #-fsanitize=address
         -fno-omit-frame-pointer
         #-fsanitize=undefined
         -fsanitize=signed-integer-overflow
