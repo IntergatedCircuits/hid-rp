@@ -34,6 +34,7 @@ TEST_CASE("test your descriptor here")
     });
 
     constexpr auto rp = hid::report_protocol(desc);
+    CHECK(rp.descriptor.size() > 0);
 
     // Step 2: check the report protocol properties, such as byte size and report id
     static_assert(rp.max_input_id == 0);

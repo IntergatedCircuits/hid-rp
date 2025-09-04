@@ -133,7 +133,7 @@ class items_view_base
     using const_iterator = iterator;
 
     constexpr const byte_type* data() const { return begin_; }
-    constexpr std::size_t size() const { return std::distance(begin_, end_); }
+    constexpr auto size() const { return static_cast<std::size_t>(end_ - begin_); }
     constexpr iterator begin() { return begin_; }
     constexpr const_iterator begin() const { return begin_; }
     constexpr iterator end() { return end_; }
