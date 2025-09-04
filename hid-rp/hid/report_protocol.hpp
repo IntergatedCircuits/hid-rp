@@ -77,8 +77,9 @@ struct report_protocol_properties
     /// @param max_feature_size: The size of the longest FEATURE report in bytes, including the
     /// report ID (if used)
     /// @param max_report_id: The highest used report ID (or 0 if IDs are not used)
-    constexpr report_protocol_properties(size_type max_input_size, size_type max_output_size,
-                                         size_type max_feature_size)
+    constexpr explicit report_protocol_properties(size_type max_input_size,
+                                                  size_type max_output_size,
+                                                  size_type max_feature_size)
         : max_input_size(max_input_size),
           max_output_size(max_output_size),
           max_feature_size(max_feature_size)
@@ -93,10 +94,12 @@ struct report_protocol_properties
     /// @param max_feature_size: The size of the longest FEATURE report in bytes, including the
     /// report ID (if used)
     /// @param max_report_id: The highest used report ID (or 0 if IDs are not used)
-    constexpr report_protocol_properties(size_type max_input_size, size_type max_output_size,
-                                         size_type max_feature_size, report::id::type max_input_id,
-                                         report::id::type max_output_id,
-                                         report::id::type max_feature_id)
+    constexpr explicit report_protocol_properties(size_type max_input_size,
+                                                  size_type max_output_size,
+                                                  size_type max_feature_size,
+                                                  report::id::type max_input_id,
+                                                  report::id::type max_output_id,
+                                                  report::id::type max_feature_id)
         : max_input_size(max_input_size),
           max_output_size(max_output_size),
           max_feature_size(max_feature_size),
@@ -358,7 +361,7 @@ struct report_protocol_properties
 
     /// @brief Define the report protocol properties by parsing the descriptor in compile-time.
     /// @param desc_view: View of the HID report descriptor
-    consteval report_protocol_properties(const descriptor_view_type& desc_view)
+    consteval explicit report_protocol_properties(const descriptor_view_type& desc_view)
         : report_protocol_properties(parser<>(desc_view).max_report_size(report::type::INPUT),
                                      parser<>(desc_view).max_report_size(report::type::OUTPUT),
                                      parser<>(desc_view).max_report_size(report::type::FEATURE),
@@ -382,16 +385,26 @@ struct report_protocol : public report_protocol_properties
     /// @param desc_view: View of the HID report descriptor
     /// @param args: Arguments for report_protocol_properties constructor
     template <typename... TArgs>
-    constexpr report_protocol(const descriptor_view_type& desc_view, TArgs&&... args)
+    constexpr explicit report_protocol(const descriptor_view_type& desc_view, TArgs&&... args)
         : report_protocol_properties(std::forward<TArgs>(args)...), descriptor(desc_view)
     {}
 
     /// @brief Define the report protocol by parsing the descriptor in compile-time.
     /// @param desc_view: View of the HID report descriptor
-    consteval report_protocol(const descriptor_view_type& desc_view)
+    consteval explicit report_protocol(const descriptor_view_type& desc_view)
         : report_protocol_properties(desc_view), descriptor(desc_view)
     {}
+
+    /// @brief  This method constructs a @ref hid::report_protocol object from a rvalue
+    ///         descriptor, producing a static lvalue of it in the process.
+    /// @tparam Data: the descriptor array, acquired e.g. from a @ref hid::rdf::descriptor call
+    template <auto Data>
+    static consteval auto from_descriptor()
+    {
+        return report_protocol(descriptor_view_type::from_descriptor<Data>());
+    }
 };
+
 } // namespace hid
 
 #endif // __HID_RDF_REPORT_PROTOCOL_HPP_

@@ -4,7 +4,7 @@
 using namespace hid::page;
 using namespace hid::rdf;
 
-TEST_CASE("usage concept type formatter")
+TEST_CASE("formatter - usage concept type")
 {
     auto out = std::format("{:p}", consumer::HELP);
     CHECK(out == "Consumer / Help");
@@ -31,7 +31,7 @@ TEST_CASE("usage concept type formatter")
     CHECK(out == "Electrical: Current Maximum");
 }
 
-TEST_CASE("usage value formatter")
+TEST_CASE("formatter - usage value")
 {
     auto out = std::format("{:p}", hid::usage_t(consumer::HELP));
     CHECK(out == "Consumer / Help");

@@ -174,6 +174,13 @@ class items_view_base
     const byte_type* end_;
 };
 
+template <auto Data>
+consteval const auto& make_static()
+{
+    // source: Hana Dusíková and https://youtu.be/ABg4_EV5L3w?si=eSD-TwF0MEwsopt3&t=1117
+    return Data;
+}
+
 /// @brief A view of the HID report descriptor, allowing iterating through its items.
 /// @tparam TIterator Either @ref reinterpret_iterator or @ref copy_iterator
 template <typename TIterator>
@@ -204,6 +211,14 @@ class descriptor_view_base : public items_view_base<TIterator>
     constexpr descriptor_view_base(const TIter begin, const TIter end)
         : base(std::addressof(*begin), std::addressof(*begin) + std::distance(begin, end))
     {}
+    /// @brief  This method constructs a @ref hid::rdf::descriptor_view_base object from a rvalue
+    ///         descriptor, producing a static lvalue of it in the process.
+    /// @tparam Data: the descriptor array, acquired e.g. from a @ref hid::rdf::descriptor call
+    template <auto Data>
+    static constexpr auto from_descriptor()
+    {
+        return descriptor_view_base(make_static<Data>());
+    }
 };
 
 /// @brief HID report descriptor view, use for runtime descriptor parsing.

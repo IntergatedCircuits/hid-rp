@@ -6,8 +6,7 @@ using namespace hid::app::keyboard;
 
 TEST_CASE("keyboard report descriptor")
 {
-    static constexpr auto desc0 = app_report_descriptor<0>();
-    constexpr auto rp0 = hid::report_protocol(desc0);
+    constexpr auto rp0 = hid::report_protocol::from_descriptor<app_report_descriptor<0>()>();
     static_assert(rp0.max_input_id == 0);
     static_assert(rp0.max_input_size == 8);
     static_assert(sizeof(keys_input_report<0>) == 8);
@@ -20,7 +19,8 @@ TEST_CASE("keyboard report descriptor")
     // test both compile-time and runtime
     static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
                   hid::page::generic_desktop::KEYBOARD);
-    CHECK(hid::rdf::get_application_usage_id(hid::rdf::descriptor_view(desc0)) ==
+    CHECK(hid::rdf::get_application_usage_id(
+              hid::rdf::descriptor_view::from_descriptor<app_report_descriptor<0>()>()) ==
           hid::page::generic_desktop::KEYBOARD);
 
     static constexpr auto desc5 = app_report_descriptor<5>();

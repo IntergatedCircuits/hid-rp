@@ -4,7 +4,7 @@
 
 using namespace hid::rdf;
 
-TEST_CASE("has valid bounds")
+TEST_CASE("descriptor view - has valid bounds")
 {
     constexpr auto a0_0 = std::to_array<std::uint8_t>({0x00});
     static_assert(ce_descriptor_view(a0_0).begin()->data_size() == 0);

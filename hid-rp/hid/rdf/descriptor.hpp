@@ -23,8 +23,8 @@ namespace hid::rdf
 /// @return The HID report descriptor as an std::array
 template <std::size_t... sz>
 constexpr auto descriptor(array<sz>... items)
+    requires(sizeof...(items) > 0)
 {
-    static_assert(sizeof...(items) > 0);
     return (items, ...);
 }
 
