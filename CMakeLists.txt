@@ -48,13 +48,13 @@ target_include_directories(${PROJECT_NAME}
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-add_subdirectory(hid-rd-reader)
-
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(IS_TOPLEVEL_PROJECT TRUE)
 else()
     set(IS_TOPLEVEL_PROJECT FALSE)
 endif()
+
+add_subdirectory(hid-rd-reader)
 
 option(HID_RP_TESTS "hid-rp: enable unit testing" ${IS_TOPLEVEL_PROJECT})
 if(HID_RP_TESTS)
