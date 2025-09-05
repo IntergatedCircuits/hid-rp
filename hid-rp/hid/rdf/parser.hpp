@@ -201,8 +201,8 @@ class parser
             {
                 auto delimiter = item.value_unsigned();
                 HID_RP_ASSERT(delimiter <= 1, ex_delimiter_invalid);
-                HID_RP_ASSERT(open != (delimiter == 0), ex_delimiter_nesting);
-                open = delimiter == 0;
+                HID_RP_ASSERT(open != delimiter, ex_delimiter_nesting);
+                open = delimiter;
                 found = true;
                 continue;
             }
