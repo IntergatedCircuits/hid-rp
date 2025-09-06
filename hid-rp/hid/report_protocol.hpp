@@ -187,7 +187,9 @@ struct report_protocol_properties
                                [[maybe_unused]] unsigned tlc_number) override
         {
             // only for descriptor verification purpose
-            check_delimiters(main_section);
+            HID_RP_ASSERT(!check_delimiters(main_section) or
+                              (collection != rdf::main::collection_type::APPLICATION),
+                          ex_delimiter_invalid_location);
             return control::CONTINUE;
         }
 
@@ -245,7 +247,9 @@ struct report_protocol_properties
                 HID_RP_ASSERT(report_tlc_index == tlc_count, ex_report_crossing_tlc_bounds);
             }
 
-            check_delimiters(main_section);
+            HID_RP_ASSERT(!check_delimiters(main_section) or
+                              (main_item.value_unsigned() & main::data_field_flag::VARIABLE),
+                          ex_delimiter_invalid_main_item);
 
             // usage limits verification
             short_item_buffer usage_min_item{};

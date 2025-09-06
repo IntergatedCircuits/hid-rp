@@ -374,6 +374,14 @@ struct ex_delimiter_invalid_location : public parser_exception
     {}
 };
 
+struct ex_delimiter_invalid_main_item : public parser_exception
+{
+    constexpr ex_delimiter_invalid_main_item()
+        : parser_exception("delimiters must not be applied to an array data item",
+                           local::tag::DELIMITER, 5)
+    {}
+};
+
 struct ex_collection_missing : public parser_exception
 {
     constexpr ex_collection_missing()
