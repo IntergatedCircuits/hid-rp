@@ -71,6 +71,14 @@ constexpr auto usage_extended_limits(nullusage_t, T max)
            short_item<sizeof(usage_t)>(local::tag::USAGE_MAXIMUM, ui);
 }
 
+template <std::size_t... sz>
+constexpr auto delimited(array<sz>... items)
+{
+    static_assert(sizeof...(items) > 0);
+    return short_item<1>(local::tag::DELIMITER, 1), (items, ...),
+           short_item<1>(local::tag::DELIMITER, 0);
+}
+
 } // namespace hid::rdf
 
 #endif // __HID_RDF_LOCAL_ITEMS_HPP_
