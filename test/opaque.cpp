@@ -1,7 +1,8 @@
 #include "hid/app/opaque.hpp"
 #include "hid/rdf/descriptor.hpp"
+#include "hid/rdf/formatter.hpp"
 #include "hid/report_protocol.hpp"
-#include <catch2/catch_test_macros.hpp>
+#include "test_framework.hpp"
 
 using namespace hid::app::opaque;
 
@@ -24,11 +25,13 @@ enum class custom_page : std::uint8_t
 using raw_in_report = hid::app::opaque::report<32, hid::report::type::INPUT>;
 using raw_out_report = hid::app::opaque::report<32, hid::report::type::OUTPUT>;
 
-TEST_CASE("opaque report descriptor")
+SUITE(opaque_)
 {
-    using namespace hid::rdf;
-    using namespace hid::page;
-    // clang-format off
+    TEST_CASE("opaque report descriptor")
+    {
+        using namespace hid::rdf;
+        using namespace hid::page;
+        // clang-format off
     static constexpr auto desc0 = descriptor(
         usage_extended(custom_page::APPLICATION),
         collection::application(
@@ -37,17 +40,19 @@ TEST_CASE("opaque report descriptor")
             hid::app::opaque::report_descriptor<raw_out_report>(custom_page::OUT_DATA)
         )
     );
-    // clang-format on
-    constexpr auto rp0 = hid::report_protocol(desc0);
-    static_assert(rp0.max_input_id == 0);
-    static_assert(rp0.max_input_size == sizeof(raw_in_report));
-    static_assert(rp0.max_feature_id == 0);
-    static_assert(rp0.max_feature_size == 0);
-    static_assert(rp0.max_output_id == 0);
-    static_assert(rp0.max_output_size == sizeof(raw_out_report));
+        // clang-format on
+        constexpr auto rp0 = hid::report_protocol(desc0);
+        static_assert(rp0.max_input_id == 0);
+        static_assert(rp0.max_input_size == sizeof(raw_in_report));
+        static_assert(rp0.max_feature_id == 0);
+        static_assert(rp0.max_feature_size == 0);
+        static_assert(rp0.max_output_id == 0);
+        static_assert(rp0.max_output_size == sizeof(raw_out_report));
 
-    static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
-                  hid::page::custom_page::APPLICATION);
-    CHECK(hid::rdf::get_application_usage_id(hid::rdf::descriptor_view(desc0)) ==
-          hid::page::custom_page::APPLICATION);
-}
+        static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
+                      hid::page::custom_page::APPLICATION);
+        CHECK(hid::rdf::get_application_usage_id(hid::rdf::descriptor_view(desc0)) ==
+              hid::page::custom_page::APPLICATION);
+    };
+};
+

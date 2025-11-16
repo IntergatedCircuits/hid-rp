@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.21)
 
 project(hid-rp
     LANGUAGES CXX
@@ -48,15 +48,9 @@ target_include_directories(${PROJECT_NAME}
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    set(IS_TOPLEVEL_PROJECT TRUE)
-else()
-    set(IS_TOPLEVEL_PROJECT FALSE)
-endif()
-
 add_subdirectory(hid-rd-reader)
 
-option(HID_RP_TESTS "hid-rp: enable unit testing" ${IS_TOPLEVEL_PROJECT})
+option(HID_RP_TESTS "hid-rp: enable unit testing" ${PROJECT_IS_TOP_LEVEL})
 if(HID_RP_TESTS)
     enable_testing()
     add_subdirectory(test)

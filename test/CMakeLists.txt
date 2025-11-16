@@ -1,9 +1,6 @@
-include(CPM)
-CPMAddPackage("gh:catchorg/Catch2@3.5.4")
-list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
-
+include(get_cpm)
+CPMAddPackage("gh:boost-ext/ut@2.3.1")
 include(CTest)
-include(Catch)
 
 # generate a source file and build it to verify syntax
 file(GLOB_RECURSE HEADER_FILES "${INCLUDES}/*.hpp")
@@ -20,7 +17,9 @@ endforeach()
 add_executable(${PROJECT_NAME}-test)
 target_sources(${PROJECT_NAME}-test
     PRIVATE
+        test_framework.hpp
         ${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp
+        main.cpp
         descriptor_view.cpp
         formatter.cpp
         imported_descriptor.cpp
@@ -30,10 +29,10 @@ target_sources(${PROJECT_NAME}-test
 )
 target_link_libraries(${PROJECT_NAME}-test
     PRIVATE
-        Catch2::Catch2WithMain
         ${PROJECT_NAME}
+        ut
 )
-catch_discover_tests(${PROJECT_NAME}-test)
+add_test(NAME ${PROJECT_NAME}-test COMMAND ${PROJECT_NAME}-test)
 
 # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 # https://embeddedartistry.com/blog/2023/09/20/leveraging-your-toolchain-to-improve-security/

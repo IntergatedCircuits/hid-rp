@@ -12,6 +12,7 @@
 #define __HID_RDF_FORMATTER_HPP_
 
 #include <format>
+#include <ostream>
 #include "hid/page/all.hpp"
 #include "hid/rdf/descriptor_view.hpp"
 #include "hid/rdf/main_items.hpp"
@@ -74,11 +75,24 @@ struct std::formatter<hid::usage_t>
     bool add_page_{};
 };
 
+inline std::ostream& operator<<(std::ostream& os, const hid::usage_t& v)
+{
+    os << std::format("Usage({:p})", v);
+    return os;
+}
+
 /// @brief  Formatter specialization for compile-time usage types.
 /// @tparam T: usage concept type
 template <hid::UsageType T>
 struct std::formatter<T> : std::formatter<hid::usage_t>
 {};
+
+template <hid::UsageType T>
+inline std::ostream& operator<<(std::ostream& os, const T& v)
+{
+    os << std::format("Usage({:p})", v);
+    return os;
+}
 
 /// @brief  Formatter specialization for HID main item field types.
 template <>
