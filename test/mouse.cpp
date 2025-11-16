@@ -58,6 +58,11 @@ SUITE(mouse_)
         static_assert(rp0.max_output_id == 0);
         static_assert(rp0.max_output_size == 0);
 
+        static_assert(rp0.report_count == 1);
+        constexpr auto table0 = hid::make_report_selector_table<app_report_descriptor<0>()>();
+        static_assert(table0.size() == 1);
+        static_assert(table0[0] == report<0>::selector());
+
         // test both compile-time and runtime
         static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
                       hid::page::generic_desktop::MOUSE);
@@ -73,6 +78,11 @@ SUITE(mouse_)
         static_assert(rp5.max_feature_size == 0);
         static_assert(rp5.max_output_id == 0);
         static_assert(rp5.max_output_size == 0);
+
+        static_assert(rp5.report_count == 1);
+        constexpr auto table5 = hid::make_report_selector_table<app_report_descriptor<5>()>();
+        static_assert(table5.size() == 1);
+        static_assert(table5[0] == report<5>::selector());
 
         // test both compile-time and runtime
         static_assert(hid::rdf::get_application_usage_id(rp5.descriptor) ==
@@ -93,6 +103,12 @@ SUITE(mouse_)
         static_assert(rp0.max_output_id == 0);
         static_assert(rp0.max_output_size == 0);
 
+        static_assert(rp0.report_count == 2);
+        constexpr auto table0 = hid::make_report_selector_table<high_res_mouse_desc<0>()>();
+        static_assert(table0.size() == 2);
+        static_assert(table0[0] == report<0>::selector());
+        static_assert(table0[1] == resolution_multiplier_report<120, 0>::selector());
+
         // test both compile-time and runtime
         static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
                       hid::page::generic_desktop::MOUSE);
@@ -108,6 +124,12 @@ SUITE(mouse_)
         static_assert(rp5.max_feature_size == 2);
         static_assert(rp5.max_output_id == 0);
         static_assert(rp5.max_output_size == 0);
+
+        static_assert(rp5.report_count == 2);
+        constexpr auto table5 = hid::make_report_selector_table<high_res_mouse_desc<5>()>();
+        static_assert(table5.size() == 2);
+        static_assert(table5[0] == report<5>::selector());
+        static_assert(table5[1] == resolution_multiplier_report<120, 5>::selector());
 
         // test both compile-time and runtime
         static_assert(hid::rdf::get_application_usage_id(rp5.descriptor) ==

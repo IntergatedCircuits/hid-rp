@@ -10,6 +10,7 @@ on both the HID device and host side.
 * [HID usage tables code generator][hid-usage-tables] support, with extension possibilities
 * Base `hid::rdf::parser` design for implementing any custom descriptor parsing logic, for both compile and runtime
 * HID report descriptors are validated for common errors at compile time by `hid::report_protocol`
+* Compile-time size and content calculation for **HID over GATT** Report characteristics and Report Reference characteristic descriptors by `hid::make_report_selector_table`
 * HID report descriptor printing support - including all defined usage names - by
 `std::formatter<hid::rdf::descriptor_view_base<TIterator>>`
 

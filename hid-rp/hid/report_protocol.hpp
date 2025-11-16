@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <array>
+#include <ranges>
 #include "hid/rdf/global_items.hpp"
 #include "hid/rdf/parser.hpp"
 
@@ -26,6 +27,7 @@ struct report_protocol_properties
     size_type max_input_size{};
     size_type max_output_size{};
     size_type max_feature_size{};
+    size_type report_count{};
     report::id::type max_input_id{};
     report::id::type max_output_id{};
     report::id::type max_feature_id{};
@@ -76,33 +78,34 @@ struct report_protocol_properties
     /// ID (if used)
     /// @param max_feature_size: The size of the longest FEATURE report in bytes, including the
     /// report ID (if used)
-    /// @param max_report_id: The highest used report ID (or 0 if IDs are not used)
     constexpr explicit report_protocol_properties(size_type max_input_size,
                                                   size_type max_output_size,
                                                   size_type max_feature_size)
         : max_input_size(max_input_size),
           max_output_size(max_output_size),
-          max_feature_size(max_feature_size)
+          max_feature_size(max_feature_size),
+          report_count(bool(max_input_size) + bool(max_output_size) + bool(max_feature_size))
     {}
 
     /// @brief Define the report protocol properties manually.
-    /// @param desc_view: View of the HID report descriptor
     /// @param max_input_size: The size of the longest INPUT report in bytes, including the report
     /// ID (if used)
     /// @param max_output_size: The size of the longest OUTPUT report in bytes, including the report
     /// ID (if used)
     /// @param max_feature_size: The size of the longest FEATURE report in bytes, including the
     /// report ID (if used)
-    /// @param max_report_id: The highest used report ID (or 0 if IDs are not used)
-    constexpr explicit report_protocol_properties(size_type max_input_size,
-                                                  size_type max_output_size,
-                                                  size_type max_feature_size,
-                                                  report::id::type max_input_id,
-                                                  report::id::type max_output_id,
-                                                  report::id::type max_feature_id)
+    /// @param report_count: The number of distinct reports defined by the protocol
+    /// @param max_input_id: The highest used report ID (or 0 if IDs are not used)
+    /// @param max_output_id: The highest used report ID (or 0 if IDs are not used)
+    /// @param max_feature_id: The highest used report ID (or 0 if IDs are not used)
+    constexpr explicit report_protocol_properties(
+        size_type max_input_size, size_type max_output_size, size_type max_feature_size,
+        size_type report_count, report::id::type max_input_id, report::id::type max_output_id,
+        report::id::type max_feature_id)
         : max_input_size(max_input_size),
           max_output_size(max_output_size),
           max_feature_size(max_feature_size),
+          report_count(report_count),
           max_input_id(max_input_id),
           max_output_id(max_output_id),
           max_feature_id(max_feature_id)
@@ -164,12 +167,41 @@ struct report_protocol_properties
 
         constexpr report::id::type max_report_id() const
         {
-            return *std::max_element(max_report_ids_.begin(), max_report_ids_.end());
+            return std::max(
+                std::max(max_report_id(report::type::INPUT), max_report_id(report::type::OUTPUT)),
+                max_report_id(report::type::FEATURE));
         }
 
         constexpr report::id::type max_report_id(report::type type) const
         {
-            return max_report_ids_[static_cast<size_t>(type) - 1];
+            const auto& sizes = report_bit_sizes_[static_cast<std::size_t>(type) - 1];
+            auto rit = std::ranges::find_if(sizes | std::views::reverse,
+                                            [](size_type x) { return x != 0; });
+            return rit == sizes.rend() ? 0 : std::distance(rit, sizes.rend()) - 1;
+        }
+
+        constexpr size_type report_count() const
+        {
+            return static_cast<size_type>(std::ranges::count_if(
+                report_bit_sizes_ | std::views::join, [](auto v) { return v > 0; }));
+        }
+
+        template <std::size_t N>
+        constexpr void fill_report_selector_table(std::array<report::selector, N>& table) const
+        {
+            HID_RP_ASSERT(table.size() == report_count(), ex_report_table_invalid_size);
+            auto table_it = table.begin();
+            for (uint8_t type = 0; type < report_bit_sizes_.size(); ++type)
+            {
+                for (std::size_t id = 0; id < report_bit_sizes_.front().size(); ++id)
+                {
+                    if (report_bit_sizes_[type][id] > 0)
+                    {
+                        *table_it = report::selector(static_cast<report::type>(type + 1), id);
+                        ++table_it;
+                    }
+                }
+            }
         }
 
       private:
@@ -218,10 +250,6 @@ struct report_protocol_properties
                                            [](auto sizes)
                                            { return sizes[0] > 0; }) == report_bit_sizes_.end(),
                               ex_report_id_missing);
-
-                // track max report ID
-                auto& rid = max_report_ids_[static_cast<size_t>(rtype) - 1];
-                rid = std::max(rid, (report::id::type)report_params.id);
             }
 
             if (main_item.value_unsigned() & main::data_field_flag::BUFFERED_BYTES)
@@ -360,18 +388,21 @@ struct report_protocol_properties
 
         std::array<std::array<size_type, report::id::max()>, 3> report_bit_sizes_{};
         std::array<std::array<unsigned, report::id::max()>, 3> report_tlc_indexes_{};
-        std::array<report::id::type, 3> max_report_ids_{};
     };
+
+    consteval explicit report_protocol_properties(const parser<>& parsed)
+        : report_protocol_properties(
+              parsed.max_report_size(report::type::INPUT),
+              parsed.max_report_size(report::type::OUTPUT),
+              parsed.max_report_size(report::type::FEATURE), parsed.report_count(),
+              parsed.max_report_id(report::type::INPUT), parsed.max_report_id(report::type::OUTPUT),
+              parsed.max_report_id(report::type::FEATURE))
+    {}
 
     /// @brief Define the report protocol properties by parsing the descriptor in compile-time.
     /// @param desc_view: View of the HID report descriptor
     consteval explicit report_protocol_properties(const descriptor_view_type& desc_view)
-        : report_protocol_properties(parser<>(desc_view).max_report_size(report::type::INPUT),
-                                     parser<>(desc_view).max_report_size(report::type::OUTPUT),
-                                     parser<>(desc_view).max_report_size(report::type::FEATURE),
-                                     parser<>(desc_view).max_report_id(report::type::INPUT),
-                                     parser<>(desc_view).max_report_id(report::type::OUTPUT),
-                                     parser<>(desc_view).max_report_id(report::type::FEATURE))
+        : report_protocol_properties(parser<>(desc_view))
     {}
 };
 
@@ -408,6 +439,20 @@ struct report_protocol : public report_protocol_properties
         return report_protocol(descriptor_view_type::from_descriptor<Data>());
     }
 };
+
+/// @brief  Create a table that contains all report selectors defined by the report descriptor,
+///         for correctly sizing and filling GATT HID attributes.
+/// @tparam Data: the descriptor array, acquired e.g. from a @ref hid::rdf::descriptor call
+/// @return a std::array<hid::report::selector, N> table listing the report selectors used by the
+///         report descriptor
+template <auto Data>
+inline consteval auto make_report_selector_table()
+{
+    constexpr report_protocol::parser<> parser{rdf::ce_descriptor_view::from_descriptor<Data>()};
+    std::array<report::selector, parser.report_count()> table;
+    parser.fill_report_selector_table(table);
+    return table;
+}
 
 } // namespace hid
 

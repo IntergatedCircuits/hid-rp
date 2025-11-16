@@ -19,6 +19,12 @@ SUITE(keyboard_)
         static_assert(rp0.max_output_size == 1);
         static_assert(sizeof(output_report<0>) == 1);
 
+        static_assert(rp0.report_count == 2);
+        constexpr auto table0 = hid::make_report_selector_table<app_report_descriptor<0>()>();
+        static_assert(table0.size() == 2);
+        static_assert(table0[0] == keys_input_report<0>::selector());
+        static_assert(table0[1] == output_report<0>::selector());
+
         // test both compile-time and runtime
         static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
                       hid::page::generic_desktop::KEYBOARD);
@@ -36,6 +42,12 @@ SUITE(keyboard_)
         static_assert(rp5.max_output_id == 5);
         static_assert(rp5.max_output_size == 2);
         static_assert(sizeof(output_report<5>) == 2);
+
+        static_assert(rp5.report_count == 2);
+        constexpr auto table5 = hid::make_report_selector_table<app_report_descriptor<5>()>();
+        static_assert(table5.size() == 2);
+        static_assert(table5[0] == keys_input_report<5>::selector());
+        static_assert(table5[1] == output_report<5>::selector());
 
         // test both compile-time and runtime
         static_assert(hid::rdf::get_application_usage_id(rp5.descriptor) ==

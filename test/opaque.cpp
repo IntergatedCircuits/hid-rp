@@ -48,6 +48,7 @@ SUITE(opaque_)
         static_assert(rp0.max_feature_size == 0);
         static_assert(rp0.max_output_id == 0);
         static_assert(rp0.max_output_size == sizeof(raw_out_report));
+        static_assert(rp0.report_count == 2);
 
         static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
                       hid::page::custom_page::APPLICATION);

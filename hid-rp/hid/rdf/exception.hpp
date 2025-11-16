@@ -58,6 +58,13 @@ struct ex_item_invalid_tag_type : public exception
     {}
 };
 
+struct ex_report_table_invalid_size : public exception
+{
+    constexpr ex_report_table_invalid_size()
+        : exception("report table size invalid")
+    {}
+};
+
 /// @brief This class is trying to follow the conventions established by this document:
 /// https://usb.org/sites/default/files/hidpar.pdf
 class parser_exception : public exception
