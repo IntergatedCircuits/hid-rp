@@ -42,13 +42,13 @@ SUITE(opaque_)
     );
         // clang-format on
         constexpr auto rp0 = hid::report_protocol(desc0);
-        static_assert(rp0.max_input_id == 0);
+        static_assert(rp0.input_report_count == 1);
         static_assert(rp0.max_input_size == sizeof(raw_in_report));
-        static_assert(rp0.max_feature_id == 0);
+        static_assert(rp0.feature_report_count == 0);
         static_assert(rp0.max_feature_size == 0);
-        static_assert(rp0.max_output_id == 0);
+        static_assert(rp0.output_report_count == 1);
         static_assert(rp0.max_output_size == sizeof(raw_out_report));
-        static_assert(rp0.report_count == 2);
+        static_assert(not rp0.uses_report_ids());
 
         static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
                       hid::page::custom_page::APPLICATION);

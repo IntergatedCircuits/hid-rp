@@ -50,15 +50,15 @@ SUITE(mouse_)
     {
         static constexpr auto desc0 = app_report_descriptor<0>();
         constexpr auto rp0 = hid::report_protocol(desc0);
-        static_assert(rp0.max_input_id == 0);
+        static_assert(rp0.input_report_count == 1);
         static_assert(rp0.max_input_size == 3);
         static_assert(sizeof(hid::app::mouse::report<0>) == 3);
-        static_assert(rp0.max_feature_id == 0);
+        static_assert(rp0.feature_report_count == 0);
         static_assert(rp0.max_feature_size == 0);
-        static_assert(rp0.max_output_id == 0);
+        static_assert(rp0.output_report_count == 0);
         static_assert(rp0.max_output_size == 0);
+        static_assert(not rp0.uses_report_ids());
 
-        static_assert(rp0.report_count == 1);
         constexpr auto table0 = hid::make_report_selector_table<app_report_descriptor<0>()>();
         static_assert(table0.size() == 1);
         static_assert(table0[0] == report<0>::selector());
@@ -71,15 +71,15 @@ SUITE(mouse_)
 
         static constexpr auto desc5 = app_report_descriptor<5>();
         constexpr auto rp5 = hid::report_protocol(desc5);
-        static_assert(rp5.max_input_id == 5);
+        static_assert(rp5.input_report_count == 1);
         static_assert(rp5.max_input_size == 4);
         static_assert(sizeof(hid::app::mouse::report<5>) == 4);
-        static_assert(rp5.max_feature_id == 0);
+        static_assert(rp5.feature_report_count == 0);
         static_assert(rp5.max_feature_size == 0);
-        static_assert(rp5.max_output_id == 0);
+        static_assert(rp5.output_report_count == 0);
         static_assert(rp5.max_output_size == 0);
+        static_assert(rp5.uses_report_ids());
 
-        static_assert(rp5.report_count == 1);
         constexpr auto table5 = hid::make_report_selector_table<app_report_descriptor<5>()>();
         static_assert(table5.size() == 1);
         static_assert(table5[0] == report<5>::selector());
@@ -95,15 +95,15 @@ SUITE(mouse_)
     {
         static constexpr auto desc0 = high_res_mouse_desc<0>();
         constexpr auto rp0 = hid::report_protocol(desc0);
-        static_assert(rp0.max_input_id == 0);
+        static_assert(rp0.input_report_count == 1);
         static_assert(rp0.max_input_size == 7);
         static_assert(sizeof(hid::app::mouse::report<0>) == 3);
-        static_assert(rp0.max_feature_id == 0);
+        static_assert(rp0.feature_report_count == 1);
         static_assert(rp0.max_feature_size == 1);
-        static_assert(rp0.max_output_id == 0);
+        static_assert(rp0.output_report_count == 0);
         static_assert(rp0.max_output_size == 0);
+        static_assert(not rp0.uses_report_ids());
 
-        static_assert(rp0.report_count == 2);
         constexpr auto table0 = hid::make_report_selector_table<high_res_mouse_desc<0>()>();
         static_assert(table0.size() == 2);
         static_assert(table0[0] == report<0>::selector());
@@ -117,15 +117,15 @@ SUITE(mouse_)
 
         static constexpr auto desc5 = high_res_mouse_desc<5>();
         constexpr auto rp5 = hid::report_protocol(desc5);
-        static_assert(rp5.max_input_id == 5);
+        static_assert(rp5.input_report_count == 1);
         static_assert(rp5.max_input_size == 8);
         static_assert(sizeof(hid::app::mouse::report<5>) == 4);
-        static_assert(rp5.max_feature_id == 5);
+        static_assert(rp5.feature_report_count == 1);
         static_assert(rp5.max_feature_size == 2);
-        static_assert(rp5.max_output_id == 0);
+        static_assert(rp5.output_report_count == 0);
         static_assert(rp5.max_output_size == 0);
+        static_assert(rp5.uses_report_ids());
 
-        static_assert(rp5.report_count == 2);
         constexpr auto table5 = hid::make_report_selector_table<high_res_mouse_desc<5>()>();
         static_assert(table5.size() == 2);
         static_assert(table5[0] == report<5>::selector());

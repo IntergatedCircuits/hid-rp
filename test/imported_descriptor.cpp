@@ -40,12 +40,13 @@ SUITE(imported_descriptor)
         CHECK(rp.descriptor.size() > 0);
 
         // Step 2: check the report protocol properties, such as byte size and report id
-        static_assert(rp.max_input_id == 0);
+        static_assert(rp.input_report_count == 1);
         static_assert(rp.max_input_size == 3);
-        static_assert(rp.max_feature_id == 0);
+        static_assert(rp.feature_report_count == 0);
         static_assert(rp.max_feature_size == 0);
-        static_assert(rp.max_output_id == 0);
+        static_assert(rp.output_report_count == 0);
         static_assert(rp.max_output_size == 0);
+        static_assert(not rp.uses_report_ids());
 
         // Step 3: build this file to verify the descriptor (running the test is not needed)
     };

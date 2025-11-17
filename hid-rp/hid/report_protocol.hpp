@@ -27,10 +27,13 @@ struct report_protocol_properties
     size_type max_input_size{};
     size_type max_output_size{};
     size_type max_feature_size{};
-    size_type report_count{};
-    report::id::type max_input_id{};
-    report::id::type max_output_id{};
-    report::id::type max_feature_id{};
+    report::id::type input_report_count{};
+    report::id::type output_report_count{};
+    report::id::type feature_report_count{};
+    bool report_id_present{};
+
+    constexpr bool operator==(const report_protocol_properties& other) const = default;
+    constexpr bool operator!=(const report_protocol_properties& other) const = default;
 
     constexpr size_type max_report_size() const
     {
@@ -51,25 +54,26 @@ struct report_protocol_properties
         }
     }
 
-    constexpr bool uses_report_ids() const { return max_report_id() >= report::id::min(); }
-    constexpr report::id::type max_report_id() const
+    constexpr size_type report_count() const
     {
-        return std::max(max_input_id, std::max(max_output_id, max_feature_id));
+        return input_report_count + output_report_count + feature_report_count;
     }
-    constexpr report::id::type max_report_id(report::type type) const
+    constexpr report::id::type report_count(report::type type) const
     {
         switch (type)
         {
         case report::type::INPUT:
-            return max_input_id;
+            return input_report_count;
         case report::type::OUTPUT:
-            return max_output_id;
+            return output_report_count;
         case report::type::FEATURE:
-            return max_feature_id;
+            return feature_report_count;
         default:
             return 0;
         }
     }
+
+    constexpr bool uses_report_ids() const { return report_id_present; }
 
     /// @brief Define the report protocol properties, with no report ID use.
     /// @param max_input_size: The size of the longest INPUT report in bytes, including the report
@@ -84,7 +88,10 @@ struct report_protocol_properties
         : max_input_size(max_input_size),
           max_output_size(max_output_size),
           max_feature_size(max_feature_size),
-          report_count(bool(max_input_size) + bool(max_output_size) + bool(max_feature_size))
+          input_report_count(bool(max_input_size)),
+          output_report_count(bool(max_output_size)),
+          feature_report_count(bool(max_feature_size)),
+          report_id_present(false)
     {}
 
     /// @brief Define the report protocol properties manually.
@@ -95,20 +102,21 @@ struct report_protocol_properties
     /// @param max_feature_size: The size of the longest FEATURE report in bytes, including the
     /// report ID (if used)
     /// @param report_count: The number of distinct reports defined by the protocol
-    /// @param max_input_id: The highest used report ID (or 0 if IDs are not used)
-    /// @param max_output_id: The highest used report ID (or 0 if IDs are not used)
-    /// @param max_feature_id: The highest used report ID (or 0 if IDs are not used)
+    /// @param input_report_count: The highest INPUT report ID used by the protocol
+    /// @param output_report_count: The highest OUTPUT report ID used by the protocol
+    /// @param feature_report_count: The highest FEATURE report ID used by the protocol
+    /// @param report_id_present: Whether the protocol uses report IDs at all
     constexpr explicit report_protocol_properties(
         size_type max_input_size, size_type max_output_size, size_type max_feature_size,
-        size_type report_count, report::id::type max_input_id, report::id::type max_output_id,
-        report::id::type max_feature_id)
+        report::id::type input_report_count, report::id::type output_report_count,
+        report::id::type feature_report_count, bool report_id_present = true)
         : max_input_size(max_input_size),
           max_output_size(max_output_size),
           max_feature_size(max_feature_size),
-          report_count(report_count),
-          max_input_id(max_input_id),
-          max_output_id(max_output_id),
-          max_feature_id(max_feature_id)
+          input_report_count(input_report_count),
+          output_report_count(output_report_count),
+          feature_report_count(feature_report_count),
+          report_id_present(report_id_present)
     {}
 
     /// @brief This class parses the HID report descriptor, gathering all report size
@@ -184,6 +192,12 @@ struct report_protocol_properties
         {
             return static_cast<size_type>(std::ranges::count_if(
                 report_bit_sizes_ | std::views::join, [](auto v) { return v > 0; }));
+        }
+        constexpr report::id::type report_count(report::type type) const
+        {
+            const auto& sizes = report_bit_sizes_[static_cast<std::size_t>(type) - 1];
+            return static_cast<report::id::type>(
+                std::ranges::count_if(sizes, [](auto v) { return v > 0; }));
         }
 
         template <std::size_t N>
@@ -394,9 +408,9 @@ struct report_protocol_properties
         : report_protocol_properties(
               parsed.max_report_size(report::type::INPUT),
               parsed.max_report_size(report::type::OUTPUT),
-              parsed.max_report_size(report::type::FEATURE), parsed.report_count(),
-              parsed.max_report_id(report::type::INPUT), parsed.max_report_id(report::type::OUTPUT),
-              parsed.max_report_id(report::type::FEATURE))
+              parsed.max_report_size(report::type::FEATURE),
+              parsed.report_count(report::type::INPUT), parsed.report_count(report::type::OUTPUT),
+              parsed.report_count(report::type::FEATURE), parsed.uses_report_ids())
     {}
 
     /// @brief Define the report protocol properties by parsing the descriptor in compile-time.
