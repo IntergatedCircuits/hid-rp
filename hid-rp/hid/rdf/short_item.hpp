@@ -16,10 +16,18 @@
 
 namespace hid::rdf
 {
+
 /// @brief A byte array that concatenates with another using the comma operator.
 template <std::size_t SIZE>
 class [[nodiscard]] array : public std::array<byte_type, SIZE>
 {
+    template <std::size_t Repeats, std::size_t M, std::size_t... I>
+    static constexpr hid::rdf::array<M * Repeats> repeat_array_impl(const hid::rdf::array<M>& src,
+                                                                    std::index_sequence<I...>)
+    {
+        return {src[I % M]...};
+    }
+
   public:
     template <std::size_t SIZE_2>
     constexpr array<SIZE + SIZE_2> operator,(array<SIZE_2> a2)
@@ -34,6 +42,12 @@ class [[nodiscard]] array : public std::array<byte_type, SIZE>
             concat[SIZE + i] = a2[i];
         }
         return concat;
+    }
+
+    template <std::size_t Repeats>
+    constexpr hid::rdf::array<SIZE * Repeats> repeat() const
+    {
+        return repeat_array_impl<Repeats, SIZE>(*this, std::make_index_sequence<SIZE * Repeats>{});
     }
 };
 

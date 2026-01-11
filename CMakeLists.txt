@@ -17,7 +17,7 @@ set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}")
 include(ExternalProject)
 
 set(HID_USAGE_TABLES_URL "https://github.com/IntergatedCircuits/hid-usage-tables.git" CACHE STRING "HID Usage Tables repository")
-set(HID_USAGE_TABLES_REV "e0a42167519b3b8432603fefaae4f8ee85cc2cbf" CACHE STRING "HID Usage Tables commit hash")
+set(HID_USAGE_TABLES_REV "fe35b68d06320a5caaa36ea321698de39d33fe8a" CACHE STRING "HID Usage Tables commit hash")
 
 set(USAGE_TABLES_OUTPUT_DIR ${INCLUDES}/hid/page)
 

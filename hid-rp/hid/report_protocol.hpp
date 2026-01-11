@@ -344,10 +344,22 @@ struct report_protocol_properties
                      main::data_field_flag::VARIABLE)
             {
                 auto logical_limits = get_logical_limits_signed(global_state);
-                HID_RP_ASSERT(logical_limits.min >= -(1 << std::int32_t(report_params.size - 1)),
-                              ex_logical_min_oob);
-                HID_RP_ASSERT(logical_limits.max <= (1 << std::int32_t(report_params.size - 1)),
-                              ex_logical_max_oob);
+                if (report_params.size < 32)
+                {
+                    HID_RP_ASSERT(logical_limits.min >=
+                                      -(1 << std::int32_t(report_params.size - 1)),
+                                  ex_logical_min_oob);
+                    HID_RP_ASSERT(logical_limits.max <=
+                                      (1 << std::int32_t(report_params.size /*- 1*/)),
+                                  ex_logical_max_oob);
+                }
+                else
+                {
+                    HID_RP_ASSERT(logical_limits.min >= std::numeric_limits<std::int32_t>::min(),
+                                  ex_logical_min_oob);
+                    HID_RP_ASSERT(logical_limits.max <= std::numeric_limits<std::int32_t>::max(),
+                                  ex_logical_max_oob);
+                }
 
                 get_physical_limits(global_state);
             }
