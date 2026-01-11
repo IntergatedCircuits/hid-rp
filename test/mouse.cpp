@@ -32,9 +32,9 @@ constexpr auto high_res_mouse_desc()
                 // relative X,Y directions
                 usage(generic_desktop::X),
                 usage(generic_desktop::Y),
-                logical_limits<value_size(AXIS_LIMIT)>(-AXIS_LIMIT, AXIS_LIMIT),
+                logical_limits<byte_width(AXIS_LIMIT)>(-AXIS_LIMIT, AXIS_LIMIT),
                 report_count(2),
-                report_size(value_size(AXIS_LIMIT) * 8),
+                report_size(byte_width(AXIS_LIMIT) * 8),
                 input::relative_variable(),
 
                 hid::app::mouse::high_resolution_scrolling<WHEEL_LIMIT, MAX_SCROLL_RESOLUTION>()

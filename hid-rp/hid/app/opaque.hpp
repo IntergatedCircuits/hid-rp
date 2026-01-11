@@ -23,7 +23,7 @@ struct report : public hid::report::base<TYPE, REPORT_ID>
 };
 
 template <typename TReport, typename TUsage>
-static constexpr auto report_descriptor(TUsage use)
+inline constexpr auto report_descriptor(TUsage use)
 {
     using namespace hid::rdf;
 

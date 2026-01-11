@@ -35,7 +35,7 @@ struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
 };
 
 template <uint8_t REPORT_ID = 0, std::size_t BUTTONS_COUNT = 3>
-static constexpr auto app_report_descriptor()
+inline constexpr auto app_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -71,7 +71,7 @@ static constexpr auto app_report_descriptor()
     // clang-format on
 }
 
-static constexpr uint8_t resolution_multiplier_bit_size()
+inline constexpr uint8_t resolution_multiplier_bit_size()
 {
     // https://github.com/qmk/qmk_firmware/issues/17585#issuecomment-1238023671
     return 2;
@@ -80,7 +80,7 @@ static constexpr uint8_t resolution_multiplier_bit_size()
 // https://learn.microsoft.com/en-us/previous-versions/windows/hardware/design/dn613912(v=vs.85)
 // This item only takes two bits in the feature report, byte padding is the caller's responsibility!
 template <uint8_t MULTIPLIER_MAX>
-static constexpr auto resolution_multiplier()
+inline constexpr auto resolution_multiplier()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -127,7 +127,7 @@ struct resolution_multiplier_report
 /// @tparam MULTIPLIER_MAX the maximum value of the resolution multiplier (valid range is 1-120)
 /// @return the descriptor block
 template <int16_t MAX_SCROLL, uint8_t MULTIPLIER_MAX>
-static constexpr auto high_resolution_scrolling()
+inline constexpr auto high_resolution_scrolling()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -136,9 +136,9 @@ static constexpr auto high_resolution_scrolling()
     return descriptor(
         collection::logical(
             usage(generic_desktop::WHEEL),
-            logical_limits<value_size(MAX_SCROLL)>(-MAX_SCROLL, MAX_SCROLL),
+            logical_limits<byte_width(MAX_SCROLL)>(-MAX_SCROLL, MAX_SCROLL),
             report_count(1),
-            report_size(value_size(MAX_SCROLL) * 8),
+            report_size(byte_width(MAX_SCROLL) * 8),
             input::relative_variable(),
             resolution_multiplier<MULTIPLIER_MAX>()
         ),

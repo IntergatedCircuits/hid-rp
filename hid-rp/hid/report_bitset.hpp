@@ -13,7 +13,7 @@
 
 #include <array>
 #include <cassert>
-#include "sized_unsigned.hpp"
+#include "hid/report.hpp"
 
 namespace hid
 {

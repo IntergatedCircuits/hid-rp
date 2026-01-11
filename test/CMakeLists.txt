@@ -1,4 +1,3 @@
-include(get_cpm)
 CPMAddPackage("gh:boost-ext/ut@2.3.1")
 include(CTest)
 
@@ -24,6 +23,7 @@ target_sources(${PROJECT_NAME}-test
         formatter.cpp
         imported_descriptor.cpp
         keyboard.cpp
+        lamparray.cpp
         mouse.cpp
         opaque.cpp
 )

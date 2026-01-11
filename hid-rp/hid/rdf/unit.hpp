@@ -109,7 +109,7 @@ constexpr std::int32_t get_exponent(const TItem& exp)
 template <code CODE>
 constexpr inline auto unit()
 {
-    return short_item<value_size(CODE)>(global::tag::UNIT, static_cast<std::uint32_t>(CODE));
+    return short_item<byte_width(CODE)>(global::tag::UNIT, static_cast<std::uint32_t>(CODE));
 }
 
 template <std::size_t DATA_SIZE>
@@ -132,9 +132,9 @@ class exponent : public short_item<1>
 /// @tparam CODE_: The unit's code
 /// @tparam BASE_EXP_: The unit's base exponent
 template <code CODE_, std::int8_t BASE_EXP_ = get_si_exponent(CODE_)>
-class base : public array<1 + value_size(CODE_) + sizeof(exponent)>
+class base : public array<1 + byte_width(CODE_) + sizeof(exponent)>
 {
-    static constexpr std::size_t UNIT_CODE_SIZE = value_size(CODE_);
+    static constexpr std::size_t UNIT_CODE_SIZE = byte_width(CODE_);
     static constexpr std::size_t EXPONENT_SIZE = sizeof(exponent);
     static constexpr std::size_t SIZE = (1 + UNIT_CODE_SIZE) + EXPONENT_SIZE;
 

@@ -68,7 +68,11 @@ class selector
     constexpr selector() {}
     constexpr report::type type() const { return static_cast<report::type>(storage_[1]); }
     constexpr report::id id() const { return report::id(storage_[0]); }
-    constexpr bool valid() const { return (storage_[1] >= static_cast<std::uint8_t>(type::INPUT)) and (storage_[1] <= static_cast<std::uint8_t>(type::FEATURE)); }
+    constexpr bool valid() const
+    {
+        return (storage_[1] >= static_cast<std::uint8_t>(type::INPUT)) and
+               (storage_[1] <= static_cast<std::uint8_t>(type::FEATURE));
+    }
     constexpr void clear() { *this = selector(); }
 
     constexpr bool operator==(const selector& rhs) const = default;

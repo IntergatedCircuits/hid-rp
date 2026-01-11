@@ -36,6 +36,10 @@ ExternalProject_Add(hid-usage-tables
     UPDATE_DISCONNECTED TRUE
 )
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+include(get_cpm)
+CPMAddPackage("gh:IntergatedCircuits/bitfilled#e108749cfd6d21946c4ff4aa5139229658d7a025")
+
 # the library itself
 add_library(${PROJECT_NAME} INTERFACE)
 add_dependencies(${PROJECT_NAME} hid-usage-tables)
@@ -45,8 +49,10 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${INCLUDES}>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+target_link_libraries(${PROJECT_NAME}
+    INTERFACE
+        bitfilled
+)
 
 add_subdirectory(hid-rd-reader)
 

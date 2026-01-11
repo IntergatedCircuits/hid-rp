@@ -22,7 +22,7 @@
 namespace hid::app::keyboard
 {
 template <uint8_t REPORT_ID = 0, std::size_t ROLLOVER_LIMIT = 6>
-static constexpr auto keys_input_report_descriptor()
+inline constexpr auto keys_input_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -87,7 +87,7 @@ struct keys_input_report : public hid::report::base<hid::report::type::INPUT, RE
 };
 
 template <uint8_t REPORT_ID>
-static constexpr auto leds_output_report_descriptor()
+inline constexpr auto leds_output_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -113,7 +113,7 @@ struct output_report : public hid::report::base<hid::report::type::OUTPUT, REPOR
 };
 
 template <uint8_t REPORT_ID = 0>
-static constexpr auto app_report_descriptor()
+inline constexpr auto app_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
