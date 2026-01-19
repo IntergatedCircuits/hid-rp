@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2022
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_RDF_REPORT_PROTOCOL_HPP_
-#define __HID_RDF_REPORT_PROTOCOL_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include <algorithm>
 #include <array>
@@ -35,11 +25,11 @@ struct report_protocol_properties
     constexpr bool operator==(const report_protocol_properties& other) const = default;
     constexpr bool operator!=(const report_protocol_properties& other) const = default;
 
-    constexpr size_type max_report_size() const
+    [[nodiscard]] constexpr size_type max_report_size() const
     {
         return std::max(max_input_size, std::max(max_output_size, max_feature_size));
     }
-    constexpr size_type max_report_size(report::type type) const
+    [[nodiscard]] constexpr size_type max_report_size(report::type type) const
     {
         switch (type)
         {
@@ -54,11 +44,11 @@ struct report_protocol_properties
         }
     }
 
-    constexpr size_type report_count() const
+    [[nodiscard]] constexpr size_type report_count() const
     {
         return input_report_count + output_report_count + feature_report_count;
     }
-    constexpr report::id::type report_count(report::type type) const
+    [[nodiscard]] constexpr report::id::type report_count(report::type type) const
     {
         switch (type)
         {
@@ -73,7 +63,7 @@ struct report_protocol_properties
         }
     }
 
-    constexpr bool uses_report_ids() const { return report_id_present; }
+    [[nodiscard]] constexpr bool uses_report_ids() const { return report_id_present; }
 
     /// @brief Define the report protocol properties, with no report ID use.
     /// @param max_input_size: The size of the longest INPUT report in bytes, including the report
@@ -88,10 +78,9 @@ struct report_protocol_properties
         : max_input_size(max_input_size),
           max_output_size(max_output_size),
           max_feature_size(max_feature_size),
-          input_report_count(bool(max_input_size)),
-          output_report_count(bool(max_output_size)),
-          feature_report_count(bool(max_feature_size)),
-          report_id_present(false)
+          input_report_count(bool(max_input_size) ? 1 : 0),
+          output_report_count(bool(max_output_size) ? 1 : 0),
+          feature_report_count(bool(max_feature_size) ? 1 : 0)
     {}
 
     /// @brief Define the report protocol properties manually.
@@ -147,40 +136,35 @@ struct report_protocol_properties
         }
 
         // https://stackoverflow.com/questions/72835571/constexpr-c-error-destructor-used-before-its-definition
-        constexpr ~parser() override {}
+        constexpr ~parser() override = default;
 
-        constexpr size_type max_report_size(report::type type) const
+        parser(const parser&) = delete;
+        parser& operator=(const parser&) = delete;
+        parser(parser&&) = delete;
+        parser& operator=(parser&&) = delete;
+
+        [[nodiscard]] constexpr size_type max_report_size(report::type type) const
         {
             if (!uses_report_ids())
             {
                 return bit_size(type, 0) / 8;
             }
-            else
-            {
-                auto& report_sizes = bit_sizes_by_type(type);
-                auto begin = report_sizes.begin();
-                auto max_size = *std::max_element(++begin, report_sizes.end()) / 8u;
-                if (max_size > 0)
-                {
-                    return sizeof(report::id) + max_size;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
+            auto& report_sizes = bit_sizes_by_type(type);
+            auto begin = report_sizes.begin();
+            size_type max_size = *std::max_element(++begin, report_sizes.end()) / 8;
+            return (max_size > 0) ? sizeof(report::id) + max_size : 0UL;
         }
 
-        constexpr bool uses_report_ids() const { return max_report_id() > 0; }
+        [[nodiscard]] constexpr bool uses_report_ids() const { return max_report_id() > 0; }
 
-        constexpr report::id::type max_report_id() const
+        [[nodiscard]] constexpr report::id::type max_report_id() const
         {
             return std::max(
                 std::max(max_report_id(report::type::INPUT), max_report_id(report::type::OUTPUT)),
                 max_report_id(report::type::FEATURE));
         }
 
-        constexpr report::id::type max_report_id(report::type type) const
+        [[nodiscard]] constexpr report::id::type max_report_id(report::type type) const
         {
             const auto& sizes = report_bit_sizes_[static_cast<std::size_t>(type) - 1];
             auto rit = std::ranges::find_if(sizes | std::views::reverse,
@@ -188,16 +172,16 @@ struct report_protocol_properties
             return rit == sizes.rend() ? 0 : std::distance(rit, sizes.rend()) - 1;
         }
 
-        constexpr size_type report_count() const
+        [[nodiscard]] constexpr size_type report_count() const
         {
             return static_cast<size_type>(std::ranges::count_if(
                 report_bit_sizes_ | std::views::join, [](auto v) { return v > 0; }));
         }
-        constexpr report::id::type report_count(report::type type) const
+        [[nodiscard]] constexpr report::id::type report_count(report::type type) const
         {
             const auto& sizes = report_bit_sizes_[static_cast<std::size_t>(type) - 1];
             return static_cast<report::id::type>(
-                std::ranges::count_if(sizes, [](auto v) { return v > 0; }));
+                std::ranges::count_if(sizes, [](auto size) { return size > 0; }));
         }
 
         template <std::size_t N>
@@ -205,7 +189,7 @@ struct report_protocol_properties
         {
             HID_RP_ASSERT(table.size() == report_count(), ex_report_table_invalid_size);
             auto table_it = table.begin();
-            for (uint8_t type = 0; type < report_bit_sizes_.size(); ++type)
+            for (std::size_t type = 0; type < report_bit_sizes_.size(); ++type)
             {
                 for (std::size_t id = 0; id < report_bit_sizes_.front().size(); ++id)
                 {
@@ -249,6 +233,7 @@ struct report_protocol_properties
             return control::CONTINUE;
         }
 
+        // NOLINTNEXTLINE(readability-function-cognitive-complexity)
         constexpr control parse_report_data_field(
             const item_type& main_item, const rdf::global_item_store& global_state,
             [[maybe_unused]] const items_view_type& main_section, unsigned tlc_count) override
@@ -376,41 +361,47 @@ struct report_protocol_properties
             return control::CONTINUE;
         }
 
-        constexpr size_type& bit_size(report::type rt, report::id::type id)
+        // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index)
+        [[nodiscard]] constexpr size_type& bit_size(report::type rt, report::id::type id)
         {
             return bit_sizes_by_type(rt)[id];
         }
-        constexpr const size_type& bit_size(report::type rt, report::id::type id) const
+        [[nodiscard]] constexpr const size_type& bit_size(report::type rt,
+                                                          report::id::type id) const
         {
             return bit_sizes_by_type(rt)[id];
         }
-        constexpr std::array<size_type, report::id::max()>& bit_sizes_by_type(report::type rt)
+        [[nodiscard]] constexpr std::array<size_type, report::id::max()>&
+        bit_sizes_by_type(report::type rt)
         {
             return report_bit_sizes_[static_cast<report::id::type>(rt) - 1];
         }
-        constexpr const std::array<size_type, report::id::max()>&
+        [[nodiscard]] constexpr const std::array<size_type, report::id::max()>&
         bit_sizes_by_type(report::type rt) const
         {
             return report_bit_sizes_[static_cast<report::id::type>(rt) - 1];
         }
 
-        constexpr unsigned& tlc_index(report::type rt, report::id::type id)
+        [[nodiscard]] constexpr unsigned& tlc_index(report::type rt, report::id::type id)
         {
             return tlc_indexes_by_type(rt)[id];
         }
-        constexpr const unsigned& tlc_index(report::type rt, report::id::type id) const
+        [[nodiscard]] constexpr const unsigned& tlc_index(report::type rt,
+                                                          report::id::type id) const
         {
             return tlc_indexes_by_type(rt)[id];
         }
-        constexpr std::array<unsigned, report::id::max()>& tlc_indexes_by_type(report::type rt)
+        [[nodiscard]] constexpr std::array<unsigned, report::id::max()>&
+        tlc_indexes_by_type(report::type rt)
         {
             return report_tlc_indexes_[static_cast<report::id::type>(rt) - 1];
         }
-        constexpr const std::array<unsigned, report::id::max()>&
+        [[nodiscard]] constexpr const std::array<unsigned, report::id::max()>&
         tlc_indexes_by_type(report::type rt) const
         {
             return report_tlc_indexes_[static_cast<report::id::type>(rt) - 1];
         }
+        // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
 
         std::array<std::array<size_type, report::id::max()>, 3> report_bit_sizes_{};
         std::array<std::array<unsigned, report::id::max()>, 3> report_tlc_indexes_{};
@@ -472,7 +463,7 @@ struct report_protocol : public report_protocol_properties
 /// @return a std::array<hid::report::selector, N> table listing the report selectors used by the
 ///         report descriptor
 template <auto Data>
-inline consteval auto make_report_selector_table()
+consteval auto make_report_selector_table()
 {
     constexpr report_protocol::parser<> parser{rdf::ce_descriptor_view::from_descriptor<Data>()};
     std::array<report::selector, parser.report_count()> table;
@@ -481,5 +472,3 @@ inline consteval auto make_report_selector_table()
 }
 
 } // namespace hid
-
-#endif // __HID_RDF_REPORT_PROTOCOL_HPP_

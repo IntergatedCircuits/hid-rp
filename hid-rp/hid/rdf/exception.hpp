@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2022
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_RDF_EXCEPTION_HPP_
-#define __HID_RDF_EXCEPTION_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include <cassert>
 #include "hid/rdf/constants.hpp"
@@ -40,7 +30,7 @@ class exception
   public:
     using string_type = const char*;
 
-    string_type what() const { return name_; }
+    [[nodiscard]] constexpr string_type what() const { return name_; }
 
   protected:
     constexpr exception(string_type name)
@@ -48,7 +38,7 @@ class exception
     {}
 
   private:
-    string_type const name_;
+    string_type name_;
 };
 
 struct ex_item_invalid_tag_type : public exception
@@ -86,7 +76,7 @@ class parser_exception : public exception
     {}
 
   private:
-    code_type const code_;
+    code_type code_;
 
     static constexpr code_type ERROR_FLAG = 1 << 15;
     static constexpr code_type VENDOR_DEFINED_FLAG = 1 << 14;
@@ -94,8 +84,7 @@ class parser_exception : public exception
     constexpr parser_exception(string_type name, code_type subcode, code_type tag,
                                code_type tag_type)
         : exception(name),
-          code_(ERROR_FLAG | ((static_cast<code_type>(subcode) & 0xcf) << 8) |
-                (static_cast<code_type>(tag) << 4) | (static_cast<code_type>(tag_type) << 2))
+          code_(ERROR_FLAG | ((subcode & 0xcf) << 8) | (tag << 4) | (tag_type << 2))
     {}
 };
 
@@ -435,5 +424,3 @@ struct ex_buffered_bytes_misaligned : public parser_exception
 };
 
 } // namespace hid::rdf
-
-#endif // __HID_RDF_EXCEPTION_HPP_

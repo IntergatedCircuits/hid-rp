@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-#ifndef __HID_APP_LAMPARRAY_HPP_
-#define __HID_APP_LAMPARRAY_HPP_
+#pragma once
 
 #include "hid/page/lighting_and_illumination.hpp"
 #include "hid/rdf/descriptor.hpp"
@@ -75,19 +74,19 @@ template <std::uint8_t REPORT_ID>
 struct lamp_array_attributes_report
     : public hid::report::base<hid::report::type::FEATURE, REPORT_ID>
 {
-    packed_integer<2> lamp_count{};
+    packed_integer<2> lamp_count;
     struct
     {
-        packed_integer<4> width{};
-        packed_integer<4> height{};
-        packed_integer<4> depth{};
-    } bounding_box;                          // all in micrometers, regardless of unit in descriptor
-    packed_integer<4> min_update_interval{}; // in microseconds, regardless of unit in descriptor
+        packed_integer<4> width;
+        packed_integer<4> height;
+        packed_integer<4> depth;
+    } bounding_box;                        // all in micrometers, regardless of unit in descriptor
+    packed_integer<4> min_update_interval; // in microseconds, regardless of unit in descriptor
     lamparray::kind kind{};
 };
 
 template <std::uint8_t REPORT_ID>
-inline constexpr auto lamp_array_attributes_report_descriptor()
+[[nodiscard]] constexpr auto lamp_array_attributes_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -129,7 +128,7 @@ struct lamp_attributes_request_report
 };
 
 template <std::uint8_t REPORT_ID, std::size_t LAMP_ID_SIZE = 1>
-inline constexpr auto lamp_attributes_request_report_descriptor()
+[[nodiscard]] constexpr auto lamp_attributes_request_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -156,11 +155,11 @@ struct lamp_attributes_response_report
     packed_integer<LAMP_ID_SIZE> lamp_id{};
     struct
     {
-        packed_integer<4> x{};
-        packed_integer<4> y{};
-        packed_integer<4> z{};
-    } position;                         // all in micrometers, regardless of unit in descriptor
-    packed_integer<4> update_latency{}; // in microseconds, regardless of unit in descriptor
+        packed_integer<4> x;
+        packed_integer<4> y;
+        packed_integer<4> z;
+    } position;                       // all in micrometers, regardless of unit in descriptor
+    packed_integer<4> update_latency; // in microseconds, regardless of unit in descriptor
     lamparray::purposes purposes{};
     uint8_t red_level_count{};
     uint8_t green_level_count{};
@@ -171,7 +170,7 @@ struct lamp_attributes_response_report
 };
 
 template <std::uint8_t REPORT_ID, std::size_t LAMP_ID_SIZE = 1>
-inline constexpr auto lamp_attributes_response_report_descriptor()
+[[nodiscard]] constexpr auto lamp_attributes_response_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -213,10 +212,10 @@ inline constexpr auto lamp_attributes_response_report_descriptor()
 
 struct rgbi_tuple
 {
-    packed_integer<1> red{};
-    packed_integer<1> green{};
-    packed_integer<1> blue{};
-    packed_integer<1> intensity{};
+    packed_integer<1> red;
+    packed_integer<1> green;
+    packed_integer<1> blue;
+    packed_integer<1> intensity;
 };
 
 template <std::uint8_t REPORT_ID, std::size_t MAX_LAMP_COUNT, std::size_t LAMP_ID_SIZE = 1>
@@ -229,7 +228,7 @@ struct lamp_multi_update_report : public hid::report::base<hid::report::type::FE
 };
 
 template <std::uint8_t REPORT_ID, std::size_t MAX_LAMP_COUNT, std::size_t LAMP_ID_SIZE = 1>
-inline constexpr auto lamp_multi_update_report_descriptor()
+[[nodiscard]] constexpr auto lamp_multi_update_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -281,7 +280,7 @@ struct lamp_range_update_report : public hid::report::base<hid::report::type::FE
 };
 
 template <std::uint8_t REPORT_ID, std::size_t LAMP_ID_SIZE = 1>
-inline constexpr auto lamp_range_update_report_descriptor()
+[[nodiscard]] constexpr auto lamp_range_update_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -322,7 +321,7 @@ struct control_report : public hid::report::base<hid::report::type::FEATURE, REP
 };
 
 template <std::uint8_t REPORT_ID>
-inline constexpr auto control_report_descriptor()
+[[nodiscard]] constexpr auto control_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -344,5 +343,3 @@ inline constexpr auto control_report_descriptor()
 }
 
 } // namespace hid::app::lamparray
-
-#endif // __HID_APP_LAMPARRAY_HPP_

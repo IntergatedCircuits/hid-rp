@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2025
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_RDF_FORMATTER_HPP_
-#define __HID_RDF_FORMATTER_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include <format>
 #include <ostream>
@@ -25,12 +15,12 @@ struct std::formatter<hid::usage_t>
 {
     constexpr auto parse(std::format_parse_context& ctx)
     {
-        auto pos = ctx.begin();
+        const auto* pos = ctx.begin();
         // if the format's first symbol is p, the usage page is added
         if ((*pos == 'p') or (*pos == 'P'))
         {
             add_page_ = true;
-            ctx.advance_to(pos + 1);
+            ctx.advance_to(pos + 1); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         }
         // the rest will be used for numeric formatting, if the usage is not named
         return numeric_.parse(ctx);
@@ -71,7 +61,7 @@ struct std::formatter<hid::usage_t>
     }
 
   private:
-    std::formatter<hid::usage_id_t> numeric_{};
+    std::formatter<hid::usage_id_t> numeric_;
     bool add_page_{};
 };
 
@@ -98,7 +88,7 @@ inline std::ostream& operator<<(std::ostream& os, const T& v)
 template <>
 struct std::formatter<hid::rdf::main::field_type>
 {
-    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    constexpr static auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
     template <typename FormatContext>
     FormatContext::iterator format(const hid::rdf::main::field_type& field,
                                    FormatContext& ctx) const
@@ -321,6 +311,7 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
     }
 
     template <typename FormatContext>
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity)
     FormatContext::iterator format(const descriptor_view_type& desc, FormatContext& ctx) const
     {
         using namespace hid::rdf;
@@ -384,11 +375,11 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
                     case tag::OUTPUT:
                     case tag::FEATURE:
                         format_to(ctx_.out(), "{}({})\n", tag_name,
-                                  *((hid::rdf::main::field_type*)&main_data_field));
+                                  hid::rdf::main::field_type(main_data_field));
                         break;
                     case tag::COLLECTION:
                         format_to(ctx_.out(), "{}({})\n", tag_name,
-                                  *((hid::rdf::main::collection_type*)&value_unsigned));
+                                  hid::rdf::main::collection_type(value_unsigned));
                         break;
                     case tag::USAGE_PAGE:
                         if (auto info = hid::page::get_page_info(value_unsigned); info.valid_page())
@@ -520,5 +511,3 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
   private:
     unsigned width_{4};
 };
-
-#endif // __HID_RDF_FORMATTER_HPP_

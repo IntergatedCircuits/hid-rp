@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2025
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_APP_GAMEPAD_HPP_
-#define __HID_APP_GAMEPAD_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include "hid/page/generic_desktop.hpp"
 #include "hid/page/leds.hpp"
@@ -24,7 +14,7 @@ namespace hid::app::gamepad
 {
 
 template <std::int32_t JOYSTICK_MIN, std::int32_t JOYSTICK_MAX>
-inline constexpr auto left_joystick_descriptor()
+[[nodiscard]] constexpr auto left_joystick_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -46,7 +36,7 @@ inline constexpr auto left_joystick_descriptor()
 }
 
 template <std::int32_t JOYSTICK_MIN, std::int32_t JOYSTICK_MAX>
-inline constexpr auto right_joystick_descriptor()
+[[nodiscard]] constexpr auto right_joystick_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -68,7 +58,7 @@ inline constexpr auto right_joystick_descriptor()
 }
 
 template <std::int32_t TRIGGER_MIN, std::int32_t TRIGGER_MAX>
-inline constexpr auto triggers_descriptor()
+[[nodiscard]] constexpr auto triggers_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -86,7 +76,7 @@ inline constexpr auto triggers_descriptor()
     // clang-format on
 }
 
-inline constexpr auto dpad_descriptor()
+[[nodiscard]] constexpr auto dpad_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -109,5 +99,3 @@ inline constexpr auto dpad_descriptor()
 }
 
 } // namespace hid::app::gamepad
-
-#endif // __HID_APP_GAMEPAD_HPP_

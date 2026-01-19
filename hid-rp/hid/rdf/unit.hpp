@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2022
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_RDF_UNIT_HPP_
-#define __HID_RDF_UNIT_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include "hid/rdf/short_item.hpp"
 #include "sized_unsigned.hpp"
@@ -18,10 +8,11 @@ namespace hid::rdf::unit
 {
 using system = global::unit_system;
 
-constexpr std::uint32_t calculate_code(system sys = system::NONE, int length_count = 0,
-                                       int mass_count = 0, int time_count = 0,
-                                       int temperature_count = 0, int current_count = 0,
-                                       int luminous_int_count = 0)
+[[nodiscard]] constexpr std::uint32_t calculate_code(system sys = system::NONE,
+                                                     int length_count = 0, int mass_count = 0,
+                                                     int time_count = 0, int temperature_count = 0,
+                                                     int current_count = 0,
+                                                     int luminous_int_count = 0)
 {
     return static_cast<std::uint32_t>(
         (static_cast<std::int32_t>(sys) << (global::unit_nibble_index::SYSTEM * 4)) |
@@ -89,17 +80,17 @@ struct nibble
 /// to convert centimeter to meter and gram to kilogram.
 /// @param unit_code: The HID unit code.
 /// @return The exponent needed to use the unit as an SI unit.
-constexpr inline std::int8_t get_si_exponent(code unit_code)
+[[nodiscard]] constexpr std::int8_t get_si_exponent(code unit_code)
 {
     nibble length{(std::int32_t)unit_code >> (global::unit_nibble_index::LENGTH * 4)};
     nibble mass{(std::int32_t)unit_code >> (global::unit_nibble_index::MASS * 4)};
     // meter -> centimeter => 2
     // kilogram -> gram => 3
-    return length.value * 2 + mass.value * 3;
+    return length.value * 2 + mass.value * 3; // NOLINT
 }
 
 template <typename TItem>
-constexpr std::int32_t get_exponent(const TItem& exp)
+[[nodiscard]] constexpr std::int32_t get_exponent(const TItem& exp)
 {
     // TODO: assert that the other data bits are zero
     // stored on 4 bytes
@@ -107,18 +98,18 @@ constexpr std::int32_t get_exponent(const TItem& exp)
 }
 
 template <code CODE>
-constexpr inline auto unit()
+constexpr auto unit()
 {
     return short_item<byte_width(CODE)>(global::tag::UNIT, static_cast<std::uint32_t>(CODE));
 }
 
 template <std::size_t DATA_SIZE>
-constexpr inline auto unit(code flags)
+[[nodiscard]] constexpr auto unit(code flags)
 {
     return short_item<DATA_SIZE>(global::tag::UNIT, static_cast<std::uint32_t>(flags));
 }
 
-class exponent : public short_item<1>
+class [[nodiscard]] exponent : public short_item<1>
 {
   public:
     constexpr exponent(std::int8_t exp = 0)
@@ -132,7 +123,7 @@ class exponent : public short_item<1>
 /// @tparam CODE_: The unit's code
 /// @tparam BASE_EXP_: The unit's base exponent
 template <code CODE_, std::int8_t BASE_EXP_ = get_si_exponent(CODE_)>
-class base : public array<1 + byte_width(CODE_) + sizeof(exponent)>
+class [[nodiscard]] base : public array<1 + byte_width(CODE_) + sizeof(exponent)>
 {
     static constexpr std::size_t UNIT_CODE_SIZE = byte_width(CODE_);
     static constexpr std::size_t EXPONENT_SIZE = sizeof(exponent);
@@ -146,14 +137,14 @@ class base : public array<1 + byte_width(CODE_) + sizeof(exponent)>
 
     static constexpr auto unit_item() { return unit::unit<CODE>(); }
 
-    static constexpr auto exponent_item(std::int8_t relative_exponent = 0)
+    [[nodiscard]] static constexpr auto exponent_item(std::int8_t relative_exponent = 0)
     {
         return unit::exponent(BASE_EXPONENT + relative_exponent);
     }
 
     /// @brief Create items defining an exact unit.
     /// @param relative_exponent: relative ten's exponent to be used for the variable field
-    constexpr base(std::int8_t relative_exponent = 0)
+    [[nodiscard]] constexpr base(std::int8_t relative_exponent = 0)
         : base_t((unit_item(), exponent_item(BASE_EXPONENT + relative_exponent)))
     {}
 };
@@ -196,5 +187,3 @@ using volt = base<code::VOLT>;
 using weber = base<code::WEBER>;
 
 } // namespace hid::rdf::unit
-
-#endif // __HID_RDF_UNIT_HPP_

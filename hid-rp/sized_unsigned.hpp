@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-#ifndef __SIZED_UNSIGNED_HPP_
-#define __SIZED_UNSIGNED_HPP_
+#pragma once
 
 #include <bitfilled/integer.hpp>
 #include <bitfilled/size.hpp>
@@ -12,9 +11,7 @@ template <std::size_t SIZE, bitfilled::Integral T = sized_unsigned_t<std::bit_ce
 using packed_integer = bitfilled::packed_integer<std::endian::little, SIZE, T>;
 
 template <typename T>
-inline constexpr auto byte_width(T value)
+constexpr auto byte_width(T value)
 {
     return bitfilled::byte_width(value);
 }
-
-#endif // __SIZED_UNSIGNED_HPP_

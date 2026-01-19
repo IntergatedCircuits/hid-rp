@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2024
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_REPORT_ARRAY_HPP_
-#define __HID_REPORT_ARRAY_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include <algorithm>
 #include <array>
@@ -31,11 +21,11 @@ class report_array
   public:
     bool set(T usage, bool value = true)
     {
-        auto n = static_cast<numeric_type>(usage);
-        auto it = std::find(arr_.begin(), arr_.end(), value ? static_cast<numeric_type>(0) : n);
+        auto num = static_cast<numeric_type>(usage);
+        auto it = std::find(arr_.begin(), arr_.end(), value ? static_cast<numeric_type>(0) : num);
         if (it != arr_.end())
         {
-            *it = value ? n : static_cast<numeric_type>(0);
+            *it = value ? num : static_cast<numeric_type>(0);
             return true;
         }
         return false;
@@ -43,7 +33,7 @@ class report_array
     constexpr void reset() { arr_.fill(static_cast<numeric_type>(0)); }
     constexpr bool reset(T usage) { return set(usage, false); }
     constexpr bool flip(T usage) { return set(usage, !test(usage)); }
-    bool test(T usage) const
+    [[nodiscard]] constexpr bool test(T usage) const
     {
         return std::find(arr_.begin(), arr_.end(), static_cast<numeric_type>(usage)) != arr_.end();
     }
@@ -57,5 +47,3 @@ class report_array
 };
 
 } // namespace hid
-
-#endif // __HID_REPORT_ARRAY_HPP_

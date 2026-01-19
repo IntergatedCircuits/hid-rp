@@ -8,6 +8,7 @@ project(hid-rp
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(GNUInstallDirs)
 
@@ -17,7 +18,7 @@ set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}")
 include(ExternalProject)
 
 set(HID_USAGE_TABLES_URL "https://github.com/IntergatedCircuits/hid-usage-tables.git" CACHE STRING "HID Usage Tables repository")
-set(HID_USAGE_TABLES_REV "fe35b68d06320a5caaa36ea321698de39d33fe8a" CACHE STRING "HID Usage Tables commit hash")
+set(HID_USAGE_TABLES_REV "bbfc07ca2078c57c2848b5b7ce09e0b9e8d76689" CACHE STRING "HID Usage Tables commit hash")
 
 set(USAGE_TABLES_OUTPUT_DIR ${INCLUDES}/hid/page)
 

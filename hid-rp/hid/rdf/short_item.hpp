@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2022
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_RDF_SHORT_ITEM_HPP_
-#define __HID_RDF_SHORT_ITEM_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include <bit>
 #include "hid/rdf/item.hpp"
@@ -22,8 +12,9 @@ template <std::size_t SIZE>
 class [[nodiscard]] array : public std::array<byte_type, SIZE>
 {
     template <std::size_t Repeats, std::size_t M, std::size_t... I>
-    static constexpr hid::rdf::array<M * Repeats> repeat_array_impl(const hid::rdf::array<M>& src,
-                                                                    std::index_sequence<I...>)
+    static constexpr hid::rdf::array<M * Repeats>
+    repeat_array_impl(const hid::rdf::array<M>& src,
+                      [[maybe_unused]] std::index_sequence<I...> parts)
     {
         return {src[I % M]...};
     }
@@ -74,11 +65,12 @@ class short_item : public array<1 + DATA_SIZE>
     constexpr short_item(TTag tag, TData data)
         : short_item(tag)
     {
-        auto d = static_cast<std::uint32_t>(data);
+        // NOLINTNEXTLINE(bugprone-signed-char-misuse)
+        auto value = static_cast<std::uint32_t>(data);
         for (byte_type i = 0; i < DATA_SIZE; ++i)
         {
-            (*this)[1 + i] = static_cast<byte_type>(d);
-            d >>= 8;
+            (*this)[1 + i] = static_cast<byte_type>(value);
+            value >>= 8;
         }
     }
 
@@ -101,10 +93,7 @@ class short_item : public array<1 + DATA_SIZE>
         {
             return false;
         }
-        else
-        {
-            return std::equal(this->begin() + 1, this->end(), rhs.data());
-        }
+        return std::equal(this->begin() + 1, this->end(), rhs.data());
     }
 
     template <typename T>
@@ -113,19 +102,17 @@ class short_item : public array<1 + DATA_SIZE>
         return !(*this == rhs);
     }
 
-    constexpr std::uint32_t value_unsigned() const
+    [[nodiscard]] constexpr std::uint32_t value_unsigned() const
     {
-        auto h = std::bit_cast<item_header>(*data());
-        return item_header::get_unsigned_value(&h, data() + 1);
+        auto header = std::bit_cast<item_header>(*data());
+        return item_header::get_unsigned_value(&header, data() + 1);
     }
 
-    constexpr std::int32_t value_signed() const
+    [[nodiscard]] constexpr std::int32_t value_signed() const
     {
-        auto h = std::bit_cast<item_header>(*data());
-        return item_header::get_signed_value(&h, data() + 1);
+        auto header = std::bit_cast<item_header>(*data());
+        return item_header::get_signed_value(&header, data() + 1);
     }
 };
 
 } // namespace hid::rdf
-
-#endif // __HID_RDF_SHORT_ITEM_HPP_

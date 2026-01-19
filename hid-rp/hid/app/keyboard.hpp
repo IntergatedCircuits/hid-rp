@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2022
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_APP_KEYBOARD_HPP_
-#define __HID_APP_KEYBOARD_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include "hid/page/generic_desktop.hpp"
 #include "hid/page/keyboard_keypad.hpp"
@@ -22,7 +12,7 @@
 namespace hid::app::keyboard
 {
 template <uint8_t REPORT_ID = 0, std::size_t ROLLOVER_LIMIT = 6>
-inline constexpr auto keys_input_report_descriptor()
+[[nodiscard]] constexpr auto keys_input_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -87,7 +77,7 @@ struct keys_input_report : public hid::report::base<hid::report::type::INPUT, RE
 };
 
 template <uint8_t REPORT_ID>
-inline constexpr auto leds_output_report_descriptor()
+[[nodiscard]] constexpr auto leds_output_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -113,7 +103,7 @@ struct output_report : public hid::report::base<hid::report::type::OUTPUT, REPOR
 };
 
 template <uint8_t REPORT_ID = 0>
-inline constexpr auto app_report_descriptor()
+[[nodiscard]] constexpr auto app_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -134,5 +124,3 @@ inline constexpr auto app_report_descriptor()
 }
 
 } // namespace hid::app::keyboard
-
-#endif // __HID_APP_KEYBOARD_HPP_

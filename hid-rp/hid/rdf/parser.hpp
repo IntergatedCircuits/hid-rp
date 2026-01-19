@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2025
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_RDF_PARSER_HPP_
-#define __HID_RDF_PARSER_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include <optional>
 #include "hid/rdf/descriptor_view.hpp"
@@ -39,12 +29,12 @@ class global_item_store
         item_by_tag(tag) = new_item;
     }
 
-    constexpr bool has_item(global::tag tag) const
+    [[nodiscard]] constexpr bool has_item(global::tag tag) const
     {
         return is_tag_stored(tag) and (item_by_tag(tag).type() == item_type::GLOBAL);
     }
 
-    constexpr const short_item_buffer* get_item(global::tag tag) const
+    [[nodiscard]] constexpr const short_item_buffer* get_item(global::tag tag) const
     {
         return has_item(tag) ? &item_by_tag(tag) : nullptr;
     }
@@ -56,15 +46,15 @@ class global_item_store
     // zero-initialized items will have non-global type (used in has_item())
     static_assert(static_cast<byte_type>(item_type::GLOBAL) != 0);
 
-    constexpr static bool is_tag_stored(global::tag tag)
+    [[nodiscard]] constexpr static bool is_tag_stored(global::tag tag)
     {
         return (tag <= global::tag::REPORT_COUNT);
     }
-    constexpr const short_item_buffer& item_by_tag(global::tag tag) const
+    [[nodiscard]] constexpr const short_item_buffer& item_by_tag(global::tag tag) const
     {
         return items_[static_cast<byte_type>(tag)];
     }
-    constexpr short_item_buffer& item_by_tag(global::tag tag)
+    [[nodiscard]] constexpr short_item_buffer& item_by_tag(global::tag tag)
     {
         return items_[static_cast<byte_type>(tag)];
     }
@@ -84,9 +74,14 @@ class parser
     using items_view_type = items_view_base<TIterator>;
     using descriptor_view_type = descriptor_view_base<TIterator>;
 
+    parser(const parser&) = delete;
+    parser& operator=(const parser&) = delete;
+    parser(parser&&) = delete;
+    parser& operator=(parser&&) = delete;
+
     /// @brief The control return value allows early termination of parsing,
     ///        in case all relevant information has been gathered early.
-    enum class control
+    enum class control : std::uint8_t
     {
         CONTINUE = 0, ///< continue parsing
         BREAK = 1,    ///< stop further parsing
@@ -250,23 +245,24 @@ class parser
         HID_RP_ASSERT(min_item != nullptr, ex_logical_min_missing);
         const auto* max_item = global_state.get_item(global::tag::LOGICAL_MAXIMUM);
         HID_RP_ASSERT(max_item != nullptr, ex_logical_max_missing);
-        auto l = limits<std::int32_t>{min_item->value_signed(), max_item->value_signed()};
-        HID_RP_ASSERT(l.min <= l.max, ex_logical_max_oob);
-        return l;
+        auto lim = limits<std::int32_t>{min_item->value_signed(), max_item->value_signed()};
+        HID_RP_ASSERT(lim.min <= lim.max, ex_logical_max_oob);
+        return lim;
     }
 
     /// @brief Extracts the logical limits from the global item store for unsigned values.
     /// @param global_state: the global items state at the current main item
     /// @return The logical limits as a pair of unsigned integers
-    constexpr static auto get_logical_limits_unsigned(const global_item_store& global_state)
+    [[nodiscard]] constexpr static auto
+    get_logical_limits_unsigned(const global_item_store& global_state)
     {
         const auto* min_item = global_state.get_item(global::tag::LOGICAL_MINIMUM);
         HID_RP_ASSERT(min_item != nullptr, ex_logical_min_missing);
         const auto* max_item = global_state.get_item(global::tag::LOGICAL_MAXIMUM);
         HID_RP_ASSERT(max_item != nullptr, ex_logical_max_missing);
-        auto l = limits<std::uint32_t>{min_item->value_unsigned(), max_item->value_unsigned()};
-        HID_RP_ASSERT(l.min <= l.max, ex_logical_limits_crossed);
-        return l;
+        auto lim = limits<std::uint32_t>{min_item->value_unsigned(), max_item->value_unsigned()};
+        HID_RP_ASSERT(lim.min <= lim.max, ex_logical_limits_crossed);
+        return lim;
     }
 
     /// @brief Extracts the physical limits from the global item store.
@@ -277,11 +273,11 @@ class parser
     {
         const auto* min_item = global_state.get_item(global::tag::PHYSICAL_MINIMUM);
         const auto* max_item = global_state.get_item(global::tag::PHYSICAL_MAXIMUM);
-        if (min_item and max_item)
+        if ((min_item != nullptr) and (max_item != nullptr))
         {
-            auto l = limits<std::int32_t>{min_item->value_signed(), max_item->value_signed()};
-            HID_RP_ASSERT(l.min <= l.max, ex_physical_limits_crossed);
-            return l;
+            auto lim = limits<std::int32_t>{min_item->value_signed(), max_item->value_signed()};
+            HID_RP_ASSERT(lim.min <= lim.max, ex_physical_limits_crossed);
+            return lim;
         }
         HID_RP_ASSERT((min_item == nullptr) and (max_item == nullptr), ex_physical_limit_missing);
         return std::nullopt;
@@ -322,7 +318,7 @@ class parser
         HID_RP_ASSERT(global_stack_depth(desc_view) < max_global_stack_depth,
                       ex_global_stack_overflow);
 
-        global_item_store global_stack[max_global_stack_depth];
+        global_item_store global_stack[max_global_stack_depth]; // NOLINT
         return fixed_stack_parse(desc_view, std::span(global_stack, max_global_stack_depth));
     }
 
@@ -332,6 +328,7 @@ class parser
     /// @param global_stack: the stack for global items, which must be large enough to hold the
     /// maximum depth
     /// @return the iterator to the first item that was not processed
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity)
     constexpr TIterator fixed_stack_parse(const descriptor_view_type& desc_view,
                                           std::span<global_item_store> global_stack)
     {
@@ -530,5 +527,3 @@ constexpr usage_t get_application_usage_id(const descriptor_view_base<TIterator>
 }
 
 } // namespace hid::rdf
-
-#endif // __HID_RDF_PARSER_HPP_

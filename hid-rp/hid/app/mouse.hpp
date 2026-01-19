@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2024
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_APP_MOUSE_HPP_
-#define __HID_APP_MOUSE_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include "hid/page/button.hpp"
 #include "hid/page/consumer.hpp"
@@ -35,7 +25,7 @@ struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
 };
 
 template <uint8_t REPORT_ID = 0, std::size_t BUTTONS_COUNT = 3>
-inline constexpr auto app_report_descriptor()
+[[nodiscard]] constexpr auto app_report_descriptor()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -71,7 +61,7 @@ inline constexpr auto app_report_descriptor()
     // clang-format on
 }
 
-inline constexpr uint8_t resolution_multiplier_bit_size()
+[[nodiscard]] constexpr uint8_t resolution_multiplier_bit_size()
 {
     // https://github.com/qmk/qmk_firmware/issues/17585#issuecomment-1238023671
     return 2;
@@ -80,7 +70,7 @@ inline constexpr uint8_t resolution_multiplier_bit_size()
 // https://learn.microsoft.com/en-us/previous-versions/windows/hardware/design/dn613912(v=vs.85)
 // This item only takes two bits in the feature report, byte padding is the caller's responsibility!
 template <uint8_t MULTIPLIER_MAX>
-inline constexpr auto resolution_multiplier()
+[[nodiscard]] constexpr auto resolution_multiplier()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -108,15 +98,15 @@ struct resolution_multiplier_report
     std::uint8_t resolutions{};
 
     constexpr void reset() { resolutions = 0; }
-    bool high_resolution() const { return resolutions != 0; }
+    [[nodiscard]] bool high_resolution() const { return resolutions != 0; }
 
-    constexpr uint8_t vertical_scroll_multiplier() const
+    [[nodiscard]] constexpr uint8_t vertical_scroll_multiplier() const
     {
-        return (resolutions & 0x01) ? MULTIPLIER_MAX : 1;
+        return ((resolutions & 0x01) != 0) ? MULTIPLIER_MAX : 1;
     }
-    constexpr uint8_t horizontal_scroll_multiplier() const
+    [[nodiscard]] constexpr uint8_t horizontal_scroll_multiplier() const
     {
-        return (resolutions & 0x04) ? MULTIPLIER_MAX : 1;
+        return ((resolutions & 0x04) != 0) ? MULTIPLIER_MAX : 1;
     }
 };
 
@@ -127,7 +117,7 @@ struct resolution_multiplier_report
 /// @tparam MULTIPLIER_MAX the maximum value of the resolution multiplier (valid range is 1-120)
 /// @return the descriptor block
 template <int16_t MAX_SCROLL, uint8_t MULTIPLIER_MAX>
-inline constexpr auto high_resolution_scrolling()
+[[nodiscard]] constexpr auto high_resolution_scrolling()
 {
     using namespace hid::page;
     using namespace hid::rdf;
@@ -154,5 +144,3 @@ inline constexpr auto high_resolution_scrolling()
 }
 
 } // namespace hid::app::mouse
-
-#endif // __HID_APP_MOUSE_HPP_

@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2024
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_REPORT_BITSET_HPP_
-#define __HID_REPORT_BITSET_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include <array>
 #include <cassert>
@@ -36,36 +26,36 @@ class report_bitset
         return static_cast<std::size_t>(max()) - static_cast<std::size_t>(min()) + 1;
     }
 
-    constexpr bool in_range(T usage) const { return (usage >= min()) and (usage <= max()); }
+    [[nodiscard]] constexpr bool in_range(T usage) const
+    {
+        return (usage >= min()) and (usage <= max());
+    }
     constexpr bool set(T usage, bool value = true)
     {
         if (in_range(usage))
         {
-            numeric_type n = static_cast<numeric_type>(usage) - static_cast<numeric_type>(min());
+            numeric_type num = static_cast<numeric_type>(usage) - static_cast<numeric_type>(min());
             if (value)
             {
-                bits_[n / 8u] |= 1u << (n % 8u);
+                bits_[num / 8] |= 1 << (num % 8);
             }
             else
             {
-                bits_[n / 8u] &= ~(1u << (n % 8u));
+                bits_[num / 8] &= ~(1 << (num % 8));
             }
             return true;
         }
-        else
-        {
-            return false;
-        }
+        return false;
     }
     constexpr void reset() { bits_.fill(0); }
     constexpr bool reset(T usage) { return set(usage, false); }
     constexpr bool flip(T usage) { return set(usage, !test(usage)); }
-    bool test(T usage) const
+    [[nodiscard]] constexpr bool test(T usage) const
     {
         if (in_range(usage))
         {
-            numeric_type n = static_cast<numeric_type>(usage) - static_cast<numeric_type>(min());
-            return bits_[n / 8] & (1 << (n % 8));
+            numeric_type num = static_cast<numeric_type>(usage) - static_cast<numeric_type>(min());
+            return bits_[num / 8] & (1 << (num % 8));
         }
         assert(false);
         return false;
@@ -79,5 +69,3 @@ class report_bitset
 };
 
 } // namespace hid
-
-#endif // __HID_REPORT_BITSET_HPP_

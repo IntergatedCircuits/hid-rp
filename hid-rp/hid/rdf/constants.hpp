@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2022
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_RDF_CONSTANTS_HPP_
-#define __HID_RDF_CONSTANTS_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include "hid/report.hpp"
 
@@ -79,11 +69,11 @@ constexpr static report::type tag_to_report_type(tag t)
     {
         return report::type::INPUT;
     }
-    else if (t == tag::OUTPUT)
+    if (t == tag::OUTPUT)
     {
         return report::type::OUTPUT;
     }
-    else // if (t == tag::FEATURE)
+    // if (t == tag::FEATURE)
     {
         return report::type::FEATURE;
     }
@@ -92,18 +82,18 @@ constexpr static report::type tag_to_report_type(tag t)
 template <hid::report::type TYPE_>
 constexpr static main::tag report_type_to_tag()
 {
-    static_assert((std::integral_constant<bool, TYPE_ == report::type::INPUT>::value) or
-                  (std::integral_constant<bool, TYPE_ == report::type::OUTPUT>::value) or
-                  (std::integral_constant<bool, TYPE_ == report::type::FEATURE>::value));
-    if (std::integral_constant<bool, TYPE_ == report::type::INPUT>::value)
+    static_assert((std::integral_constant < bool, TYPE_ == report::type::INPUT > ::value) or
+                  (std::integral_constant < bool, TYPE_ == report::type::OUTPUT > ::value) or
+                  (std::integral_constant < bool, TYPE_ == report::type::FEATURE > ::value));
+    if (std::integral_constant < bool, TYPE_ == report::type::INPUT > ::value)
     {
         return main::tag::INPUT;
     }
-    else if (std::integral_constant<bool, TYPE_ == report::type::OUTPUT>::value)
+    if (std::integral_constant < bool, TYPE_ == report::type::OUTPUT > ::value)
     {
         return main::tag::OUTPUT;
     }
-    else // if (std::integral_constant<bool, TYPE_ == report::type::FEATURE>::value)
+    // if (std::integral_constant<bool, TYPE_ == report::type::FEATURE>::value)
     {
         return main::tag::FEATURE;
     }
@@ -137,7 +127,7 @@ enum class unit_system : byte_type
     ENGLISH_ROTATION = 4,
 };
 
-enum unit_nibble_index
+enum unit_nibble_index : byte_type
 {
     SYSTEM = 0,
     LENGTH = 1,
@@ -206,15 +196,15 @@ enum class tag : byte_type
 template <typename TTag>
 constexpr item_type match_type()
 {
-    if constexpr (std::is_same<TTag, main::tag>::value)
+    if constexpr (std::is_same_v<TTag, main::tag>)
     {
         return item_type::MAIN;
     }
-    else if constexpr (std::is_same<TTag, global::tag>::value)
+    else if constexpr (std::is_same_v<TTag, global::tag>)
     {
         return item_type::GLOBAL;
     }
-    else if constexpr (std::is_same<TTag, local::tag>::value)
+    else if constexpr (std::is_same_v<TTag, local::tag>)
     {
         return item_type::LOCAL;
     }
@@ -225,5 +215,3 @@ constexpr item_type match_type()
 }
 
 } // namespace hid::rdf
-
-#endif // __HID_RDF_CONSTANTS_HPP_

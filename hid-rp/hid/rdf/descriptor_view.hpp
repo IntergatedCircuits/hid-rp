@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2022
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_RDF_DESCRIPTOR_VIEW_HPP_
-#define __HID_RDF_DESCRIPTOR_VIEW_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include <iterator>
 #include <span>
@@ -36,12 +26,12 @@ class reinterpret_iterator
     constexpr reinterpret_iterator(const byte_type* data)
         : ptr_(data)
     {}
-    reinterpret_iterator(pointer ptr)
+    reinterpret_iterator(pointer ptr) // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         : ptr_(reinterpret_cast<decltype(ptr_)>(ptr))
     {}
     reinterpret_iterator& operator++()
     {
-        ptr_ += (*this)->size();
+        ptr_ += (*this)->size(); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         return *this;
     }
     reinterpret_iterator operator++(int)
@@ -56,7 +46,11 @@ class reinterpret_iterator
     constexpr bool operator!=(const reinterpret_iterator& rhs) const = default;
 
   private:
-    pointer ptr() { return reinterpret_cast<pointer>(ptr_); }
+    pointer ptr()
+    {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        return reinterpret_cast<pointer>(ptr_);
+    }
 
     template <typename TIterator>
     friend class items_view_base;
@@ -85,12 +79,12 @@ class copy_iterator
     constexpr copy_iterator(const byte_type* data)
         : ptr_(data)
     {}
-    copy_iterator(pointer ptr)
+    copy_iterator(pointer ptr) // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         : copy_iterator(reinterpret_cast<decltype(ptr_)>(ptr))
     {}
     constexpr copy_iterator& operator++()
     {
-        ptr_ += (*this)->size();
+        ptr_ += (*this)->size(); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         return *this;
     }
     constexpr copy_iterator operator++(int)
@@ -115,7 +109,7 @@ class copy_iterator
     friend class items_view_base;
 
     const byte_type* ptr_;
-    short_item_buffer copy_{};
+    short_item_buffer copy_;
 };
 
 /// @brief A view to a section of items in an HID report descriptor.
@@ -132,23 +126,27 @@ class items_view_base
     using iterator = TIterator;
     using const_iterator = iterator;
 
-    constexpr const byte_type* data() const { return begin_; }
-    constexpr auto size() const { return static_cast<std::size_t>(end_ - begin_); }
-    constexpr iterator begin() { return begin_; }
-    constexpr const_iterator begin() const { return begin_; }
-    constexpr iterator end() { return end_; }
-    constexpr const_iterator end() const { return end_; }
+    [[nodiscard]] constexpr const byte_type* data() const { return begin_; }
+    [[nodiscard]] constexpr auto size() const { return static_cast<std::size_t>(end_ - begin_); }
+    [[nodiscard]] constexpr iterator begin() { return begin_; }
+    [[nodiscard]] constexpr const_iterator begin() const { return begin_; }
+    [[nodiscard]] constexpr iterator end() { return end_; }
+    [[nodiscard]] constexpr const_iterator end() const { return end_; }
 
-    constexpr auto to_span() const { return std::span<const byte_type>(data(), size()); }
+    [[nodiscard]] constexpr auto to_span() const
+    {
+        return std::span<const byte_type>(data(), size());
+    }
 
     /// @brief  Verifies that the view has correct bounds, all items are intact and complete.
     ///         This is the first check that needs to be done on a new HID report descriptor
     ///         (usually done by the OS itself).
     /// @return true if the view is valid, false otherwise
-    constexpr bool has_valid_bounds() const
+    [[nodiscard]] constexpr bool has_valid_bounds() const
     {
         for (auto it = this->begin(); it != this->end(); ++it)
         {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
             if ((it.ptr_ + (*it).size()) > end_)
             {
                 return false;
@@ -201,6 +199,7 @@ class descriptor_view_base : public items_view_base<TIterator>
         : base()
     {}
     constexpr descriptor_view_base(const byte_type* data, std::size_t size)
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         : base(data, data + size)
     {}
     template <typename TArray>
@@ -230,5 +229,3 @@ using ce_descriptor_view = descriptor_view_base<copy_iterator>;
 static_assert(std::ranges::range<ce_descriptor_view>);
 
 } // namespace hid::rdf
-
-#endif // __HID_RDF_DESCRIPTOR_VIEW_HPP_

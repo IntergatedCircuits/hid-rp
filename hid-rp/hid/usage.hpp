@@ -1,15 +1,5 @@
-/// @file
-///
-/// @author Benedek Kupper
-/// @date   2025
-///
-/// @copyright
-///         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-///         If a copy of the MPL was not distributed with this file, You can obtain one at
-///         https://mozilla.org/MPL/2.0/.
-///
-#ifndef __HID_USAGE_HPP_
-#define __HID_USAGE_HPP_
+// SPDX-License-Identifier: MPL-2.0
+#pragma once
 
 #include <compare>
 #include <cstdint>
@@ -22,6 +12,7 @@ using usage_id_t = std::uint16_t;
 
 namespace page
 {
+// NOLINTBEGIN(cppcoreguidelines-non-private-member-variables-in-classes,cppcoreguidelines-avoid-const-or-ref-data-members)
 struct [[nodiscard]] info
 {
   private:
@@ -33,6 +24,7 @@ struct [[nodiscard]] info
     const usage_id_t max_usage_id;
     const usage_id_t ius_mask;
 
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     constexpr info(page_id_t page, usage_id_t max, const char* name,
                    const char* (*get_name)(hid::usage_id_t id) = nullptr,
                    usage_id_t inline_usage_switch_mask = 0)
@@ -43,9 +35,9 @@ struct [[nodiscard]] info
           ius_mask(inline_usage_switch_mask)
     {}
 
-    const char* get_usage_name(usage_id_t id) const
+    [[nodiscard]] const char* get_usage_name(usage_id_t id) const
     {
-        if (get_usage_name_)
+        if (get_usage_name_ != nullptr)
         {
             return get_usage_name_(id);
         }
@@ -54,13 +46,14 @@ struct [[nodiscard]] info
 
     constexpr bool operator==(const info& other) const { return page_id == other.page_id; }
     constexpr bool operator!=(const info& other) const = default;
-    constexpr bool valid_page() const { return page_id != 0; }
+    [[nodiscard]] constexpr bool valid_page() const { return page_id != 0; }
 };
+// NOLINTEND(cppcoreguidelines-non-private-member-variables-in-classes,cppcoreguidelines-avoid-const-or-ref-data-members)
 
 /// @brief Each usage page type needs the specialization of this template method
 ///        for this library to function correctly.
 template <typename T>
-constexpr inline auto get_info()
+constexpr auto get_info()
 {
     return info(0, 0, "unknown");
 }
@@ -79,22 +72,26 @@ concept InlineSwitchableUsageType = UsageType<T> and (page::get_info<T>().ius_ma
 
 namespace page
 {
+// NOLINTBEGIN(clang-analyzer-optin.core.EnumCastOutOfRange)
 template <InlineSwitchableUsageType T>
-constexpr inline auto operator|(T lhs, T rhs)
+constexpr auto operator|(T lhs, T rhs)
 {
     return static_cast<T>(static_cast<std::underlying_type_t<T>>(lhs) |
                           static_cast<std::underlying_type_t<T>>(rhs));
 }
+// NOLINTEND(clang-analyzer-optin.core.EnumCastOutOfRange)
+
 template <InlineSwitchableUsageType T>
-constexpr inline auto get_base_usage(T u)
+constexpr auto get_base_usage(T usage)
 {
-    return static_cast<T>(static_cast<std::underlying_type_t<T>>(u) &
+    return static_cast<T>(static_cast<std::underlying_type_t<T>>(usage) &
                           ~page::get_info<T>().ius_mask);
 }
 template <InlineSwitchableUsageType T>
-constexpr inline auto get_inline_switch(T u)
+constexpr auto get_inline_switch(T usage)
 {
-    return static_cast<T>(static_cast<std::underlying_type_t<T>>(u) & page::get_info<T>().ius_mask);
+    return static_cast<T>(static_cast<std::underlying_type_t<T>>(usage) &
+                          page::get_info<T>().ius_mask);
 }
 } // namespace page
 
@@ -117,29 +114,32 @@ class usage_t
     constexpr explicit usage_t(type value)
         : value_(value)
     {}
-    constexpr usage_t(page_id_t page, usage_id_t u)
-        : value_((static_cast<type>(page) << 16u) | u)
+    constexpr usage_t(page_id_t page, usage_id_t usage)
+        : value_((static_cast<type>(page) << 16) | usage)
     {}
     template <UsageType T>
-    constexpr usage_t(T u)
-        : value_((static_cast<type>(page::get_info<T>().page_id) << 16u) | static_cast<type>(u))
+    constexpr usage_t(T usage)
+        : value_((static_cast<type>(page::get_info<T>().page_id) << 16) | static_cast<type>(usage))
     {}
-    constexpr operator type&() { return value_; }
-    constexpr operator type() const { return value_; }
-    constexpr page_id_t page_id() const { return value_ >> 16; }
-    constexpr usage_id_t id() const { return value_ & std::numeric_limits<usage_id_t>::max(); }
+    [[nodiscard]] constexpr operator type&() { return value_; }
+    [[nodiscard]] constexpr operator type() const { return value_; }
+    [[nodiscard]] constexpr page_id_t page_id() const { return value_ >> 16; }
+    [[nodiscard]] constexpr usage_id_t id() const
+    {
+        return value_ & std::numeric_limits<usage_id_t>::max();
+    }
 
     constexpr auto operator<=>(const usage_t&) const = default;
 
     template <UsageType T>
-    constexpr bool has_page() const
+    [[nodiscard]] constexpr bool has_page() const
     {
         return page_id() == page::get_info<T>().page_id;
     }
     template <UsageType T>
-    constexpr bool operator==(T u) const
+    [[nodiscard]] constexpr bool operator==(T usage) const
     {
-        return has_page<T>() and (id() == static_cast<usage_id_t>(u));
+        return has_page<T>() and (id() == static_cast<usage_id_t>(usage));
     }
 
   private:
@@ -163,5 +163,3 @@ using hid::nullusage;
 } // namespace page
 
 } // namespace hid
-
-#endif // __HID_RDF_USAGE_HPP_

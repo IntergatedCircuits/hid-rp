@@ -13,11 +13,18 @@ foreach(HEADER_FILE ${HEADER_FILES})
     )
 endforeach()
 
+add_library(${PROJECT_NAME}-build-test OBJECT
+    ${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp
+)
+target_link_libraries(${PROJECT_NAME}-build-test
+    PUBLIC
+        ${PROJECT_NAME}
+)
+
 add_executable(${PROJECT_NAME}-test)
 target_sources(${PROJECT_NAME}-test
     PRIVATE
         test_framework.hpp
-        ${CMAKE_CURRENT_BINARY_DIR}/compilation_test.cpp
         main.cpp
         descriptor_view.cpp
         formatter.cpp
@@ -29,21 +36,21 @@ target_sources(${PROJECT_NAME}-test
 )
 target_link_libraries(${PROJECT_NAME}-test
     PRIVATE
-        ${PROJECT_NAME}
+        ${PROJECT_NAME}-build-test
         ut
 )
 add_test(NAME ${PROJECT_NAME}-test COMMAND ${PROJECT_NAME}-test)
 
 # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 # https://embeddedartistry.com/blog/2023/09/20/leveraging-your-toolchain-to-improve-security/
-target_link_options(${PROJECT_NAME}-test
-    PRIVATE
+target_link_options(${PROJECT_NAME}-build-test
+    PUBLIC
         #-fsanitize=address
         -fsanitize=signed-integer-overflow
         -fsanitize=bounds
 )
-target_compile_options(${PROJECT_NAME}-test
-    PRIVATE
+target_compile_options(${PROJECT_NAME}-build-test
+    PUBLIC
         -ftrivial-auto-var-init=pattern
         -fstack-protector-all
         #-fsanitize=address
@@ -91,3 +98,11 @@ target_compile_options(${PROJECT_NAME}-test
             -Wunreachable-code-aggressive
         >
 )
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    find_program(CLANG_TIDY_EXE NAMES "clang-tidy" REQUIRED)
+    set_target_properties(${PROJECT_NAME}-build-test
+        PROPERTIES
+            CXX_CLANG_TIDY "${CLANG_TIDY_EXE}"
+    )
+endif()
