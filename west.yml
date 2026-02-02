@@ -1,0 +1,14 @@
+manifest:
+  self:
+    path: hid-rp
+  defaults:
+    remote: IntergatedCircuits
+
+  remotes:
+    - name: IntergatedCircuits
+      url-base: https://github.com/IntergatedCircuits
+
+  projects:
+    - name: bitfilled
+      revision: c0a13692630ad587389113b94454ccc85de5a655
+      path: modules/lib/bitfilled
