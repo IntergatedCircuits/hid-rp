@@ -504,7 +504,7 @@ struct std::formatter<hid::rdf::descriptor_view_base<TIterator>>
             }
         };
 
-        parsing_formatter formatter{desc, ctx, width_};
+        parsing_formatter fmt{desc, ctx, width_};
         return ctx.out();
     }
 

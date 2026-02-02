@@ -66,46 +66,46 @@ struct report_protocol_properties
     [[nodiscard]] constexpr bool uses_report_ids() const { return report_id_present; }
 
     /// @brief Define the report protocol properties, with no report ID use.
-    /// @param max_input_size: The size of the longest INPUT report in bytes, including the report
+    /// @param max_in_size: The size of the longest INPUT report in bytes, including the report
     /// ID (if used)
-    /// @param max_output_size: The size of the longest OUTPUT report in bytes, including the report
+    /// @param max_out_size: The size of the longest OUTPUT report in bytes, including the report
     /// ID (if used)
-    /// @param max_feature_size: The size of the longest FEATURE report in bytes, including the
+    /// @param max_feat_size: The size of the longest FEATURE report in bytes, including the
     /// report ID (if used)
-    constexpr explicit report_protocol_properties(size_type max_input_size,
-                                                  size_type max_output_size,
-                                                  size_type max_feature_size)
-        : max_input_size(max_input_size),
-          max_output_size(max_output_size),
-          max_feature_size(max_feature_size),
-          input_report_count(bool(max_input_size) ? 1 : 0),
-          output_report_count(bool(max_output_size) ? 1 : 0),
-          feature_report_count(bool(max_feature_size) ? 1 : 0)
+    constexpr explicit report_protocol_properties(size_type max_in_size, size_type max_out_size,
+                                                  size_type max_feat_size)
+        : max_input_size(max_in_size),
+          max_output_size(max_out_size),
+          max_feature_size(max_feat_size),
+          input_report_count(bool(max_in_size) ? 1 : 0),
+          output_report_count(bool(max_out_size) ? 1 : 0),
+          feature_report_count(bool(max_feat_size) ? 1 : 0)
     {}
 
     /// @brief Define the report protocol properties manually.
-    /// @param max_input_size: The size of the longest INPUT report in bytes, including the report
+    /// @param max_in_size: The size of the longest INPUT report in bytes, including the report
     /// ID (if used)
-    /// @param max_output_size: The size of the longest OUTPUT report in bytes, including the report
+    /// @param max_out_size: The size of the longest OUTPUT report in bytes, including the report
     /// ID (if used)
-    /// @param max_feature_size: The size of the longest FEATURE report in bytes, including the
+    /// @param max_feat_size: The size of the longest FEATURE report in bytes, including the
     /// report ID (if used)
-    /// @param report_count: The number of distinct reports defined by the protocol
-    /// @param input_report_count: The highest INPUT report ID used by the protocol
-    /// @param output_report_count: The highest OUTPUT report ID used by the protocol
-    /// @param feature_report_count: The highest FEATURE report ID used by the protocol
-    /// @param report_id_present: Whether the protocol uses report IDs at all
-    constexpr explicit report_protocol_properties(
-        size_type max_input_size, size_type max_output_size, size_type max_feature_size,
-        report::id::type input_report_count, report::id::type output_report_count,
-        report::id::type feature_report_count, bool report_id_present = true)
-        : max_input_size(max_input_size),
-          max_output_size(max_output_size),
-          max_feature_size(max_feature_size),
-          input_report_count(input_report_count),
-          output_report_count(output_report_count),
-          feature_report_count(feature_report_count),
-          report_id_present(report_id_present)
+    /// @param in_report_count: The highest INPUT report ID used by the protocol
+    /// @param out_report_count: The highest OUTPUT report ID used by the protocol
+    /// @param feat_report_count: The highest FEATURE report ID used by the protocol
+    /// @param report_ids: Whether the protocol uses report IDs at all
+    constexpr explicit report_protocol_properties(size_type max_in_size, size_type max_out_size,
+                                                  size_type max_feat_size,
+                                                  report::id::type in_report_count,
+                                                  report::id::type out_report_count,
+                                                  report::id::type feat_report_count,
+                                                  bool report_ids = true)
+        : max_input_size(max_in_size),
+          max_output_size(max_out_size),
+          max_feature_size(max_feat_size),
+          input_report_count(in_report_count),
+          output_report_count(out_report_count),
+          feature_report_count(feat_report_count),
+          report_id_present(report_ids)
     {}
 
     /// @brief This class parses the HID report descriptor, gathering all report size

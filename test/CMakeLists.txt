@@ -65,7 +65,7 @@ target_compile_options(${PROJECT_NAME}-build-test
         -Wsign-conversion
         -Wuninitialized
         -Wcast-qual
-        #-Wshadow
+        -Wshadow
         -Wimplicit-fallthrough
         -Wfloat-equal
         -Wstack-protector

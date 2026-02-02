@@ -62,11 +62,11 @@ class short_item : public array<1 + DATA_SIZE>
     }
 
     template <typename TTag, typename TData>
-    constexpr short_item(TTag tag, TData data)
+    constexpr short_item(TTag tag, TData val)
         : short_item(tag)
     {
         // NOLINTNEXTLINE(bugprone-signed-char-misuse)
-        auto value = static_cast<std::uint32_t>(data);
+        auto value = static_cast<std::uint32_t>(val);
         for (byte_type i = 0; i < DATA_SIZE; ++i)
         {
             (*this)[1 + i] = static_cast<byte_type>(value);
