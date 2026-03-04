@@ -39,10 +39,10 @@ ExternalProject_Add(hid-usage-tables
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-if(ZEPHYR_BITFILLED_MODULE_DIR)
+if(ZEPHYR_BITFILLED_MODULE_DIR OR MCUX_BITFILLED_MODULE_DIR)
 else()
     include(get_cpm)
-    CPMAddPackage("gh:IntergatedCircuits/bitfilled#c0a13692630ad587389113b94454ccc85de5a655")
+    CPMAddPackage("gh:IntergatedCircuits/bitfilled#60673d361f36b7f2e53c26a10fcbc3d1e71510a6")
 endif()
 
 # the library itself

@@ -10,4 +10,4 @@ manifest:
 
   projects:
     - name: bitfilled
-      revision: c0a13692630ad587389113b94454ccc85de5a655
+      revision: 60673d361f36b7f2e53c26a10fcbc3d1e71510a6
