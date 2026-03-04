@@ -15,6 +15,16 @@ enum class protocol : std::uint8_t
     BOOT = 0x00, // BOOT protocol (either keyboard or mouse, as specified in USB HID class document)
 };
 
+namespace boot
+{
+enum class mode : std::uint8_t
+{
+    NONE = 0x00,
+    KEYBOARD = 0x01,
+    MOUSE = 0x02,
+};
+}
+
 namespace report
 {
 enum class type : std::uint8_t
@@ -48,17 +58,21 @@ class id
 /// @brief A report is uniquely identified by two parameters: its type, and its (optional) ID
 class selector
 {
+    static constexpr std::uint8_t boot_mode_offset = 2;
+    static constexpr std::uint8_t type_mask = 0x3;
+
   public:
     constexpr selector(report::type t, report::id i = 0)
         : storage_{static_cast<std::uint8_t>(i), static_cast<std::uint8_t>(t)}
     {}
     constexpr explicit selector(std::uint16_t raw)
-        : storage_{static_cast<std::uint8_t>(raw), static_cast<std::uint8_t>(raw >> 8)}
+        : storage_{static_cast<std::uint8_t>(raw),
+                   static_cast<std::uint8_t>((raw >> 8) & type_mask)}
     {}
     constexpr selector() = default;
     [[nodiscard]] constexpr report::type type() const
     {
-        return static_cast<report::type>(storage_[1]);
+        return static_cast<report::type>(storage_[1] & type_mask);
     }
     [[nodiscard]] constexpr report::id id() const { return {storage_[0]}; }
     [[nodiscard]] constexpr bool valid() const
@@ -66,6 +80,20 @@ class selector
         return (storage_[1] >= static_cast<std::uint8_t>(type::INPUT)) and
                (storage_[1] <= static_cast<std::uint8_t>(type::FEATURE));
     }
+    // Allow representing boot reports (keyboard IN/OUT, mouse IN - no ID) in the same type
+    constexpr selector(boot::mode bm, report::type t)
+        : storage_{0, std::uint8_t(std::uint8_t(t) | (std::uint8_t(bm) << boot_mode_offset))}
+    {}
+    [[nodiscard]] constexpr bool is_boot_report() const { return (storage_[1] & ~type_mask) != 0; }
+    [[nodiscard]] constexpr hid::protocol protocol() const
+    {
+        return is_boot_report() ? hid::protocol::BOOT : hid::protocol::REPORT;
+    }
+    [[nodiscard]] constexpr boot::mode boot_mode() const
+    {
+        return static_cast<boot::mode>(storage_[1] >> boot_mode_offset);
+    }
+
     constexpr void clear() { *this = selector(); }
 
     constexpr bool operator==(const selector& rhs) const = default;
