@@ -1,0 +1,12 @@
+menuconfig HID_RP
+    bool "HID Report Protocol C++ library"
+    depends on CPP
+    # imply STD_CPP20
+    help
+        This option enables the HID Report Protocol library target, and generates the HID usage page headers.
+
+if HID_RP
+
+# TODO: configure HID_RP_ASSERT behavior
+
+endif # HID_RP

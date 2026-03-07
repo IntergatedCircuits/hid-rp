@@ -1,0 +1,5 @@
+if(CONFIG_HID_RP)
+    include(FetchContent)
+    FetchContent_Declare      (hid-rp SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/..")
+    FetchContent_MakeAvailable(hid-rp)
+endif()
