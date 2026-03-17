@@ -40,7 +40,7 @@ template <uint8_t REPORT_ID = 0, std::size_t ROLLOVER_LIMIT = 6>
 }
 
 template <std::uint8_t REPORT_ID = 0, std::size_t ROLLOVER_LIMIT = 6>
-struct keys_input_report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
+struct keys_input_report : hid::report::base<hid::report::type::INPUT, REPORT_ID>
 {
     hid::report_bitset<page::keyboard_keypad, page::keyboard_keypad::KEYBOARD_LEFT_CONTROL,
                        page::keyboard_keypad::KEYBOARD_RIGHT_GUI>
@@ -74,6 +74,18 @@ struct keys_input_report : public hid::report::base<hid::report::type::INPUT, RE
         }
         return false;
     }
+
+    static constexpr boot::mode boot_mode()
+        requires((REPORT_ID == 0) and (ROLLOVER_LIMIT == 6))
+    {
+        return boot::mode::KEYBOARD;
+    }
+};
+
+// Boot protocol has predefined report layout
+struct boot_input_report final : keys_input_report<0, 6>
+{
+    using keys_input_report::keys_input_report;
 };
 
 template <uint8_t REPORT_ID>
@@ -97,9 +109,21 @@ template <uint8_t REPORT_ID>
 }
 
 template <uint8_t REPORT_ID = 0>
-struct output_report : public hid::report::base<hid::report::type::OUTPUT, REPORT_ID>
+struct output_report : hid::report::base<hid::report::type::OUTPUT, REPORT_ID>
 {
     hid::report_bitset<page::leds, page::leds::NUM_LOCK, page::leds::KANA> leds;
+
+    static constexpr boot::mode boot_mode()
+        requires(REPORT_ID == 0)
+    {
+        return boot::mode::KEYBOARD;
+    }
+};
+
+// Boot protocol has predefined report layout
+struct boot_output_report final : output_report<0>
+{
+    using output_report::output_report;
 };
 
 template <uint8_t REPORT_ID = 0>

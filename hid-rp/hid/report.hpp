@@ -147,5 +147,18 @@ static_assert(base<type::OUTPUT, 0x42>::selector() == selector(0x242));
 
 template <class T, report::type TYPE = T::type(), id::type REPORT_ID = T::ID>
 concept Data = std::is_base_of_v<base<TYPE, REPORT_ID>, T>;
+
+template <class T>
+concept BootCompatibleData =
+    Data<T> and std::convertible_to<decltype(T::selector()), report::selector> and
+    std::convertible_to<decltype(T::boot_mode()), boot::mode> and
+    (((sizeof(T) == 8) and (T::boot_mode() == boot::mode::KEYBOARD) and
+      (T::selector().type() == type::INPUT)) or
+     ((sizeof(T) == 1) and (T::boot_mode() == boot::mode::KEYBOARD) and
+      (T::selector().type() == type::OUTPUT)) or
+     ((sizeof(T) == 3) and (T::boot_mode() == boot::mode::MOUSE) and
+      (T::selector().type() == type::INPUT)));
+
 } // namespace report
+
 } // namespace hid

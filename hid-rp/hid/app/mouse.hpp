@@ -22,6 +22,18 @@ struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
         x = 0;
         y = 0;
     }
+
+    static constexpr boot::mode boot_mode()
+        requires((REPORT_ID == 0) and (BUTTONS_COUNT == 3))
+    {
+        return boot::mode::MOUSE;
+    }
+};
+
+// Boot protocol has predefined report layout
+struct boot_report final : report<0, 3>
+{
+    using report::report;
 };
 
 template <uint8_t REPORT_ID = 0, std::size_t BUTTONS_COUNT = 3>

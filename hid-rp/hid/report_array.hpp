@@ -22,7 +22,7 @@ class report_array
     bool set(T usage, bool value = true)
     {
         auto num = static_cast<numeric_type>(usage);
-        auto it = std::find(arr_.begin(), arr_.end(), value ? static_cast<numeric_type>(0) : num);
+        auto* it = std::find(arr_.begin(), arr_.end(), value ? static_cast<numeric_type>(0) : num);
         if (it != arr_.end())
         {
             *it = value ? num : static_cast<numeric_type>(0);

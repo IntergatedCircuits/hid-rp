@@ -4,6 +4,7 @@
 #include "test_framework.hpp"
 
 using namespace hid::app::keyboard;
+using namespace hid::page;
 
 SUITE(keyboard_)
 {
@@ -53,5 +54,32 @@ SUITE(keyboard_)
                       hid::page::generic_desktop::KEYBOARD);
         CHECK(hid::rdf::get_application_usage_id(hid::rdf::descriptor_view(desc5)) ==
               hid::page::generic_desktop::KEYBOARD);
+    };
+
+    TEST_CASE("report structures")
+    {
+        static_assert(keys_input_report<0>::type() == hid::report::type::INPUT);
+        static_assert(keys_input_report<0>::ID == 0);
+        static_assert(keys_input_report<0>::has_id() == false);
+        static_assert(keys_input_report<0>::selector() ==
+                      hid::report::selector(hid::report::type::INPUT, 0));
+        static_assert(hid::report::BootCompatibleData<boot_input_report>);
+        static_assert(not hid::report::BootCompatibleData<keys_input_report<5>>);
+
+        keys_input_report<0> report0;
+        report0.set_key_state(keyboard_keypad::KEYBOARD_LEFT_CONTROL, true);
+        report0.set_key_state(keyboard_keypad::KEYBOARD_RIGHT_GUI, true);
+        report0.set_key_state(keyboard_keypad::KEYPAD_HEXADECIMAL, true);
+        CHECK(report0.modifiers.test(keyboard_keypad::KEYBOARD_LEFT_CONTROL));
+        CHECK(report0.modifiers.test(keyboard_keypad::KEYBOARD_RIGHT_GUI));
+        CHECK(report0.scancodes.test(keyboard_keypad::KEYPAD_HEXADECIMAL));
+
+        static_assert(output_report<5>::type() == hid::report::type::OUTPUT);
+        static_assert(output_report<5>::ID == 5);
+        static_assert(output_report<5>::has_id() == true);
+        static_assert(output_report<5>::selector() ==
+                      hid::report::selector(hid::report::type::OUTPUT, 5));
+        static_assert(hid::report::BootCompatibleData<boot_output_report>);
+        static_assert(not hid::report::BootCompatibleData<output_report<5>>);
     };
 };
