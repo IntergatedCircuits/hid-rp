@@ -167,15 +167,15 @@ struct report_protocol_properties
         [[nodiscard]] constexpr report::id::type max_report_id(report::type type) const
         {
             const auto& sizes = report_bit_sizes_[static_cast<std::size_t>(type) - 1];
-            auto rit = std::ranges::find_if(sizes | std::views::reverse,
+            auto rit = std::ranges::find_if(std::views::reverse(sizes),
                                             [](size_type x) { return x != 0; });
             return rit == sizes.rend() ? 0 : std::distance(rit, sizes.rend()) - 1;
         }
 
         [[nodiscard]] constexpr size_type report_count() const
         {
-            return static_cast<size_type>(std::ranges::count_if(
-                report_bit_sizes_ | std::views::join, [](auto v) { return v > 0; }));
+            return static_cast<size_type>(std::ranges::count_if(std::views::join(report_bit_sizes_),
+                                                                [](auto v) { return v > 0; }));
         }
         [[nodiscard]] constexpr report::id::type report_count(report::type type) const
         {
