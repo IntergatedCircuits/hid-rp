@@ -4,6 +4,7 @@
 #include <iterator>
 #include <span>
 #include "hid/rdf/item.hpp"
+#include "make_static.hpp"
 
 namespace hid::rdf
 {
@@ -171,13 +172,6 @@ class items_view_base
     const byte_type* begin_;
     const byte_type* end_;
 };
-
-template <auto Data>
-consteval const auto& make_static()
-{
-    // source: Hana Dusíková and https://youtu.be/ABg4_EV5L3w?si=eSD-TwF0MEwsopt3&t=1117
-    return Data;
-}
 
 /// @brief A view of the HID report descriptor, allowing iterating through its items.
 /// @tparam TIterator Either @ref reinterpret_iterator or @ref copy_iterator
