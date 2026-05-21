@@ -103,6 +103,12 @@ class selector
     std::array<std::uint8_t, 2> storage_{};
 };
 
+struct properties
+{
+    report::selector selector;
+    std::uint16_t size{}; // in bytes
+};
+
 struct id_base
 {
     report::id id;

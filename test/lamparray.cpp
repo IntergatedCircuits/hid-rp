@@ -33,7 +33,7 @@ SUITE(lamparray_)
         static_assert(rp.max_output_size == 0);
         static_assert(rp.uses_report_ids());
 
-        constexpr auto table0 = hid::make_report_selector_table<desc>();
+        constexpr auto table0 = hid::make_report_properties_table<desc>();
         static_assert(table0.size() == rp.feature_report_count);
 
         // test both compile-time and runtime

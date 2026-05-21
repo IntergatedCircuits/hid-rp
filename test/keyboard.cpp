@@ -21,10 +21,12 @@ SUITE(keyboard_)
         static_assert(sizeof(output_report<0>) == 1);
         static_assert(not rp0.uses_report_ids());
 
-        constexpr auto table0 = hid::make_report_selector_table<app_report_descriptor<0>()>();
+        constexpr auto table0 = hid::make_report_properties_table<app_report_descriptor<0>()>();
         static_assert(table0.size() == 2);
-        static_assert(table0[0] == keys_input_report<0>::selector());
-        static_assert(table0[1] == output_report<0>::selector());
+        static_assert(table0[0].selector == keys_input_report<0>::selector());
+        static_assert(table0[0].size == sizeof(keys_input_report<0>));
+        static_assert(table0[1].selector == output_report<0>::selector());
+        static_assert(table0[1].size == sizeof(output_report<0>));
 
         // test both compile-time and runtime
         static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
@@ -44,10 +46,12 @@ SUITE(keyboard_)
         static_assert(rp5.max_output_size == 2);
         static_assert(rp5.uses_report_ids());
 
-        constexpr auto table5 = hid::make_report_selector_table<app_report_descriptor<5>()>();
+        constexpr auto table5 = hid::make_report_properties_table<app_report_descriptor<5>()>();
         static_assert(table5.size() == 2);
-        static_assert(table5[0] == keys_input_report<5>::selector());
-        static_assert(table5[1] == output_report<5>::selector());
+        static_assert(table5[0].selector == keys_input_report<5>::selector());
+        static_assert(table5[0].size == sizeof(keys_input_report<5>));
+        static_assert(table5[1].selector == output_report<5>::selector());
+        static_assert(table5[1].size == sizeof(output_report<5>));
 
         // test both compile-time and runtime
         static_assert(hid::rdf::get_application_usage_id(rp5.descriptor) ==

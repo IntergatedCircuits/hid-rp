@@ -152,7 +152,7 @@ struct report_protocol_properties
             auto& report_sizes = bit_sizes_by_type(type);
             auto begin = report_sizes.begin();
             size_type max_size = *std::max_element(++begin, report_sizes.end()) / 8;
-            return (max_size > 0) ? sizeof(report::id) + max_size : 0UL;
+            return (max_size > 0) ? sizeof(report::id) + max_size : 0;
         }
 
         [[nodiscard]] constexpr bool uses_report_ids() const { return max_report_id() > 0; }
@@ -185,7 +185,7 @@ struct report_protocol_properties
         }
 
         template <std::size_t N>
-        constexpr void fill_report_selector_table(std::array<report::selector, N>& table) const
+        constexpr void fill_report_properties_table(std::array<report::properties, N>& table) const
         {
             HID_RP_ASSERT(table.size() == report_count(), ex_report_table_invalid_size);
             auto table_it = table.begin();
@@ -195,7 +195,13 @@ struct report_protocol_properties
                 {
                     if (report_bit_sizes_[type][id] > 0)
                     {
-                        *table_it = report::selector(static_cast<report::type>(type + 1), id);
+                        std::size_t byte_size =
+                            (id != 0) * sizeof(report::id) + report_bit_sizes_[type][id] / 8;
+                        HID_RP_ASSERT(byte_size <= std::numeric_limits<std::uint16_t>::max(),
+                                      ex_report_invalid_size);
+                        *table_it = report::properties{
+                            report::selector(static_cast<report::type>(type + 1), id),
+                            static_cast<std::uint16_t>(byte_size)};
                         ++table_it;
                     }
                 }
@@ -457,17 +463,17 @@ struct report_protocol : public report_protocol_properties
     }
 };
 
-/// @brief  Create a table that contains all report selectors defined by the report descriptor,
+/// @brief  Create a table that contains all report properties defined by the report descriptor,
 ///         for correctly sizing and filling GATT HID attributes.
 /// @tparam Data: the descriptor array, acquired e.g. from a @ref hid::rdf::descriptor call
-/// @return a std::array<hid::report::selector, N> table listing the report selectors used by the
+/// @return a std::array<hid::report::properties, N> table listing the report properties used by the
 ///         report descriptor
 template <auto Data>
-consteval auto make_report_selector_table()
+consteval auto make_report_properties_table()
 {
     constexpr report_protocol::parser<> parser{rdf::ce_descriptor_view::from_descriptor<Data>()};
-    std::array<report::selector, parser.report_count()> table;
-    parser.fill_report_selector_table(table);
+    std::array<report::properties, parser.report_count()> table;
+    parser.fill_report_properties_table(table);
     return table;
 }
 
