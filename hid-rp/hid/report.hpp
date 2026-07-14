@@ -99,6 +99,12 @@ class selector
     constexpr bool operator==(const selector& rhs) const = default;
     constexpr bool operator!=(const selector& rhs) const = default;
 
+    constexpr operator std::uint16_t() const
+    {
+        return static_cast<std::uint16_t>(storage_[0]) |
+               (static_cast<std::uint16_t>(storage_[1]) << 8);
+    }
+
   private:
     std::array<std::uint8_t, 2> storage_{};
 };
