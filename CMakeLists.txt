@@ -18,7 +18,7 @@ set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}")
 include(ExternalProject)
 
 set(HID_USAGE_TABLES_URL "https://github.com/IntergatedCircuits/hid-usage-tables.git" CACHE STRING "HID Usage Tables repository")
-set(HID_USAGE_TABLES_REV "ddd0d342ba5e912505c21cbb3b736206b4e5ed44" CACHE STRING "HID Usage Tables commit hash")
+set(HID_USAGE_TABLES_REV "e81e144768d78a130d5b5469549706b182452f1d" CACHE STRING "HID Usage Tables commit hash")
 
 set(USAGE_TABLES_OUTPUT_DIR ${INCLUDES}/hid/page)
 
@@ -42,7 +42,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 if(ZEPHYR_BITFILLED_MODULE_DIR OR MCUX_BITFILLED_MODULE_DIR)
 else()
     include(get_cpm)
-    CPMAddPackage("gh:IntergatedCircuits/bitfilled#60673d361f36b7f2e53c26a10fcbc3d1e71510a6")
+    CPMAddPackage("gh:IntergatedCircuits/bitfilled#58bda56b80bb7dc78b9e4413c3ebabb3a8a6e6ae")
 endif()
 
 # the library itself
