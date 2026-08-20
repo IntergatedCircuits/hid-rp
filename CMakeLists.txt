@@ -18,7 +18,7 @@ set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}")
 include(ExternalProject)
 
 set(HID_USAGE_TABLES_URL "https://github.com/IntergatedCircuits/hid-usage-tables.git" CACHE STRING "HID Usage Tables repository")
-set(HID_USAGE_TABLES_REV "e81e144768d78a130d5b5469549706b182452f1d" CACHE STRING "HID Usage Tables commit hash")
+set(HID_USAGE_TABLES_REV "a25913a55177da2857ea40aa87d9d45dbb37b246" CACHE STRING "HID Usage Tables commit hash")
 
 set(USAGE_TABLES_OUTPUT_DIR ${INCLUDES}/hid/page)
 
@@ -31,7 +31,7 @@ ExternalProject_Add(hid-usage-tables
     PREFIX ${CMAKE_BINARY_DIR}/hid-usage-tables
     GIT_REPOSITORY ${HID_USAGE_TABLES_URL}
     GIT_TAG ${HID_USAGE_TABLES_REV}
-    CONFIGURE_COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ${Python_EXECUTABLE} <SOURCE_DIR>/src/hid/codegen/cpp.py ${USAGE_TABLES_OUTPUT_DIR}
+    CONFIGURE_COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ${Python_EXECUTABLE} <SOURCE_DIR>/src/hid/codegen/cpp.py ${USAGE_TABLES_OUTPUT_DIR} ${HID_USAGE_TABLES_REV}
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
     UPDATE_DISCONNECTED TRUE
