@@ -116,7 +116,7 @@ target_compile_options(${PROJECT_NAME}-build-test
 )
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    find_program(CLANG_TIDY_EXE NAMES "clang-tidy" REQUIRED)
+    find_program(CLANG_TIDY_EXE NAMES "clang-tidy" "clang-tidy-20" REQUIRED)
     set_target_properties(${PROJECT_NAME}-build-test
         PROPERTIES
             CXX_CLANG_TIDY "${CLANG_TIDY_EXE}"

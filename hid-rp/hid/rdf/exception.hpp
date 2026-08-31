@@ -83,7 +83,7 @@ class parser_exception : public exception
     {}
 
   private:
-    code_type code_;
+    [[maybe_unused]] code_type code_;
 
     static constexpr code_type ERROR_FLAG = 1 << 15;
     static constexpr code_type VENDOR_DEFINED_FLAG = 1 << 14;

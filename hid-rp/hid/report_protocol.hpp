@@ -27,7 +27,7 @@ struct report_protocol_properties
 
     [[nodiscard]] constexpr size_type max_report_size() const
     {
-        return std::max(max_input_size, std::max(max_output_size, max_feature_size));
+        return std::max({max_input_size, max_output_size, max_feature_size});
     }
     [[nodiscard]] constexpr size_type max_report_size(report::type type) const
     {
@@ -196,12 +196,12 @@ struct report_protocol_properties
                     if (report_bit_sizes_[type][id] > 0)
                     {
                         std::size_t byte_size =
-                            (id != 0) * sizeof(report::id) + report_bit_sizes_[type][id] / 8;
+                            ((id != 0) * sizeof(report::id)) + (report_bit_sizes_[type][id] / 8);
                         HID_RP_ASSERT(byte_size <= std::numeric_limits<std::uint16_t>::max(),
                                       ex_report_invalid_size);
                         *table_it = report::properties{
-                            report::selector(static_cast<report::type>(type + 1), id),
-                            static_cast<std::uint16_t>(byte_size)};
+                            .selector = report::selector(static_cast<report::type>(type + 1), id),
+                            .size = static_cast<std::uint16_t>(byte_size)};
                         ++table_it;
                     }
                 }

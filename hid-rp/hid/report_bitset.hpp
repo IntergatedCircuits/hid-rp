@@ -155,10 +155,10 @@ class report_bitset
     template <UsageType T>
     [[nodiscard]] constexpr static std::size_t index_of(T usage)
     {
-        usage_t u(usage);
+        usage_t use(usage);
         for (std::size_t i = 0; i < size(); ++i)
         {
-            if (keys[i] == u)
+            if (keys[i] == use)
             {
                 return i;
             }
