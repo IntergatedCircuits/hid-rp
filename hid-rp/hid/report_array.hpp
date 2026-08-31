@@ -42,6 +42,9 @@ class report_array
     constexpr bool operator==(const report_array&) const = default;
     constexpr bool operator!=(const report_array&) const = default;
 
+    // exposes the raw storage for test-only printing (see test/report_printers.hpp)
+    [[nodiscard]] constexpr const auto& raw() const { return arr_; }
+
   private:
     std::array<TStorage, SIZE> arr_{};
 };

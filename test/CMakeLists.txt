@@ -33,6 +33,7 @@ target_sources(${PROJECT_NAME}-test
         lamparray.cpp
         mouse.cpp
         opaque.cpp
+        report_bitset.cpp
 )
 target_link_libraries(${PROJECT_NAME}-test
     PRIVATE
@@ -40,6 +41,21 @@ target_link_libraries(${PROJECT_NAME}-test
         ut
 )
 add_test(NAME ${PROJECT_NAME}-test COMMAND ${PROJECT_NAME}-test)
+
+# Negative compile-time tests: each target below must fail to build.
+# EXCLUDE_FROM_ALL keeps them out of the default `all` target; the matching
+# ctest entry builds the target on demand and expects that build to fail.
+function(hid_rp_add_compile_fail_test NAME)
+    add_executable(${NAME} EXCLUDE_FROM_ALL "compile_fail/${NAME}.cpp")
+    target_link_libraries(${NAME} PRIVATE ${PROJECT_NAME})
+    add_test(NAME ${NAME}
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target ${NAME} --config $<CONFIG>
+    )
+    set_tests_properties(${NAME} PROPERTIES WILL_FAIL TRUE)
+endfunction()
+
+hid_rp_add_compile_fail_test(report_bitset_duplicate_usage)
+hid_rp_add_compile_fail_test(report_bitset_usage_not_in_set)
 
 # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 # https://embeddedartistry.com/blog/2023/09/20/leveraging-your-toolchain-to-improve-security/

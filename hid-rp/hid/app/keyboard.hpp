@@ -42,8 +42,8 @@ template <uint8_t REPORT_ID = 0, std::size_t ROLLOVER_LIMIT = 6>
 template <std::uint8_t REPORT_ID = 0, std::size_t ROLLOVER_LIMIT = 6>
 struct keys_input_report : hid::report::base<hid::report::type::INPUT, REPORT_ID>
 {
-    hid::report_bitset<page::keyboard_keypad, page::keyboard_keypad::KEYBOARD_LEFT_CONTROL,
-                       page::keyboard_keypad::KEYBOARD_RIGHT_GUI>
+    hid::report_bitset_range<page::keyboard_keypad::KEYBOARD_LEFT_CONTROL,
+                             page::keyboard_keypad::KEYBOARD_RIGHT_GUI>
         modifiers;
     std::uint8_t reserved{};
     hid::report_array<page::keyboard_keypad, ROLLOVER_LIMIT> scancodes;
@@ -111,7 +111,7 @@ template <uint8_t REPORT_ID>
 template <uint8_t REPORT_ID = 0>
 struct output_report : hid::report::base<hid::report::type::OUTPUT, REPORT_ID>
 {
-    hid::report_bitset<page::leds, page::leds::NUM_LOCK, page::leds::KANA> leds;
+    hid::report_bitset_range<page::leds::NUM_LOCK, page::leds::KANA> leds;
 
     static constexpr boot::mode boot_mode()
         requires(REPORT_ID == 0)

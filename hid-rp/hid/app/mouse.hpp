@@ -13,7 +13,7 @@ namespace hid::app::mouse
 template <uint8_t REPORT_ID = 0, std::size_t BUTTONS_COUNT = 3>
 struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
 {
-    hid::report_bitset<page::button, page::button(1), page::button(BUTTONS_COUNT)> buttons;
+    hid::report_bitset_range<page::button(1), page::button(BUTTONS_COUNT)> buttons;
     std::int8_t x{};
     std::int8_t y{};
 

@@ -78,6 +78,42 @@ SUITE(keyboard_)
         CHECK(report0.modifiers.test(keyboard_keypad::KEYBOARD_RIGHT_GUI));
         CHECK(report0.scancodes.test(keyboard_keypad::KEYPAD_HEXADECIMAL));
 
+        // report_bitset_range: HID-required behavior on a contiguous usage range
+        using modifiers_bitset = hid::report_bitset_range<keyboard_keypad::KEYBOARD_LEFT_CONTROL,
+                                                          keyboard_keypad::KEYBOARD_RIGHT_GUI>;
+        static_assert(modifiers_bitset::min() == keyboard_keypad::KEYBOARD_LEFT_CONTROL);
+        static_assert(modifiers_bitset::max() == keyboard_keypad::KEYBOARD_RIGHT_GUI);
+        static_assert(modifiers_bitset::size() == 8);
+        static_assert(sizeof(modifiers_bitset) == 1);
+
+        modifiers_bitset modifiers;
+        CHECK(modifiers.in_range(keyboard_keypad::KEYBOARD_LEFT_CONTROL));
+        CHECK(modifiers.in_range(keyboard_keypad::KEYBOARD_RIGHT_GUI));
+        CHECK(not modifiers.in_range(keyboard_keypad::KEYBOARD_A));
+
+        CHECK(not modifiers.test(keyboard_keypad::KEYBOARD_LEFT_SHIFT));
+        CHECK(modifiers.set(keyboard_keypad::KEYBOARD_LEFT_SHIFT, true));
+        CHECK(modifiers.test(keyboard_keypad::KEYBOARD_LEFT_SHIFT));
+        CHECK(not modifiers.set(keyboard_keypad::KEYBOARD_A, true));
+
+        CHECK(modifiers.flip(keyboard_keypad::KEYBOARD_LEFT_SHIFT));
+        CHECK(not modifiers.test(keyboard_keypad::KEYBOARD_LEFT_SHIFT));
+        CHECK(modifiers.flip(keyboard_keypad::KEYBOARD_LEFT_SHIFT));
+        CHECK(modifiers.test(keyboard_keypad::KEYBOARD_LEFT_SHIFT));
+
+        CHECK(modifiers.reset(keyboard_keypad::KEYBOARD_LEFT_SHIFT));
+        CHECK(not modifiers.test(keyboard_keypad::KEYBOARD_LEFT_SHIFT));
+
+        modifiers.set(keyboard_keypad::KEYBOARD_LEFT_CONTROL, true);
+        modifiers.set(keyboard_keypad::KEYBOARD_RIGHT_GUI, true);
+        modifiers_bitset other;
+        CHECK(modifiers != other);
+        other.set(keyboard_keypad::KEYBOARD_LEFT_CONTROL, true);
+        other.set(keyboard_keypad::KEYBOARD_RIGHT_GUI, true);
+        CHECK(modifiers == other);
+        modifiers.reset();
+        CHECK(not modifiers.test(keyboard_keypad::KEYBOARD_LEFT_CONTROL));
+
         static_assert(output_report<5>::type() == hid::report::type::OUTPUT);
         static_assert(output_report<5>::ID == 5);
         static_assert(output_report<5>::has_id() == true);

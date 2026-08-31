@@ -143,4 +143,40 @@ SUITE(mouse_)
         CHECK(hid::rdf::get_application_usage_id(hid::rdf::descriptor_view(desc5)) ==
               hid::page::generic_desktop::MOUSE);
     };
+
+    TEST_CASE("report structures")
+    {
+        using namespace hid::page;
+
+        // report_bitset_range: HID-required behavior on a contiguous usage range
+        using buttons_bitset = decltype(hid::app::mouse::report<0>::buttons);
+        static_assert(buttons_bitset::min() == button(1));
+        static_assert(buttons_bitset::max() == button(3));
+        static_assert(buttons_bitset::size() == 3);
+        static_assert(sizeof(hid::app::mouse::report<0>) == 3);
+
+        hid::app::mouse::report<0> report0;
+        CHECK(not report0.buttons.test(button(1)));
+        CHECK(report0.buttons.set(button(1), true));
+        CHECK(report0.buttons.set(button(3), true));
+        CHECK(report0.buttons.in_range(button(1)));
+        CHECK(report0.buttons.in_range(button(3)));
+        CHECK(not report0.buttons.in_range(button(4)));
+        CHECK(not report0.buttons.set(button(4), true));
+        CHECK(report0.buttons.test(button(1)));
+        CHECK(not report0.buttons.test(button(2)));
+        CHECK(report0.buttons.test(button(3)));
+
+        CHECK(report0.buttons.flip(button(2)));
+        CHECK(report0.buttons.test(button(2)));
+        CHECK(report0.buttons.reset(button(2)));
+        CHECK(not report0.buttons.test(button(2)));
+
+        hid::app::mouse::report<0> report1;
+        report1.buttons.set(button(1), true);
+        report1.buttons.set(button(3), true);
+        CHECK(report0.buttons == report1.buttons);
+        report0.buttons.reset();
+        CHECK(report0.buttons != report1.buttons);
+    };
 };

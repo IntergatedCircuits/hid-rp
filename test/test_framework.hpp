@@ -1,3 +1,4 @@
+#include "report_printers.hpp"
 #include <boost/ut.hpp>
 
 #define SUITE(name) ::boost::ut::suite name = []
