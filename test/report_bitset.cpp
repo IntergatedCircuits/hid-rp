@@ -13,6 +13,7 @@ SUITE(report_bitset)
     TEST_CASE("size and membership")
     {
         static_assert(volume_bitset::size() == 3);
+        static_assert(volume_bitset::is_same_usage_page());
         static_assert(sizeof(volume_bitset) == 1);
 
         volume_bitset volume;
@@ -73,6 +74,12 @@ SUITE(report_bitset)
         // keys don't need to share a usage page or enumeration type
         using mixed_bitset = hid::report_bitset<consumer::MUTE, leds::NUM_LOCK, leds::CAPS_LOCK>;
         static_assert(mixed_bitset::size() == 3);
+        static_assert(not mixed_bitset::is_same_usage_page());
+
+        [[maybe_unused]] constexpr auto same_usage_descriptor =
+            volume_bitset::descriptor<hid::report::type::INPUT>();
+        [[maybe_unused]] constexpr auto mixed_usage_descriptor =
+            mixed_bitset::descriptor<hid::report::type::INPUT>();
 
         mixed_bitset mixed;
         CHECK(mixed.contains(consumer::MUTE));

@@ -15,12 +15,12 @@ SUITE(lamparray_)
             usage_page<hid::page::lighting_and_illumination>(),
             usage(hid::page::lighting_and_illumination::LAMP_ARRAY),
             collection::application(
-                lamp_array_attributes_report_descriptor<1>(),
-                lamp_attributes_request_report_descriptor<2>(),
-                lamp_attributes_response_report_descriptor<3>(),
-                lamp_multi_update_report_descriptor<4, 10>(),
-                lamp_range_update_report_descriptor<5>(),
-                control_report_descriptor<6>()
+                lamp_array_attributes_report<1>::descriptor(),
+                lamp_attributes_request_report<2>::descriptor(),
+                lamp_attributes_response_report<3>::descriptor(),
+                lamp_multi_update_report<4, 10>::descriptor(),
+                lamp_range_update_report<5>::descriptor(),
+                control_report<6>::descriptor()
             )
             // clang-format on
         );

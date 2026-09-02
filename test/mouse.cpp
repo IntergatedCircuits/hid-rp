@@ -52,7 +52,7 @@ SUITE(mouse_)
         constexpr auto rp0 = hid::report_protocol(desc0);
         static_assert(rp0.input_report_count == 1);
         static_assert(rp0.max_input_size == 3);
-        static_assert(sizeof(hid::app::mouse::report<0>) == 3);
+        static_assert(sizeof(hid::app::mouse::pointer_report<0>) == 3);
         static_assert(rp0.feature_report_count == 0);
         static_assert(rp0.max_feature_size == 0);
         static_assert(rp0.output_report_count == 0);
@@ -61,8 +61,8 @@ SUITE(mouse_)
 
         constexpr auto table0 = hid::make_report_properties_table<app_report_descriptor<0>()>();
         static_assert(table0.size() == 1);
-        static_assert(table0[0].selector == report<0>::selector());
-        static_assert(table0[0].size == sizeof(report<0>));
+        static_assert(table0[0].selector == pointer_report<0>::selector());
+        static_assert(table0[0].size == sizeof(pointer_report<0>));
 
         // test both compile-time and runtime
         static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
@@ -74,7 +74,7 @@ SUITE(mouse_)
         constexpr auto rp5 = hid::report_protocol(desc5);
         static_assert(rp5.input_report_count == 1);
         static_assert(rp5.max_input_size == 4);
-        static_assert(sizeof(hid::app::mouse::report<5>) == 4);
+        static_assert(sizeof(hid::app::mouse::pointer_report<5>) == 4);
         static_assert(rp5.feature_report_count == 0);
         static_assert(rp5.max_feature_size == 0);
         static_assert(rp5.output_report_count == 0);
@@ -83,8 +83,8 @@ SUITE(mouse_)
 
         constexpr auto table5 = hid::make_report_properties_table<app_report_descriptor<5>()>();
         static_assert(table5.size() == 1);
-        static_assert(table5[0].selector == report<5>::selector());
-        static_assert(table5[0].size == sizeof(report<5>));
+        static_assert(table5[0].selector == pointer_report<5>::selector());
+        static_assert(table5[0].size == sizeof(pointer_report<5>));
 
         // test both compile-time and runtime
         static_assert(hid::rdf::get_application_usage_id(rp5.descriptor) ==
@@ -99,7 +99,7 @@ SUITE(mouse_)
         constexpr auto rp0 = hid::report_protocol(desc0);
         static_assert(rp0.input_report_count == 1);
         static_assert(rp0.max_input_size == 7);
-        static_assert(sizeof(hid::app::mouse::report<0>) == 3);
+        static_assert(sizeof(hid::app::mouse::pointer_report<0>) == 3);
         static_assert(rp0.feature_report_count == 1);
         static_assert(rp0.max_feature_size == 1);
         static_assert(rp0.output_report_count == 0);
@@ -108,7 +108,7 @@ SUITE(mouse_)
 
         constexpr auto table0 = hid::make_report_properties_table<high_res_mouse_desc<0>()>();
         static_assert(table0.size() == 2);
-        static_assert(table0[0].selector == report<0>::selector());
+        static_assert(table0[0].selector == pointer_report<0>::selector());
         static_assert(table0[0].size == rp0.max_input_size);
         static_assert(table0[1].selector == resolution_multiplier_report<120, 0>::selector());
         static_assert(table0[1].size == sizeof(resolution_multiplier_report<120, 0>));
@@ -123,7 +123,7 @@ SUITE(mouse_)
         constexpr auto rp5 = hid::report_protocol(desc5);
         static_assert(rp5.input_report_count == 1);
         static_assert(rp5.max_input_size == 8);
-        static_assert(sizeof(hid::app::mouse::report<5>) == 4);
+        static_assert(sizeof(hid::app::mouse::pointer_report<5>) == 4);
         static_assert(rp5.feature_report_count == 1);
         static_assert(rp5.max_feature_size == 2);
         static_assert(rp5.output_report_count == 0);
@@ -132,7 +132,7 @@ SUITE(mouse_)
 
         constexpr auto table5 = hid::make_report_properties_table<high_res_mouse_desc<5>()>();
         static_assert(table5.size() == 2);
-        static_assert(table5[0].selector == report<5>::selector());
+        static_assert(table5[0].selector == pointer_report<5>::selector());
         static_assert(table5[0].size == rp5.max_input_size);
         static_assert(table5[1].selector == resolution_multiplier_report<120, 5>::selector());
         static_assert(table5[1].size == sizeof(resolution_multiplier_report<120, 5>));
@@ -149,13 +149,13 @@ SUITE(mouse_)
         using namespace hid::page;
 
         // report_bitset_range: HID-required behavior on a contiguous usage range
-        using buttons_bitset = decltype(hid::app::mouse::report<0>::buttons);
+        using buttons_bitset = decltype(hid::app::mouse::pointer_report<0>::buttons);
         static_assert(buttons_bitset::min() == button(1));
         static_assert(buttons_bitset::max() == button(3));
         static_assert(buttons_bitset::size() == 3);
-        static_assert(sizeof(hid::app::mouse::report<0>) == 3);
+        static_assert(sizeof(hid::app::mouse::pointer_report<0>) == 3);
 
-        hid::app::mouse::report<0> report0;
+        hid::app::mouse::pointer_report<0> report0;
         CHECK(not report0.buttons.test(button(1)));
         CHECK(report0.buttons.set(button(1), true));
         CHECK(report0.buttons.set(button(3), true));
@@ -172,7 +172,7 @@ SUITE(mouse_)
         CHECK(report0.buttons.reset(button(2)));
         CHECK(not report0.buttons.test(button(2)));
 
-        hid::app::mouse::report<0> report1;
+        hid::app::mouse::pointer_report<0> report1;
         report1.buttons.set(button(1), true);
         report1.buttons.set(button(3), true);
         CHECK(report0.buttons == report1.buttons);

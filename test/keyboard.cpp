@@ -122,4 +122,61 @@ SUITE(keyboard_)
         static_assert(hid::report::BootCompatibleData<boot_output_report>);
         static_assert(not hid::report::BootCompatibleData<output_report<5>>);
     };
+
+    TEST_CASE("backlight report descriptor")
+    {
+        constexpr auto desc0 = backlight::report_descriptor<>();
+        constexpr auto rp0 = hid::report_protocol::from_descriptor<desc0>();
+        static_assert(rp0.input_report_count == 1);
+        static_assert(rp0.max_input_size == 1);
+        static_assert(sizeof(backlight::input_report<0>) == 1);
+        static_assert(rp0.feature_report_count == 0);
+        static_assert(rp0.max_feature_size == 0);
+        static_assert(rp0.output_report_count == 1);
+        static_assert(rp0.max_output_size == 1);
+        static_assert(not rp0.uses_report_ids());
+
+        constexpr auto table0 =
+            hid::make_report_properties_table<backlight::report_descriptor<0>()>();
+        static_assert(table0.size() == 2);
+        static_assert(table0[0].selector == backlight::input_report<0>::selector());
+        static_assert(table0[0].size == sizeof(backlight::input_report<0>));
+        static_assert(table0[1].selector == backlight::output_report<0>::selector());
+        static_assert(table0[1].size == sizeof(backlight::output_report<0>));
+
+        static_assert(hid::rdf::get_application_usage_id(rp0.descriptor) ==
+                      consumer::KEYBOARD_BACKLIGHT);
+        CHECK(
+            hid::rdf::get_application_usage_id(
+                hid::rdf::descriptor_view::from_descriptor<backlight::report_descriptor<0>()>()) ==
+            consumer::KEYBOARD_BACKLIGHT);
+
+        // runtime descriptor with feature (presets)
+        static constexpr auto desc5 =
+            backlight::report_descriptor<5>(backlight::presets_report<2, 5>::descriptor());
+        constexpr auto rp5 = hid::report_protocol(desc5);
+        static_assert(rp5.input_report_count == 1);
+        static_assert(rp5.max_input_size == 2);
+        static_assert(sizeof(backlight::input_report<5>) == 2);
+        static_assert(rp5.feature_report_count == 1);
+        static_assert(rp5.max_feature_size == 3);
+        static_assert(rp5.output_report_count == 1);
+        static_assert(rp5.max_output_size == 2);
+        static_assert(rp5.uses_report_ids());
+
+        constexpr auto table5 = hid::make_report_properties_table<backlight::report_descriptor<5>(
+            backlight::presets_report<2, 5>::descriptor())>();
+        static_assert(table5.size() == 3);
+        static_assert(table5[0].selector == backlight::input_report<5>::selector());
+        static_assert(table5[0].size == sizeof(backlight::input_report<5>));
+        static_assert(table5[1].selector == backlight::output_report<5>::selector());
+        static_assert(table5[1].size == sizeof(backlight::output_report<5>));
+        static_assert(table5[2].selector == backlight::presets_report<2, 5>::selector());
+        static_assert(table5[2].size == sizeof(backlight::presets_report<2, 5>));
+
+        static_assert(hid::rdf::get_application_usage_id(rp5.descriptor) ==
+                      consumer::KEYBOARD_BACKLIGHT);
+        CHECK(hid::rdf::get_application_usage_id(hid::rdf::descriptor_view(desc5)) ==
+              consumer::KEYBOARD_BACKLIGHT);
+    };
 };

@@ -4,6 +4,7 @@
 #include <compare>
 #include <cstdint>
 #include <limits>
+#include <type_traits>
 
 namespace hid
 {
@@ -110,6 +111,14 @@ class usage_t
 {
   public:
     using type = std::uint32_t;
+
+    template <typename... T>
+    struct is_same_usage_types : std::true_type
+    {};
+
+    template <typename T, typename... U>
+    struct is_same_usage_types<T, U...> : std::bool_constant<(std::is_same_v<T, U> and ...)>
+    {};
 
     constexpr explicit usage_t(type value)
         : value_(value)

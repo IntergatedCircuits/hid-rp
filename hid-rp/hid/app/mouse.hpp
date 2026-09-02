@@ -10,10 +10,16 @@
 
 namespace hid::app::mouse
 {
+/// @brief  A mouse input report, conforming to the HID boot protocol,
+///         with an option to increase the number of buttons in the report.
+/// @tparam REPORT_ID: the report ID of the input report, 0 for boot protocol
+/// @tparam BUTTONS_COUNT: the number of buttons in the report, 3 for boot protocol
 template <uint8_t REPORT_ID = 0, std::size_t BUTTONS_COUNT = 3>
-struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
+struct pointer_report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
 {
-    hid::report_bitset_range<page::button(1), page::button(BUTTONS_COUNT)> buttons;
+    using buttons_t = hid::report_bitset_range<page::button(1), page::button(BUTTONS_COUNT)>;
+
+    buttons_t buttons;
     std::int8_t x{};
     std::int8_t y{};
 
@@ -24,16 +30,43 @@ struct report : public hid::report::base<hid::report::type::INPUT, REPORT_ID>
     }
 
     static constexpr boot::mode boot_mode()
-        requires((REPORT_ID == 0) and (BUTTONS_COUNT == 3))
     {
-        return boot::mode::MOUSE;
+        if constexpr ((REPORT_ID == 0) and (BUTTONS_COUNT == 3))
+        {
+            return boot::mode::MOUSE;
+        }
+        else
+        {
+            return boot::mode::NONE;
+        }
+    }
+
+    [[nodiscard]] static constexpr auto descriptor()
+    {
+        using namespace hid::page;
+        using namespace hid::rdf;
+
+        // clang-format off
+        return rdf::descriptor(
+            conditional_report_id<REPORT_ID>(),
+            usage_page<button>(),
+            buttons_t::template descriptor<hid::report::type::INPUT>(),
+            usage_page<generic_desktop>(),
+            usage(generic_desktop::X),
+            usage(generic_desktop::Y),
+            logical_limits<1, 1>(-127, 127),
+            report_count(2),
+            report_size(8),
+            input::relative_variable()
+        );
+        // clang-format on
     }
 };
 
 // Boot protocol has predefined report layout
-struct boot_report final : report<0, 3>
+struct boot_report final : pointer_report<0, 3>
 {
-    using report::report;
+    using pointer_report::pointer_report;
 };
 
 template <uint8_t REPORT_ID = 0, std::size_t BUTTONS_COUNT = 3>
@@ -49,29 +82,31 @@ template <uint8_t REPORT_ID = 0, std::size_t BUTTONS_COUNT = 3>
         collection::application(
             usage(generic_desktop::POINTER),
             collection::physical(
-                conditional_report_id<REPORT_ID>(),
-                // buttons
-                usage_page<button>(),
-                usage_limits<1, 1>(button(1), button(BUTTONS_COUNT)),
-                logical_limits<1, 1>(0, 1),
-                report_count(BUTTONS_COUNT),
-                report_size(1),
-                input::absolute_variable(),
-                input::byte_padding<BUTTONS_COUNT>(),
-
-                // relative directions
-                usage_page<generic_desktop>(),
-                usage(generic_desktop::X),
-                usage(generic_desktop::Y),
-                logical_limits<1, 1>(-127, 127),
-                report_count(2),
-                report_size(8),
-                input::relative_variable()
+                pointer_report<REPORT_ID, BUTTONS_COUNT>::descriptor()
             )
         )
     );
     // clang-format on
 }
+
+/// @defgroup mouse_high_res_scroll Mouse High Resolution Scrolling
+/// @brief    Utilities for using high-resolution scrolling in mouse applications
+/// @details  High-resolution scrolling allows a host OS to activate this feature on a mouse.
+///           The specification is written by Microsoft:
+///           https://learn.microsoft.com/en-us/previous-versions/windows/hardware/design/dn613912(v=vs.85)
+///           Windows (since Vista) and Linux (since 5.0) have support, not without issues though
+/// @warning  This feature has the following problems on Linux:
+///           - The mouse must use report IDs, otherwise the kernel fails to enable it,
+///             see: https://bugzilla.kernel.org/show_bug.cgi?id=220144
+///           - (Until 6.19) The resolution multiplier isn't set on the device after a
+///             suspend/resume cycle, see: https://bugzilla.kernel.org/show_bug.cgi?id=203421
+/// @warning  This feature has the following problems on Windows:
+///           - The resolution multiplier isn't set on the device after a Fast startup boot,
+///             or after a suspend/resume cycle.
+///             A possible workaround is using MSOS descriptors in the USB device, and overwrite the
+///             multiplier to high resolution when the host fetches the Windows-specific
+///             descriptors.
+/// @{
 
 [[nodiscard]] constexpr uint8_t resolution_multiplier_bit_size()
 {
@@ -79,8 +114,12 @@ template <uint8_t REPORT_ID = 0, std::size_t BUTTONS_COUNT = 3>
     return 2;
 }
 
-// https://learn.microsoft.com/en-us/previous-versions/windows/hardware/design/dn613912(v=vs.85)
-// This item only takes two bits in the feature report, byte padding is the caller's responsibility!
+/// @brief  Defines the descriptor items for a HID control to associate a resolution multiplier
+///         value with it in a HID feature report.
+/// @note   This descriptor block is assuming the current usage page is generic_desktop
+/// @note   This item only takes two bits in the feature report, no byte padding
+/// @tparam MULTIPLIER_MAX: the maximum value of the resolution multiplier (valid range is 1-120)
+/// @return the HID report descriptor items
 template <uint8_t MULTIPLIER_MAX>
 [[nodiscard]] constexpr auto resolution_multiplier()
 {
@@ -101,9 +140,12 @@ template <uint8_t MULTIPLIER_MAX>
     // clang-format on
 }
 
-// Use a report ID for Linux compatibility
-// until https://bugzilla.kernel.org/show_bug.cgi?id=220144 is resolved
-template <uint8_t MULTIPLIER_MAX, uint8_t REPORT_ID = 0>
+/// @brief  Defines a HID feature report to store the resolution multiplier values for vertical and
+///         horizontal scrolling.
+/// @tparam MULTIPLIER_MAX: the maximum value of the resolution multiplier (valid range is 1-120)
+/// @tparam REPORT_ID: the report ID of the feature report, don't use 0 for Linux compatibility:
+///         https://bugzilla.kernel.org/show_bug.cgi?id=220144
+template <uint8_t MULTIPLIER_MAX, uint8_t REPORT_ID>
 struct resolution_multiplier_report
     : public hid::report::base<hid::report::type::FEATURE, REPORT_ID>
 {
@@ -122,11 +164,11 @@ struct resolution_multiplier_report
     }
 };
 
-/// @brief Creates the descriptor block for high resolution scrolling for a mouse pointer
-/// collection.
-/// @note This descriptor block is assuming the current usage page is generic_desktop
-/// @tparam MAX_SCROLL the maximum scroll value for Wheel and AC Pan usages
-/// @tparam MULTIPLIER_MAX the maximum value of the resolution multiplier (valid range is 1-120)
+/// @brief  Creates the descriptor block for high resolution scrolling, that is to be inserted
+///         into a mouse pointer collection.
+/// @note   This descriptor block is assuming the current usage page is generic_desktop
+/// @tparam MAX_SCROLL: the maximum scroll value for Wheel and AC Pan usages
+/// @tparam MULTIPLIER_MAX: the maximum value of the resolution multiplier (valid range is 1-120)
 /// @return the descriptor block
 template <int16_t MAX_SCROLL, uint8_t MULTIPLIER_MAX>
 [[nodiscard]] constexpr auto high_resolution_scrolling()
@@ -154,5 +196,13 @@ template <int16_t MAX_SCROLL, uint8_t MULTIPLIER_MAX>
     );
     // clang-format on
 }
+
+/// @}
+
+/// @brief   A bitset to store the motion wakeup state of a mouse, as a report field.
+/// @details The motion wakeup state is a single bit in a feature report, that the host can set
+///          to allow the device to send USB remote wake-up signal on motion
+///          (vs only on button press).
+using motion_wakeup_bit = report_bitset<page::generic_desktop::MOTION_WAKEUP>;
 
 } // namespace hid::app::mouse

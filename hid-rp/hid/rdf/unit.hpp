@@ -179,6 +179,7 @@ using coulomb = base<code::COULOMB>;
 using farad = base<code::FARAD>;
 using henry = base<code::HENRY>;
 using lux = base<code::LUX>;
+using nit = lux;
 using ohm = base<code::OHM>;
 using siemens = base<code::SIEMENS>;
 using tesla = base<code::TESLA>;

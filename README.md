@@ -1,7 +1,9 @@
-# HID report descriptor format library
+# HID report protocol library
+
+![Build and test](https://github.com/IntergatedCircuits/hid-rp/actions/workflows/cmake-multi-platform.yml/badge.svg)
 
 This project utilizes C++20 language features (notably `constexpr`) to implement a unified standalone, header-only library
-for creating and parsing HID report descriptors. It's designed to ease the HID report protocol handling
+for defining HID reports and dealing with HID report descriptors. It's designed to ease the HID report protocol handling
 on both the HID device and host side.
 
 ## Features
@@ -13,6 +15,7 @@ on both the HID device and host side.
 * Compile-time size and content calculation for **HID over GATT** Report characteristics and Report Reference characteristic descriptors by `hid::make_report_selector_table`
 * HID report descriptor printing support - including all defined usage names - by
 `std::formatter<hid::rdf::descriptor_view_base<TIterator>>`
+* Helper classes for report data access and keeping data structures and report descriptor in sync
 
 ## Getting started
 
@@ -27,9 +30,9 @@ a multiple TLC protocol.
 Your own report descriptor can be copy-pasted into `test/imported_descriptor.cpp`, and a local or CI build
 will give you feedback on whether any errors are present in the descriptor.
 
-### [c2usb-zephyr-examples][c2usb-zephyr-examples]
+### [c2usb][c2usb]
 
-A collection of USB and BLE HID device example applications running on Zephyr RTOS.
+A USB and BLE HID project with example device applications running on platforms such as Zephyr RTOS.
 
 ### [stm32-i2c-hid][stm32-i2c-hid]
 
@@ -41,6 +44,7 @@ The HID **report descriptor format** (HID RDF) is a unique descriptor format tha
 An HID peripheral device uses this descriptor to explain the internal layout of its messages to the host system.
 This descriptor is therefore fixed at design time on the peripheral device, while the host system has to parse it
 to understand the purpose(s) of the peripheral and its messages (known as reports).
+For a more practical explanation, read [this guide][understanding-hid-rdf].
 
 As the format is designed to consume the least amount of resources (non-volatile memory), it is condensed,
 meaning that each item's size can vary between 1 and 5 bytes, depending on the size of the value carried in it.
@@ -84,8 +88,8 @@ const unsigned char mouse_report_desc[] = {
 And while this certainly can be improved by [clever use of macros](https://github.com/IntergatedCircuits/HidReportDef/blob/8e77498e0e8f4bf4ba57a64ee958ba134de2a37e/include/hid/mouse.h#L35),
 the result could be vastly improved by using the C++ compiler instead of the preprocessor.
 
-Taking into consideration the more and more powerful `constexpr` capabilities of C++,
-we can create a design that isn't only simpler to code, but that can perform compile-time verification
+Taking into consideration the more and more powerful template and `constexpr` capabilities of C++,
+we can create a design that isn't only simpler to decompose and program, but that can perform compile-time verification
 and extract relevant properties of the resulting descriptor.
 
 ## Design
@@ -153,8 +157,9 @@ that is relevant for the various transport layers of the HID device. It collects
 and the maximum used report ID as well (of each type of report).
 
 [USB-HID]: https://www.usb.org/sites/default/files/hid1_11.pdf
+[understanding-hid-rdf]: https://who-t.blogspot.com/2018/12/understanding-hid-report-descriptors.html
 [hid-usage-tables]: https://github.com/IntergatedCircuits/hid-usage-tables
 [stm32-i2c-hid]: https://github.com/benedekkupper/stm32-i2c-hid
-[c2usb-zephyr-examples]: https://github.com/IntergatedCircuits/c2usb-zephyr-examples
+[c2usb]: https://github.com/IntergatedCircuits/c2usb
 [linux-hidintro]: https://docs.kernel.org/hid/hidintro.html
 [windows-hidintro]: https://learn.microsoft.com/en-us/windows-hardware/drivers/hid/

@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cassert>
+#include "hid/rdf/descriptor.hpp"
 #include "hid/report.hpp"
 #include "hid/usage.hpp"
 #include "sized_unsigned.hpp"
@@ -23,12 +24,29 @@ class report_bitset_range
     using numeric_type = sized_unsigned_t<sizeof(T)>;
 
   public:
-    constexpr static T min() { return MIN; }
-    constexpr static T max() { return MAX; }
+    [[nodiscard]] static constexpr T min() { return MIN; }
+    [[nodiscard]] static constexpr T max() { return MAX; }
     static_assert(min() <= max());
-    constexpr static std::size_t size()
+    [[nodiscard]] static constexpr std::size_t size()
     {
         return static_cast<std::size_t>(max()) - static_cast<std::size_t>(min()) + 1;
+    }
+
+    template <report::type TYPE>
+    [[nodiscard]] static constexpr auto descriptor()
+    {
+        using namespace hid::page;
+        using namespace hid::rdf;
+        // clang-format off
+        return rdf::descriptor(
+            report_size(1),
+            report_count(size()),
+            logical_limits<1, 1>(0, 1),
+            usage_limits(min(), max()),
+            main::data_field<TYPE>::absolute_variable(),
+            main::data_field<TYPE>::template byte_padding<size()>()
+        );
+        // clang-format on
     }
 
     [[nodiscard]] constexpr bool in_range(T usage) const
@@ -86,7 +104,47 @@ class report_bitset
     static constexpr std::array<usage_t, sizeof...(Keys)> keys{usage_t(Keys)...};
 
   public:
-    constexpr static std::size_t size() { return sizeof...(Keys); }
+    [[nodiscard]] static constexpr std::size_t size() { return sizeof...(Keys); }
+    [[nodiscard]] static constexpr bool is_same_usage_page()
+    {
+        return usage_t::is_same_usage_types<decltype(Keys)...>::value;
+    }
+
+    template <report::type TYPE>
+    [[nodiscard]] static constexpr auto descriptor()
+        requires(is_same_usage_page())
+    {
+        using namespace hid::page;
+        using namespace hid::rdf;
+        // clang-format off
+        return rdf::descriptor(
+            report_size(1),
+            report_count(size()),
+            logical_limits<1, 1>(0, 1),
+            usage(Keys)...,
+            main::data_field<TYPE>::absolute_variable(),
+            main::data_field<TYPE>::template byte_padding<size()>()
+        );
+        // clang-format on
+    }
+
+    template <report::type TYPE>
+    [[nodiscard]] static constexpr auto descriptor()
+        requires(not is_same_usage_page())
+    {
+        using namespace hid::page;
+        using namespace hid::rdf;
+        // clang-format off
+        return hid::rdf::descriptor(
+            report_size(1),
+            report_count(size()),
+            logical_limits<1, 1>(0, 1),
+            usage_extended(Keys)...,
+            main::data_field<TYPE>::absolute_variable(),
+            main::data_field<TYPE>::template byte_padding<size()>()
+        );
+        // clang-format on
+    }
 
     template <UsageType T>
     [[nodiscard]] constexpr bool contains(T usage) const

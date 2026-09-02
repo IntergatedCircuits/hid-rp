@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include "hid/rdf/descriptor.hpp"
 #include "sized_unsigned.hpp"
 
 namespace hid
@@ -19,6 +20,22 @@ class report_array
         std::conditional_t<std::is_same_v<T, TStorage>, T, sized_unsigned_t<sizeof(T)>>;
 
   public:
+    template <report::type TYPE, UsageType TUsage>
+    [[nodiscard]] static constexpr auto descriptor(TUsage max_usage)
+    {
+        using namespace hid::page;
+        using namespace hid::rdf;
+        return rdf::descriptor(
+            // clang-format off
+            report_size(sizeof(T) * 8),
+            report_count(SIZE),
+            logical_limits<1, sizeof(T)>(0, max_usage),
+            usage_limits(nullusage, max_usage),
+            main::data_field<TYPE>::array()
+            // clang-format on
+        );
+    }
+
     bool set(T usage, bool value = true)
     {
         auto num = static_cast<numeric_type>(usage);

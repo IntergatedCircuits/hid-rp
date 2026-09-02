@@ -34,6 +34,7 @@ target_sources(${PROJECT_NAME}-test
         mouse.cpp
         opaque.cpp
         report_bitset.cpp
+        call_state_control.cpp
 )
 target_link_libraries(${PROJECT_NAME}-test
     PRIVATE
