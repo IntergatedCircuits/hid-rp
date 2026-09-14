@@ -69,4 +69,9 @@ template <std::size_t... sz>
            short_item<1>(local::tag::DELIMITER, 0);
 }
 
+constexpr auto string_index(uint8_t value)
+{
+    return short_item<1>(local::tag::STRING_INDEX, value);
+}
+
 } // namespace hid::rdf
