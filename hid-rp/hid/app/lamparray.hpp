@@ -85,6 +85,7 @@ struct lamp_array_attributes_report
     } bounding_box;                        // all in micrometers, regardless of unit in descriptor
     packed_integer<4> min_update_interval; // in microseconds, regardless of unit in descriptor
     lamparray::kind kind{};
+    std::array<std::byte, 3> _padding{};
 
     [[nodiscard]] static constexpr auto descriptor()
     {
@@ -94,34 +95,30 @@ struct lamp_array_attributes_report
 
         // clang-format off
         return rdf::descriptor(
-            usage(lighting::LAMP_ARRAY_ATTRIBUTES_REPORT),
             report_id(REPORT_ID),
+            usage(lighting::LAMP_ARRAY_ATTRIBUTES_REPORT),
             collection::logical(
                 usage(lighting::LAMP_COUNT),
-                logical_limits<1, 4>(1, std::numeric_limits<std::uint16_t>::max()),
+                logical_limits<1, 4>(0, std::numeric_limits<std::uint16_t>::max()),
                 report_size(16),
                 report_count(1),
-                feature::absolute_variable(),
+                feature::absolute_constant(),
                 usage(lighting::BOUNDING_BOX_WIDTH_UM),
                 usage(lighting::BOUNDING_BOX_HEIGHT_UM),
                 usage(lighting::BOUNDING_BOX_DEPTH_UM),
                 usage(lighting::MINIMAL_UPDATE_INTERVAL_US),
+                usage(lighting::LAMP_ARRAY_KIND),
                 logical_limits<1, 4>(0, std::numeric_limits<std::int32_t>::max()),
                 report_size(32),
-                report_count(4),
-                feature::absolute_variable(),
-                usage(lighting::LAMP_ARRAY_KIND),
-                logical_limits<1, 1>(0, std::numeric_limits<std::int8_t>::max()),
-                report_size(8),
-                report_count(1),
-                feature::absolute_variable()
+                report_count(5),
+                feature::absolute_constant()
             )
         );
         // clang-format on
     }
 };
 
-template <std::uint8_t REPORT_ID, std::size_t LAMP_ID_SIZE = 1>
+template <std::uint8_t REPORT_ID, std::size_t LAMP_ID_SIZE = 2>
 struct lamp_attributes_request_report
     : public hid::report::base<hid::report::type::FEATURE, REPORT_ID>
 {
@@ -134,8 +131,8 @@ struct lamp_attributes_request_report
         using lighting = hid::page::lighting_and_illumination;
         // clang-format off
         return rdf::descriptor(
-            usage(lighting::LAMP_ATTRIBUTES_REQUEST_REPORT),
             report_id(REPORT_ID),
+            usage(lighting::LAMP_ATTRIBUTES_REQUEST_REPORT),
             collection::logical(
                 usage(lighting::LAMP_ID),
                 logical_limits<1, LAMP_ID_SIZE * 2>(0, std::numeric_limits<sized_unsigned_t<LAMP_ID_SIZE>>::max()),
@@ -148,7 +145,7 @@ struct lamp_attributes_request_report
     }
 };
 
-template <std::uint8_t REPORT_ID, std::size_t LAMP_ID_SIZE = 1>
+template <std::uint8_t REPORT_ID, std::size_t LAMP_ID_SIZE = 2>
 struct lamp_attributes_response_report
     : public hid::report::base<hid::report::type::FEATURE, REPORT_ID>
 {
@@ -161,6 +158,7 @@ struct lamp_attributes_response_report
     } position;                       // all in micrometers, regardless of unit in descriptor
     packed_integer<4> update_latency; // in microseconds, regardless of unit in descriptor
     lamparray::purposes purposes{};
+    std::array<std::byte, 3> _padding{};
     uint8_t red_level_count{};
     uint8_t green_level_count{};
     uint8_t blue_level_count{};
@@ -176,8 +174,8 @@ struct lamp_attributes_response_report
 
         // clang-format off
         return rdf::descriptor(
-            usage(lighting::LAMP_ATTRIBUTES_RESPONSE_REPORT),
             report_id(REPORT_ID),
+            usage(lighting::LAMP_ATTRIBUTES_RESPONSE_REPORT),
             collection::logical(
                 usage(lighting::LAMP_ID),
                 logical_limits<1, LAMP_ID_SIZE * 2>(0, std::numeric_limits<sized_unsigned_t<LAMP_ID_SIZE>>::max()),
@@ -188,20 +186,20 @@ struct lamp_attributes_response_report
                 usage(lighting::POSITION_Y_UM),
                 usage(lighting::POSITION_Z_UM),
                 usage(lighting::UPDATE_LATENCY_US),
+                usage(lighting::LAMP_PURPOSES),
                 logical_limits<1, 4>(0, std::numeric_limits<std::int32_t>::max()),
                 report_size(32),
-                report_count(4),
+                report_count(5),
                 feature::absolute_variable(),
-                usage(lighting::LAMP_PURPOSES),
                 usage(lighting::RED_LEVEL_COUNT),
                 usage(lighting::GREEN_LEVEL_COUNT),
                 usage(lighting::BLUE_LEVEL_COUNT),
                 usage(lighting::INTENSITY_LEVEL_COUNT),
                 usage(lighting::PROGRAMMABLE),
                 usage(lighting::INPUT_BINDING),
-                logical_limits<1, 2>(0, 255),
+                logical_limits<1, 2>(0, std::numeric_limits<std::uint8_t>::max()),
                 report_size(8),
-                report_count(7),
+                report_count(6),
                 feature::absolute_variable()
             )
         );
@@ -217,7 +215,7 @@ struct rgbi_tuple
     packed_integer<1> intensity;
 };
 
-template <std::uint8_t REPORT_ID, std::size_t MAX_LAMP_COUNT, std::size_t LAMP_ID_SIZE = 1>
+template <std::uint8_t REPORT_ID, std::size_t MAX_LAMP_COUNT, std::size_t LAMP_ID_SIZE = 2>
 struct lamp_multi_update_report : public hid::report::base<hid::report::type::FEATURE, REPORT_ID>
 {
     packed_integer<byte_width(MAX_LAMP_COUNT)> lamp_count{};
@@ -240,11 +238,11 @@ struct lamp_multi_update_report : public hid::report::base<hid::report::type::FE
                 usage(lighting::INTENSITY_UPDATE_CHANNEL));
 
         return rdf::descriptor(
-            usage(lighting::LAMP_MULTI_UPDATE_REPORT),
             report_id(REPORT_ID),
+            usage(lighting::LAMP_MULTI_UPDATE_REPORT),
             collection::logical(
                 usage(lighting::LAMP_COUNT),
-                logical_limits<1, byte_width(int(MAX_LAMP_COUNT))>(1, MAX_LAMP_COUNT),
+                logical_limits<1, byte_width(int(MAX_LAMP_COUNT))>(0, MAX_LAMP_COUNT),
                 report_size(byte_width(MAX_LAMP_COUNT) * 8),
                 report_count(1),
                 feature::absolute_variable(),
@@ -258,9 +256,9 @@ struct lamp_multi_update_report : public hid::report::base<hid::report::type::FE
                 report_count(MAX_LAMP_COUNT),
                 feature::absolute_variable(),
                 rgbi_usages.repeat<MAX_LAMP_COUNT>(),
-                logical_limits<1, 2>(0, 255),
+                logical_limits<1, 2>(0, std::numeric_limits<std::uint8_t>::max()),
                 report_size(8),
-                report_count(MAX_LAMP_COUNT),
+                report_count(MAX_LAMP_COUNT * 4),
                 feature::absolute_variable()
             )
         );
@@ -268,7 +266,7 @@ struct lamp_multi_update_report : public hid::report::base<hid::report::type::FE
     }
 };
 
-template <std::uint8_t REPORT_ID, std::size_t LAMP_ID_SIZE = 1>
+template <std::uint8_t REPORT_ID, std::size_t LAMP_ID_SIZE = 2>
 struct lamp_range_update_report : public hid::report::base<hid::report::type::FEATURE, REPORT_ID>
 {
     lamparray::update_flags update_flags{};
@@ -283,8 +281,8 @@ struct lamp_range_update_report : public hid::report::base<hid::report::type::FE
         using lighting = hid::page::lighting_and_illumination;
         // clang-format off
         return rdf::descriptor(
-            usage(lighting::LAMP_RANGE_UPDATE_REPORT),
             report_id(REPORT_ID),
+            usage(lighting::LAMP_RANGE_UPDATE_REPORT),
             collection::logical(
                 usage(lighting::LAMP_UPDATE_FLAGS),
                 logical_limits<1, 1>(0, 1),
@@ -324,8 +322,8 @@ struct control_report : public hid::report::base<hid::report::type::FEATURE, REP
 
         // clang-format off
         return rdf::descriptor(
-            usage(lighting::LAMP_ARRAY_CONTROL_REPORT),
             report_id(REPORT_ID),
+            usage(lighting::LAMP_ARRAY_CONTROL_REPORT),
             collection::logical(
                 logical_limits<1, 1>(0, 1),
                 usage(lighting::AUTONOMOUS_MODE),

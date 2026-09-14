@@ -28,7 +28,7 @@ SUITE(lamparray_)
         static_assert(rp.input_report_count == 0);
         static_assert(rp.max_input_size == 0);
         static_assert(rp.feature_report_count == 6);
-        static_assert(rp.max_feature_size == 25);
+        static_assert(rp.max_feature_size == 63);
         static_assert(rp.output_report_count == 0);
         static_assert(rp.max_output_size == 0);
         static_assert(rp.uses_report_ids());
